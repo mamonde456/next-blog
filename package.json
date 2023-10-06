@@ -14,9 +14,15 @@
     "@types/react-dom": "18.2.7",
     "eslint": "8.47.0",
     "eslint-config-next": "13.4.19",
+    "gray-matter": "^4.0.3",
     "next": "13.4.19",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-showdown": "^2.3.1",
     "typescript": "5.1.6"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.1",
+    "fs-extra": "^11.1.1"
   }
 }
