@@ -2,42 +2,22 @@ import Link from "next/link";
 import fs from "fs-extra";
 import path from "path";
 import matter from "gray-matter";
-import { Fragment } from "react";
+import { Fragment, useEffect, useState } from "react";
+import styled from "styled-components";
 
 interface props {
   metaArr: [{ title: string; slog: string; created_at: string }];
   consoleData: any;
 }
 
-export default function Home({ metaArr }: props) {
-  if (!window.indexedDB) {
-    alert(
-      "Your browser doesn't support a stable version of IndexedDB. Such and such feature will not be available."
-    );
-  } else {
-    // window.indexedDB = window.indexedDB;
-    // window.IDBTransaction = window.IDBTransaction;
-    // window.IDBKeyRange = window.IDBKeyRange;
-    const req = window.indexedDB.open("test", 2);
-    req.onerror = function (e) {
-      console.log("error ", e);
-    };
-    req.onupgradeneeded = function (e) {
-      console.log("su", e);
-      // Save the IDBDatabase interface
-      if (!e.target) return;
-      var db = e.target.result;
-      console.log(db);
+const Box = styled.div``;
 
-      // Create an objectStore for this database
-      var objectStore = db.createObjectStore("name", { keyPath: "myKey" });
-      console.log(objectStore);
-    };
-  }
+export default function Home({ metaArr }: props) {
   return (
     <div>
       <h1>Hello, my Blog</h1>
       <h3>Blog List</h3>
+      <Link href={"saves"}>임시글</Link>
       <div>
         <>
           {metaArr?.map((el) => (
@@ -55,8 +35,8 @@ export default function Home({ metaArr }: props) {
 
 export const getStaticProps = async () => {
   const file = await fs.readdir(path.join("__post"));
-  console.log(path.join("post/slog"));
-  console.log(file);
+  // console.log(path.join("post/slog"));
+  // console.log(file);
 
   const metaArr = [];
   for (let i = 0; i < file.length; i++) {
