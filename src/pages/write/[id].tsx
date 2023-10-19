@@ -1,7 +1,8 @@
 import { useRouter } from "next/router";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import styled from "styled-components";
+import { v4 as uuidv4 } from "uuid";
 
 const Wrapper = styled.div`
   display: flex;
@@ -29,6 +30,37 @@ export default function Write() {
   const [text, setText] = useState("");
   const [title, setTitle] = useState("");
   const router = useRouter();
+
+  useEffect(() => {
+    if (window) {
+      const open = indexedDB.open("test", 2);
+      open.onupgradeneeded = function () {
+        const db = open.result;
+        db.createObjectStore("MyObjectStore", { keyPath: "id" });
+      };
+
+      open.onsuccess = function () {
+        const db = open.result;
+        const tx = db.transaction("MyObjectStore", "readonly");
+        const store = tx.objectStore("MyObjectStore");
+
+        const request = store.openCursor();
+        request.onsuccess = function (e: any) {
+          const cursor = e?.target?.result;
+          if (cursor) {
+            console.log(cursor.value.post);
+            console.log(router);
+
+            if (cursor.key === router.query.id) {
+              setTitle(cursor.value.post.title);
+              setText(cursor.value.post.text);
+            }
+            cursor.continue();
+          }
+        };
+      };
+    }
+  }, []);
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -80,7 +112,7 @@ export default function Write() {
         const store = tx.objectStore("MyObjectStore");
 
         // add post data
-        store.put({ id: Date.now(), post: { title, text } });
+        store.put({ id: router.query.id, post: { title, text } });
 
         //query the post data
         const request = store.openCursor();
@@ -112,11 +144,14 @@ export default function Write() {
           type="text"
           name="title"
           required
+          defaultValue={title}
           onChange={(e) => setTitle(e.currentTarget.value)}
         ></input>
         <label>content</label>
         <TextEditor
           name="text"
+          required
+          defaultValue={text}
           onChange={(e) => setText(e.currentTarget.value)}
         />
         <BtnBox>
