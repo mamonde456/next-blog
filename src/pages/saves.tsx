@@ -1,7 +1,9 @@
+import { useRouter } from "next/router";
 import { Fragment, useEffect, useState } from "react";
 
 export default function Saves() {
   const [postList, setPostList] = useState<{ [key: string]: any }[]>([]);
+  const router = useRouter();
   useEffect(() => {
     if (!window) {
       alert(
@@ -74,7 +76,9 @@ export default function Saves() {
       {postList?.map((el) => {
         return (
           <Fragment key={el.id}>
-            <p>{el.post.title}</p>
+            <p onClick={() => router.push(`/write/${el.id}`)}>
+              {el.post.title}
+            </p>
           </Fragment>
         );
       })}
