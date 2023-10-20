@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import fs from "fs-extra";
 import path from "path";
+import { v4 as uuidv4 } from "uuid";
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   // 클라이언트에서 보낸 마크다운 내용
@@ -14,7 +15,21 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   // const title = data.split("#")[1].trim().split("\n")[0];
-  const slog = reTitle.replaceAll(" ", "-").replaceAll(".", "");
+
+  const textReplaceAll = (text: string) => {
+    const title = text
+      .replaceAll(" ", "-")
+      .replaceAll(".", "")
+      .replaceAll("--", "-")
+      .replaceAll("?", "");
+
+    if (title) {
+      return title;
+    }
+    return uuidv4();
+  };
+
+  const slog = textReplaceAll(reTitle);
   // if (!title) return;
 
   const meta = `---
