@@ -10,26 +10,58 @@ interface props {
   consoleData: any;
 }
 
-const Box = styled.div``;
+const Wrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 50px;
+`;
+
+const InfoList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  nav {
+    display: flex;
+    gap: 10px;
+    justify-content: space-around;
+  }
+`;
+
+const BoxList = styled.div`
+  display: grid;
+  grid-area: wrap;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+`;
+const Box = styled.div`
+  width: 150px;
+  height: 150px;
+  border-radius: 20px;
+  background: #ece6e6;
+`;
 
 export default function Home({ metaArr }: props) {
   return (
-    <div>
-      <h1>Hello, my Blog</h1>
-      <h3>Blog List</h3>
-      <Link href={"saves"}>임시글</Link>
+    <Wrapper>
+      <InfoList>
+        <h1>Hello, my Blog</h1>
+        <nav>
+          <Link href={"/"}>게시글</Link>
+          <Link href={"saves"}>임시글</Link>
+        </nav>
+      </InfoList>
       <div>
-        <>
+        <h3>Blog List</h3>
+        <BoxList>
           {metaArr?.map((el) => (
-            <Fragment key={el.slog}>
-              <p>
-                <Link href={`/posts/${el.slog}`}>{el.title}</Link>
-              </p>
-            </Fragment>
+            <Link key={el.slog} href={`/posts/${el.slog}`}>
+              <Box>{el.title}</Box>
+            </Link>
           ))}
-        </>
+        </BoxList>
       </div>
-    </div>
+    </Wrapper>
   );
 }
 
