@@ -38,10 +38,11 @@ export default function Header() {
   const router = useRouter();
   const [id, setId] = useState("");
   useEffect(() => {
-    setId(uuidv4());
-    console.log(uuidv4());
-    console.log(router);
-  }, []);
+    const newId = uuidv4();
+
+    if (id !== newId) setId(newId);
+    else return;
+  }, [router]);
   return (
     <Wrapper>
       <nav>
