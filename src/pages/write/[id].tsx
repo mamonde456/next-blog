@@ -2,11 +2,12 @@ import { useRouter } from "next/router";
 import { FormEvent, useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import styled from "styled-components";
-import { v4 as uuidv4 } from "uuid";
 
 const Wrapper = styled.div`
+  padding: 20px;
   display: flex;
   gap: 50px;
+  justify-content: center;
 `;
 const Form = styled.form`
   width: 45%;
@@ -16,10 +17,31 @@ const Form = styled.form`
 const TextEditor = styled.textarea`
   height: 500px;
 `;
+
+const Title = styled.h1`
+  width: 100%;
+  max-width: 500px;
+  max-height: 90px;
+  overflow-y: scroll;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+`;
+
+const Text = styled.div`
+  width: 100%;
+  max-width: 500px;
+  max-height: 450px;
+  overflow-y: scroll;
+`;
 const BtnBox = styled.div`
   text-align: right;
 `;
-const TextPriveiw = styled.div``;
+const TextPriveiw = styled.div`
+  width: 45%;
+`;
 
 const BackBtn = styled.button`
   position: absolute;
@@ -32,6 +54,8 @@ export default function Write() {
   const router = useRouter();
 
   useEffect(() => {
+    setText("");
+    setTitle("");
     if (window) {
       const open = indexedDB.open("test", 2);
       open.onupgradeneeded = function () {
@@ -48,9 +72,6 @@ export default function Write() {
         request.onsuccess = function (e: any) {
           const cursor = e?.target?.result;
           if (cursor) {
-            console.log(cursor.value.post);
-            console.log(router);
-
             if (cursor.key === router.query.id) {
               setTitle(cursor.value.post.title);
               setText(cursor.value.post.text);
@@ -77,6 +98,10 @@ export default function Write() {
 
     if (!response.ok) {
       throw new Error("Server error");
+    } else if (response.ok) {
+      router.push("/");
+      setText("");
+      setTitle("");
     }
 
     return await response.json();
@@ -160,8 +185,10 @@ export default function Write() {
         </BtnBox>
       </Form>
       <TextPriveiw>
-        <h1>{title}</h1>
-        <ReactMarkdown>{text}</ReactMarkdown>
+        <Title>{title}</Title>
+        <Text>
+          <ReactMarkdown>{text}</ReactMarkdown>
+        </Text>
       </TextPriveiw>
       <BackBtn onClick={() => router.push("/")}>{"< 뒤로가기"}</BackBtn>
     </Wrapper>
