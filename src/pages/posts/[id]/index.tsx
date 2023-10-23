@@ -1,24 +1,13 @@
 import path from "path";
 import fs from "fs-extra";
 import matter from "gray-matter";
-import Markdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-
+import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export default function detail({ data, content }: any) {
   return (
     <div>
-      <Markdown
- remarkPlugins={[remarkGfm]}
-      >{content}</Markdown>
-      <div>
-        <h3>Comments</h3>
-        <>
-          <ul>
-            <li>hello</li>
-          </ul>
-        </>
-      </div>
+      <Markdown remarkPlugins={[remarkGfm]}>{content}</Markdown>
     </div>
   );
 }
