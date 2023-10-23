@@ -1,10 +1,43 @@
 import { useRouter } from "next/router";
 import { Fragment, useEffect, useState } from "react";
+import styled from "styled-components";
 
+const Wrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+`;
+
+const RemoveBtn = styled.div`
+  padding: 10px;
+  border-radius: 10px;
+  border: solid 2px #675555;
+  box-sizing: border-box;
+  /* background: #b89191; */
+  /* color: white; */
+`;
+
+const SaveBox = styled.div`
+  width: 100%;
+  /* display: flex; */
+  /* gap: 10px; */
+  padding: 10px;
+`;
+
+const Box = styled.div`
+  border-radius: 10px;
+  background: #ece6e6;
+  padding: 10px;
+  margin: 20px;
+  text-align: center;
+  overflow: hidden;
+`;
 export default function Saves() {
   const [postList, setPostList] = useState<{ [key: string]: any }[]>([]);
   const router = useRouter();
   useEffect(() => {
+    setPostList([]);
     if (!window) {
       alert(
         "Your browser doesn't support a stable version of IndexedDB. Such and such feature will not be available."
@@ -71,17 +104,21 @@ export default function Saves() {
     };
   };
   return (
-    <>
-      <button onClick={() => handleRemoveSaves()}>모든 임시글 삭제</button>
-      {postList?.map((el) => {
-        return (
-          <Fragment key={el.id}>
-            <p onClick={() => router.push(`/write/${el.id}`)}>
-              {el.post.title}
-            </p>
-          </Fragment>
-        );
-      })}
-    </>
+    <Wrapper>
+      <RemoveBtn onClick={() => handleRemoveSaves()}>
+        모든 임시글 삭제
+      </RemoveBtn>
+      <SaveBox>
+        {postList?.map((el) => {
+          return (
+            <Box key={el.id}>
+              <span onClick={() => router.push(`/write/${el.id}`)}>
+                {el.post.title}
+              </span>
+            </Box>
+          );
+        })}
+      </SaveBox>
+    </Wrapper>
   );
 }
