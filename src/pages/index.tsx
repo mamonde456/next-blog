@@ -25,20 +25,32 @@ const InfoList = styled.div`
     display: flex;
     gap: 10px;
     justify-content: space-around;
+    a {
+      width: 100%;
+      background: #ece6e6;
+      padding: 10px;
+      border-radius: 10px;
+      text-align: center;
+    }
   }
 `;
 
 const BoxList = styled.div`
+  background: red;
   display: grid;
   grid-area: wrap;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
+  margin-top: 10px;
 `;
 const Box = styled.div`
   width: 150px;
   height: 150px;
   border-radius: 20px;
   background: #ece6e6;
+  text-align: center;
+  overflow: hidden;
+  padding: 10px;
 `;
 
 export default function Home({ metaArr }: props) {
