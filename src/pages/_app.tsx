@@ -7,7 +7,6 @@ import styled from "styled-components";
 const AllWarpper = styled.div<{ window: { width: number; height: number } }>`
   width: ${(props) => (props.window.width >= 1200 ? 1200 + "px" : 100 + "%")};
   height: ${(props) => props.window.height + "px"};
-  background: #f4d2bc;
   margin: 0 auto;
 `;
 
