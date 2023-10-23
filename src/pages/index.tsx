@@ -36,7 +36,6 @@ const InfoList = styled.div`
 `;
 
 const BoxList = styled.div`
-  background: red;
   display: grid;
   grid-area: wrap;
   grid-template-columns: repeat(3, 1fr);
