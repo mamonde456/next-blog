@@ -7,21 +7,17 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   // 클라이언트에서 보낸 마크다운 내용
   const { title, content } = req.body;
   if (!title && !content) return;
-  let reTitle = "";
-  if (title.includes("#")) {
-    reTitle = title.split("#")[1].trim().split("\n")[0];
-  } else {
-    reTitle = title.trim().split("\n")[0];
-  }
-
-  // const title = data.split("#")[1].trim().split("\n")[0];
 
   const textReplaceAll = (text: string) => {
+    const spacesRegExp = /\s+/g;
+    const unsafeTextRegExp = /[^a-zA-Z0-9-_가-힣]/g;
+    const multipleHyphensRegExp = /-+/g;
+
     const title = text
-      .replaceAll(" ", "-")
-      .replaceAll(".", "")
-      .replaceAll("--", "-")
-      .replaceAll("?", "");
+      .trim()
+      .replace(spacesRegExp, "-") // 공백을 하이픈으로 변경
+      .replace(unsafeTextRegExp, "") // 특수 문자 제거
+      .replace(multipleHyphensRegExp, "-"); // 연속된 하이픈을 단일 하이픈으로 변경
 
     if (title) {
       return title;
@@ -29,11 +25,10 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     return uuidv4();
   };
 
-  const slog = textReplaceAll(reTitle);
-  // if (!title) return;
+  const slog = textReplaceAll(title);
 
   const meta = `---
-title: ${reTitle}
+title: ${title}
 slog: ${slog}
 created_at: ${new Date().toLocaleDateString()}
 ---`;
