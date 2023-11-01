@@ -17,8 +17,7 @@ export const getStaticPaths = async () => {
   const paths = file.map((el) => ({
     params: { id: el.replace(/\.md$/, "") },
   }));
-  console.log(paths);
-  return { paths, fallback: false };
+  return { paths, fallback: "blocking" };
 };
 
 export const getStaticProps = async ({ params }: any) => {
