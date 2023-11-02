@@ -27,10 +27,14 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const slog = textReplaceAll(title);
 
+  const now = new Date();
+  now.setHours(now.getHours() + 9);
+  const koreanTime = now.toISOString();
+
   const meta = `---
 title: ${title}
 slog: ${slog}
-created_at: ${new Date().toLocaleDateString()}
+created_at: ${koreanTime}
 ---`;
 
   const reContent = `${meta}\n${content}`;
