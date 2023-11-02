@@ -6,8 +6,7 @@ import { Fragment, useEffect, useState } from "react";
 import styled from "styled-components";
 
 interface props {
-  metaArr: [{ title: string; slog: string; created_at: string }];
-  consoleData: any;
+  sortFrontmatter: [{ title: string; slog: string; created_at: string }];
 }
 
 const Wrapper = styled.div`
@@ -52,7 +51,7 @@ const Box = styled.div`
   padding: 10px;
 `;
 
-export default function Home({ metaArr }: props) {
+export default function Home({ sortFrontmatter }: props) {
   return (
     <Wrapper>
       <InfoList>
@@ -65,9 +64,12 @@ export default function Home({ metaArr }: props) {
       <div>
         <h3>Blog List</h3>
         <BoxList>
-          {metaArr?.map((el) => (
+          {sortFrontmatter?.map((el) => (
             <Link key={el.slog} href={`/posts/${el.slog}`}>
-              <Box>{el.title}</Box>
+              <Box>
+                <p>{el.title}</p>
+                <small>{el.created_at}</small>
+              </Box>
             </Link>
           ))}
         </BoxList>
@@ -78,18 +80,17 @@ export default function Home({ metaArr }: props) {
 
 export const getStaticProps = async () => {
   const file = await fs.readdir(path.join("__post"));
-  // console.log(path.join("post/slog"));
-  // console.log(file);
 
   const metaArr = [];
   for (let i = 0; i < file.length; i++) {
     const readFile = await fs.readFile(path.join(`__post/${file[i]}`));
     const { data: frontmatter } = matter(readFile);
-    // console.log(content);
+    frontmatter.created_at = new Date(frontmatter.created_at).toISOString();
     metaArr.push(frontmatter);
-    // console.log("file", file[i]);
-    // console.log("readFile", readFile);
-    // fs.mkdir(path.join(`post/${frontmatter.slog}`));
   }
-  return { props: { metaArr } };
+  const sortFrontmatter = metaArr.sort(
+    (a, b) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+  return { props: { sortFrontmatter } };
 };
