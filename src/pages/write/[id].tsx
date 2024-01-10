@@ -1,46 +1,90 @@
+import useLoggedIn from "@/hook/useLoggedIn";
 import { useRouter } from "next/router";
 import { FormEvent, useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import styled from "styled-components";
+import { auth } from "../../../firebase";
+import RequireAuth from "@/components/common/RequireAuth";
 
 const Wrapper = styled.div`
+  height: 100%;
   padding: 20px;
   display: flex;
   gap: 50px;
+  align-items: center;
   justify-content: center;
 `;
 const Form = styled.form`
   width: 45%;
+  height: 700px;
   display: flex;
   flex-direction: column;
+
+  /* border: solid 1px black; */
+  position: relative;
+  .title {
+    height: 50px;
+    /* height: 30px;
+    width: 350px;
+    border: none;
+    background: none;
+    position: absolute;
+    top: 60px;
+    left: 110px; */
+    font-size: 24px;
+  }
 `;
 const TextEditor = styled.textarea`
-  height: 500px;
+  /* width: 380px; */
+  height: 550px;
+  /* border: none;
+  background: none;
+  position: absolute;
+  left: 105px;
+  top: 100px;
+  line-height: 24px; */
+  /* background: red; */
 `;
 
-const Title = styled.h1`
-  width: 100%;
-  max-width: 500px;
-  max-height: 90px;
-  overflow-y: scroll;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  flex-wrap: wrap;
-  margin-bottom: 20px;
-`;
-
-const Text = styled.div`
-  width: 100%;
-  max-width: 500px;
-  max-height: 450px;
-  overflow-y: scroll;
-`;
 const BtnBox = styled.div`
   text-align: right;
 `;
 const TextPriveiw = styled.div`
-  width: 45%;
+  /* width: 45%; */
+  width: 500px;
+  height: 700px;
+  /* border: solid 2px black; */
+  /* border-radius: 10px; */
+  background-image: url("../notepad.png");
+  background-size: cover;
+  position: relative;
+`;
+const TextContents = styled.div`
+  width: 100%;
+  max-width: 370px;
+  max-height: 450px;
+  overflow-y: scroll;
+  word-break: break-all;
+  position: absolute;
+  top: 100px;
+  left: 100px;
+  line-height: 23px;
+`;
+const Title = styled.h1`
+  width: 100%;
+  max-width: 350px;
+  max-height: 85px;
+  overflow-y: scroll;
+  padding: 10px;
+  /* display: flex; */
+  /* flex-direction: column; */
+  /* flex-wrap: wrap; */
+  /* white-space: nowrap; */
+  word-break: break-all;
+  margin-bottom: 20px;
+  position: absolute;
+  top: 10px;
+  left: 110px;
 `;
 
 const BackBtn = styled.button`
@@ -52,6 +96,7 @@ export default function Write() {
   const [text, setText] = useState("");
   const [title, setTitle] = useState("");
   const router = useRouter();
+  const { user } = useLoggedIn();
 
   useEffect(() => {
     setText("");
@@ -88,12 +133,22 @@ export default function Write() {
     savePost(title, text);
   };
   async function savePost(title: string, data: string) {
+    const user = auth.currentUser;
+    if (!user) return;
+    const userConfig = {
+      displayName: user.displayName,
+      email: user.email,
+      photoUrl: user.photoURL,
+      uid: user.uid,
+    };
+    console.log(userConfig);
+
     const response = await fetch("/api/blog", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ title, content: data }),
+      body: JSON.stringify({ title, content: data, userConfig }),
     });
 
     if (!response.ok) {
@@ -162,35 +217,44 @@ export default function Write() {
     }
   };
   return (
-    <Wrapper>
-      <Form onSubmit={handleSubmit}>
-        <label>title</label>
-        <input
-          type="text"
-          name="title"
-          required
-          defaultValue={title}
-          onChange={(e) => setTitle(e.currentTarget.value)}
-        ></input>
-        <label>content</label>
-        <TextEditor
-          name="text"
-          required
-          defaultValue={text}
-          onChange={(e) => setText(e.currentTarget.value)}
-        />
-        <BtnBox>
-          <button onClick={(e) => handleSave(e)}>임시저장</button>
-          <input type="submit" value="업로드"></input>
-        </BtnBox>
-      </Form>
-      <TextPriveiw>
-        <Title>{title}</Title>
-        <Text>
-          <ReactMarkdown>{text}</ReactMarkdown>
-        </Text>
-      </TextPriveiw>
-      <BackBtn onClick={() => router.push("/")}>{"< 뒤로가기"}</BackBtn>
-    </Wrapper>
+    <RequireAuth>
+      <Wrapper>
+        <Form onSubmit={handleSubmit}>
+          <label>title</label>
+          <input
+            type="text"
+            name="title"
+            className="title"
+            required
+            defaultValue={title}
+            onChange={(e) => setTitle(e.currentTarget.value)}
+          ></input>
+          <label>content</label>
+          <TextEditor
+            name="text"
+            required
+            defaultValue={text}
+            onChange={(e) => setText(e.currentTarget.value)}
+          />
+          <BtnBox>
+            <button onClick={(e) => handleSave(e)}>임시저장</button>
+            <input type="submit" value="업로드"></input>
+          </BtnBox>
+        </Form>
+        <TextPriveiw>
+          {/* <div className="browser-header">
+          <div className="browser-btn red"></div>
+          <div className="browser-btn yellow"></div>
+          <div className="browser-btn green"></div>
+        </div> */}
+          <Title>{title}dd</Title>
+          <TextContents>
+            dd
+            <ReactMarkdown>{text}</ReactMarkdown>
+          </TextContents>
+        </TextPriveiw>
+        <BackBtn onClick={() => router.push("/")}>{"< 뒤로가기"}</BackBtn>
+      </Wrapper>
+    </RequireAuth>
   );
 }
