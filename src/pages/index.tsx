@@ -8,6 +8,7 @@ import { collection, addDoc } from "firebase/firestore";
 import { auth, db } from "../../firebase";
 import { set, ref, onValue, get, getDatabase, child } from "firebase/database";
 import { getCurrentUserFollowing } from "@/utils/user";
+import useLoggedIn from "@/hook/useLoggedIn";
 
 const Wrapper = styled.div`
   display: flex;
@@ -114,12 +115,11 @@ const Wrapper = styled.div`
         height: 100%;
         font-size: 13px;
         text-align: justify;
-        // padding: 0 10px;
         padding: 0 21px;
         display: flex;
         align-items: center;
-        // overflow: overlay;
         overflow: hidden;
+        text-overflow: ellipsis;
 
         li {
           margin: 5px 0;
@@ -212,6 +212,7 @@ export default function Home({ sortFrontmatter }: props) {
   const [keyword, setKeyword] = useState("");
   const [searchList, setSearchList] = useState<any>([]);
   const [category, setCategory] = useState(false);
+  const { isLoggedIn } = useLoggedIn();
 
   useEffect(() => {
     setSearchList([]);
@@ -290,7 +291,9 @@ export default function Home({ sortFrontmatter }: props) {
             <h3>Blog List</h3>
             <div>
               <span onClick={() => setCategory(false)}>최신탭</span>
-              <span onClick={() => setCategory(true)}>팔로우탭</span>
+              {isLoggedIn && (
+                <span onClick={() => setCategory(true)}>팔로우탭</span>
+              )}
             </div>
           </PostTitle>
           {category ? (
@@ -321,10 +324,7 @@ export default function Home({ sortFrontmatter }: props) {
                     <div className="postIt">
                       <div className="titulo">{el.title}</div>
                       <small>{el.created_at.slice(0, 10)}</small>
-                      <div className="nota">
-                        Lorem ipsum dolor venenatis velit nunc, porta pharetra
-                        ligula interdum mollis.
-                      </div>
+                      <div className="nota">{el.content}</div>
                     </div>
                   </div>
                 </Link>
