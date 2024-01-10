@@ -49,6 +49,7 @@ export default function Header() {
     if (id !== newId) setId(newId);
     else return;
   }, [router]);
+
   return (
     <Wrapper>
       <nav>
@@ -56,7 +57,7 @@ export default function Header() {
           <Link href={"/"}>BEGIN.log</Link>
         </h1>
         <ProfileBox>
-          {router.pathname !== "/write" && (
+          {router.pathname !== "/write" && isLoggedIn && (
             <Link href={`/write/${id}`}>글 작성</Link>
           )}
           {isLoggedIn ? (
