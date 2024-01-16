@@ -25,9 +25,9 @@ npm run dev
 
 ### 블로그 기록
 
-[마크다운 블로그 - md 파일을 이용하여 블로그 구현하기](https://velog.io/@mamonde456/Next로-마크다운-블로그를-만들어보자-1)
-[마크다운 블로그 - input을 이용하여 입력값으로 포스팅하기](https://velog.io/@mamonde456/Next로-마크다운-블로그를-만들어보자-2)
-[마크다운 블로그 - 임시저장 기능을 만들어보자 & 개선점](https://velog.io/@mamonde456/Next로-마크다운-블로그를-만들어보자-3)
+[마크다운 블로그 - md 파일을 이용하여 블로그 구현하기](https://velog.io/@mamonde456/Next로-마크다운-블로그를-만들어보자-1)<br/>
+[마크다운 블로그 - input을 이용하여 입력값으로 포스팅하기](https://velog.io/@mamonde456/Next로-마크다운-블로그를-만들어보자-2)<br/>
+[마크다운 블로그 - 임시저장 기능을 만들어보자 & 개선점](https://velog.io/@mamonde456/Next로-마크다운-블로그를-만들어보자-3)<br/>
 
 ### 구현 목록
 
