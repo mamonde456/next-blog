@@ -112,7 +112,14 @@ export default function Saves() {
         {postList?.map((el) => {
           return (
             <Box key={el.id}>
-              <span onClick={() => router.push(`/write/${el.id}`)}>
+              <span
+                onClick={() =>
+                  router.push({
+                    pathname: `/write/${el.id}`,
+                    query: { action: "draft" },
+                  })
+                }
+              >
                 {el.post.title}
               </span>
             </Box>

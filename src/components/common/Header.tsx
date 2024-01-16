@@ -58,7 +58,9 @@ export default function Header() {
         </h1>
         <ProfileBox>
           {router.pathname !== "/write" && isLoggedIn && (
-            <Link href={`/write/${id}`}>글 작성</Link>
+            <Link href={{ pathname: `/write/${id}`, query: { action: "new" } }}>
+              글 작성
+            </Link>
           )}
           {isLoggedIn ? (
             <>
