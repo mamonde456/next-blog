@@ -4,6 +4,7 @@ import { getAnalytics } from "firebase/analytics";
 import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 import { getDatabase } from "firebase/database";
+import { getFirestore } from "firebase/firestore";
 
 //출처: https://jiyeongstar.tistory.com/197 [JadeCode:티스토리]
 // TODO: Add SDKs for Firebase products that you want to use
@@ -27,4 +28,5 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const storage = getStorage(app);
 export const db = getDatabase();
+export const firestore = getFirestore(app);
 // const analytics = getAnalytics(app);
