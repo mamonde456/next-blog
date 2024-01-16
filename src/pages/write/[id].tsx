@@ -1,10 +1,11 @@
 import useLoggedIn from "@/hook/useLoggedIn";
 import { useRouter } from "next/router";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import styled from "styled-components";
-import { auth } from "../../../firebase";
+import styled, { createGlobalStyle } from "styled-components";
+import { auth, firestore } from "../../../firebase";
 import RequireAuth from "@/components/common/RequireAuth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
 const Wrapper = styled.div`
   height: 100%;
@@ -13,14 +14,15 @@ const Wrapper = styled.div`
   gap: 50px;
   align-items: center;
   justify-content: center;
+  padding-top: 150px;
 `;
 const Form = styled.form`
-  width: 45%;
-  height: 700px;
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
-
-  /* border: solid 1px black; */
+  padding-right: 40px;
+  border-right: solid 1px black;
   position: relative;
   .title {
     height: 50px;
@@ -35,7 +37,6 @@ const Form = styled.form`
   }
 `;
 const TextEditor = styled.textarea`
-  /* width: 380px; */
   height: 550px;
   /* border: none;
   background: none;
@@ -50,14 +51,13 @@ const BtnBox = styled.div`
   text-align: right;
 `;
 const TextPriveiw = styled.div`
-  /* width: 45%; */
-  width: 500px;
-  height: 700px;
-  /* border: solid 2px black; */
-  /* border-radius: 10px; */
-  background-image: url("../notepad.png");
-  background-size: cover;
+  width: 100%;
+  /* width: 500px; */
+  height: 100%;
   position: relative;
+  /* background-color: #f9f9f9ed; */
+  background-image: url("/notebook.jpg");
+  background-size: cover;
 `;
 const TextContents = styled.div`
   width: 100%;
@@ -93,14 +93,46 @@ const BackBtn = styled.button`
   top: 0;
 `;
 export default function Write() {
-  const [text, setText] = useState("");
+  const [content, setContent] = useState("");
   const [title, setTitle] = useState("");
   const router = useRouter();
-  const { user } = useLoggedIn();
+  const { action, id: params } = router.query;
+  const { isLoggedIn } = useLoggedIn();
 
   useEffect(() => {
-    setText("");
+    setContent("");
     setTitle("");
+    // autoSaveDraft() // 5분마다 임시글 자동 저장
+    // checkPostExists()
+  }, []);
+
+  const checkPostExists = () => {
+    if (action === "new") {
+      return;
+    } else if (action === "edit") {
+      // 기존 글 가져오기
+      // getPostById()
+    } else if (action === "draft") {
+      // 임시 글 가져오기
+      // getDraftFromIndexDB()
+    }
+  };
+
+  const getPostById = async () => {
+    const docRef = doc(firestore, "blog", `${params}`);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      console.log("Document data:", docSnap.data());
+      const data = docSnap.data();
+      setContent(data.content);
+      setTitle(data.title);
+    } else {
+      // docSnap.data() will be undefined in this case
+      console.log("No such document!");
+    }
+  };
+
+  const getDraftFromIndexDB = () => {
     if (window) {
       const open = indexedDB.open("test", 2);
       open.onupgradeneeded = function () {
@@ -119,20 +151,48 @@ export default function Write() {
           if (cursor) {
             if (cursor.key === router.query.id) {
               setTitle(cursor.value.post.title);
-              setText(cursor.value.post.text);
+              setContent(cursor.value.post.text);
             }
             cursor.continue();
           }
         };
       };
     }
-  }, []);
+  };
+
+  const autoSaveDraft = () => {
+    const time = 1000 * 60 * 5; // 5분
+    const timer = setTimeout(() => {
+      saveDraftToIndexedDB();
+    }, time);
+    return () => clearTimeout(timer);
+  };
+
+  const sendPostToFirebase = async (title: string, content: string) => {
+    const user = auth.currentUser;
+    if (!isLoggedIn) return;
+    if (user) {
+      const userConfig = {
+        displayName: user.displayName,
+        email: user.email,
+        photoUrl: user.photoURL,
+        uid: user.uid,
+      };
+      await setDoc(doc(firestore, "blog", `${params}`), {
+        id: params,
+        title,
+        content,
+        userConfig,
+      });
+    }
+  };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    savePost(title, text);
+    // sendPostToFirebase(title, content);
+    createLocalPostFile(title, content);
   };
-  async function savePost(title: string, data: string) {
+  async function createLocalPostFile(title: string, data: string) {
     const user = auth.currentUser;
     if (!user) return;
     const userConfig = {
@@ -155,7 +215,7 @@ export default function Write() {
       throw new Error("Server error");
     } else if (response.ok) {
       router.push("/");
-      setText("");
+      setContent("");
       setTitle("");
     }
 
@@ -164,7 +224,10 @@ export default function Write() {
 
   const handleSave = (e: FormEvent<HTMLButtonElement>) => {
     e.preventDefault();
+    saveDraftToIndexedDB();
+  };
 
+  const saveDraftToIndexedDB = () => {
     // indexedDB에 임시 저장
     if (!window) {
       alert(
@@ -217,44 +280,48 @@ export default function Write() {
     }
   };
   return (
-    <RequireAuth>
-      <Wrapper>
-        <Form onSubmit={handleSubmit}>
-          <label>title</label>
-          <input
-            type="text"
-            name="title"
-            className="title"
-            required
-            defaultValue={title}
-            onChange={(e) => setTitle(e.currentTarget.value)}
-          ></input>
-          <label>content</label>
-          <TextEditor
-            name="text"
-            required
-            defaultValue={text}
-            onChange={(e) => setText(e.currentTarget.value)}
-          />
-          <BtnBox>
-            <button onClick={(e) => handleSave(e)}>임시저장</button>
-            <input type="submit" value="업로드"></input>
-          </BtnBox>
-        </Form>
-        <TextPriveiw>
-          {/* <div className="browser-header">
+    <>
+      {/* <ResetBackgroundImage /> */}
+      <RequireAuth>
+        <Wrapper>
+          <Form onSubmit={handleSubmit}>
+            <label>title</label>
+            <input
+              type="text"
+              name="title"
+              className="title"
+              required
+              defaultValue={title}
+              onChange={(e) => setTitle(e.currentTarget.value)}
+            ></input>
+            <label>content</label>
+            <TextEditor
+              name="content"
+              required
+              defaultValue={content}
+              onChange={(e) => setContent(e.currentTarget.value)}
+            />
+            <BtnBox>
+              <button type="button" onClick={(e) => handleSave(e)}>
+                임시저장
+              </button>
+              <input type="submit" value="업로드"></input>
+            </BtnBox>
+          </Form>
+          <TextPriveiw>
+            {/* <div className="browser-header">
           <div className="browser-btn red"></div>
           <div className="browser-btn yellow"></div>
           <div className="browser-btn green"></div>
         </div> */}
-          <Title>{title}dd</Title>
-          <TextContents>
-            dd
-            <ReactMarkdown>{text}</ReactMarkdown>
-          </TextContents>
-        </TextPriveiw>
-        <BackBtn onClick={() => router.push("/")}>{"< 뒤로가기"}</BackBtn>
-      </Wrapper>
-    </RequireAuth>
+            <Title>{title}</Title>
+            <TextContents>
+              <ReactMarkdown>{content}</ReactMarkdown>
+            </TextContents>
+          </TextPriveiw>
+          <BackBtn onClick={() => router.push("/")}>{"< 뒤로가기"}</BackBtn>
+        </Wrapper>
+      </RequireAuth>
+    </>
   );
 }
