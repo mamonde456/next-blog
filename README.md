@@ -1,5 +1,11 @@
 # Next.js 로 정적 블로그 만들기
 
+
+
+<p align="center">
+<img src="https://github.com/mamonde456/next-blog/assets/81732659/7fe6125d-ed13-4caa-99d4-2436324e108c" />
+</p>
+
 <p align="center">
 <img src="https://github.com/mamonde456/next-blog/assets/81732659/72d0f5e2-bd50-48d5-b2d0-4c80fb6209a1" />
 </p>
