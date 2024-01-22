@@ -1,7 +1,5 @@
 # Next.js 로 정적 블로그 만들기
 
-
-
 <p align="center">
 <img src="https://github.com/mamonde456/next-blog/assets/81732659/7fe6125d-ed13-4caa-99d4-2436324e108c" />
 </p>
@@ -85,6 +83,16 @@ npm run dev
   - firebase DB에 문서 추가/삭제
   - 로컬에 문서 추가
 - 신규글 작성/임시글 재작성/수정 분류
+
+#### 24.1.22
+
+- 주석 삭제
+- 컴포넌트 분리
+  - 프로필 이미지 크롭 컴포넌트
+  - BlogNavbar 컴포넌트
+  - BlogPostList 컴포넌트
+- checkAuthentication 함수 => useAuth 훅으로 대체(중복 제거) & import useAuth로 변경
+- saves/index.tsx 파일에 style 추가
 
 ### 개선점
 
