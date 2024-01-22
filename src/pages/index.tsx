@@ -2,13 +2,10 @@ import Link from "next/link";
 import fs from "fs-extra";
 import path from "path";
 import matter from "gray-matter";
-import { Fragment, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
-import { collection, addDoc } from "firebase/firestore";
-import { auth, db } from "../../firebase";
-import { set, ref, onValue, get, getDatabase, child } from "firebase/database";
-import { getCurrentUserFollowing } from "@/utils/user";
-import useLoggedIn from "@/hook/useLoggedIn";
+import BlogNavbar from "@/components/blog/BlogNavbar";
+import BlogPostList from "@/components/blog/BlogPostList";
 
 const Wrapper = styled.div`
   display: flex;
@@ -129,24 +126,6 @@ const Wrapper = styled.div`
   }
 `;
 
-const InfoList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  nav {
-    display: flex;
-    gap: 10px;
-    justify-content: space-around;
-    a {
-      width: 100%;
-      background: #ece6e6;
-      padding: 10px;
-      border-radius: 10px;
-      text-align: center;
-    }
-  }
-`;
-
 const WhiteBoard = styled.div`
   width: 98%;
   height: 70%;
@@ -158,46 +137,9 @@ const WhiteBoard = styled.div`
   box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5);
   overflow-y: scroll;
   background-color: #ffffff;
-  /* position: absolute; */
-  /* background: red; */
-`;
-const PostTitle = styled.div`
-  /* width: 100%; */
-  /* height: 50px; */
-  position: sticky;
-  top: 0px;
-  background-color: white;
-  padding: 5px;
-  border-bottom: solid 1px black;
-  z-index: 10;
 `;
 
-const BoxList = styled.div`
-  width: 100%;
-  display: grid;
-  grid-area: wrap;
-  grid-template-columns: repeat(3, 1fr);
-  /* gap: 10px; */
-  /* margin-top: 200px; */
-  /* padding-top: 500px; */
-`;
-const StickyNote = styled.div`
-  width: 250px;
-  height: 200px;
-  background-color: #ffd700;
-  border: 1px solid #000000;
-  padding: 15px;
-  font-size: 16px;
-  box-shadow: 8px 10px 5px rgba(0, 0, 0, 0.3);
-  &:hover {
-    transform: rotate(5deg);
-    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.6);
-    -webkit-transition: ease 0.5s;
-  }
-`;
-const SearchBox = styled.div``;
-
-interface props {
+interface IProps {
   sortFrontmatter: [
     {
       title: string;
@@ -208,130 +150,17 @@ interface props {
   ];
 }
 
-export default function Home({ sortFrontmatter }: props) {
+export default function Home({ sortFrontmatter: metaList }: IProps) {
   const [keyword, setKeyword] = useState("");
-  const [searchList, setSearchList] = useState<any>([]);
-  const [category, setCategory] = useState(false);
-  const { isLoggedIn } = useLoggedIn();
-
-  useEffect(() => {
-    setSearchList([]);
-    const result = sortFrontmatter.filter(
-      (el) => el.title && String(el.title).includes(keyword)
-    );
-    setSearchList(result);
-  }, [keyword]);
-
-  useEffect(() => {
-    if (category) {
-      setFollowingTab();
-    } else {
-      setSearchList(sortFrontmatter);
-    }
-  }, [category]);
-
-  const setFollowingTab = () => {
-    setSearchList([]);
-    const userInfo = window.sessionStorage.getItem("userInfo");
-    const userId = userInfo && JSON.parse(userInfo).id;
-    const data = getCurrentUserFollowing(userId);
-    if (data) {
-      let tapArr: any = [];
-      const followingList = Object.keys(data);
-      sortFrontmatter.forEach((el) => {
-        if (followingList.includes(el.owner.id)) {
-          tapArr.push(el);
-        }
-      });
-      setSearchList(() => [...tapArr]);
-    } else {
-      setSearchList([
-        { title: "팔로우가 없습니다!", slog: "", created_at: " string" },
-      ]);
-    }
-    // const dbRef = ref(getDatabase());
-    // get(child(dbRef, `followUsers/${userId}`)).then((snapshot) => {
-    //   console.log(snapshot.exists());
-    //   if (snapshot.exists()) {
-    //     let tapArr: any = [];
-    //     const followingList = Object.keys(snapshot.val());
-    //     sortFrontmatter.forEach((el) => {
-    //       if (followingList.includes(el.owner.id)) {
-    //         tapArr.push(el);
-    //       }
-    //     });
-    //     setSearchList(() => [...tapArr]);
-    //   } else {
-    //     console.log("No data available");
-    //     setSearchList([
-    //       { title: "팔로우가 없습니다!", slog: "", created_at: " string" },
-    //     ]);
-    //   }
-    // });
+  const getKeyword = (keyword: string) => {
+    setKeyword(keyword);
+    console.log(keyword);
   };
   return (
     <Wrapper>
       <WhiteBoard>
-        <InfoList>
-          <h1>Hello, my Blog</h1>
-          <nav>
-            <Link href={"/"}>게시글</Link>
-            <Link href={"saves"}>임시글</Link>
-          </nav>
-          <SearchBox>
-            <input
-              type="search"
-              onInput={(e) => setKeyword(e.currentTarget.value)}
-            />
-            <button>검색</button>
-          </SearchBox>
-        </InfoList>
-        <div>
-          <PostTitle>
-            <h3>Blog List</h3>
-            <div>
-              <span onClick={() => setCategory(false)}>최신탭</span>
-              {isLoggedIn && (
-                <span onClick={() => setCategory(true)}>팔로우탭</span>
-              )}
-            </div>
-          </PostTitle>
-          {category ? (
-            <BoxList>
-              {searchList?.map((el) => (
-                <Link key={el.slog} href={`/posts/${el.slog}`}>
-                  <div className="postItCont">
-                    <div className="postIt">
-                      <div className="titulo">{el.title}</div>
-                      <small>{el.created_at.slice(0, 10)}</small>
-                      <div className="nota">
-                        Lorem ipsum dolor venenatis velit nunc, porta pharetra
-                        ligula interdum mollis.
-                      </div>
-                    </div>
-                  </div>
-                  {/* //   <StickyNote> */}
-                  {/* //     <p>{el.title}</p> */}
-                  {/* //   </StickyNote> */}
-                </Link>
-              ))}
-            </BoxList>
-          ) : (
-            <BoxList>
-              {searchList?.map((el) => (
-                <Link key={el.slog} href={`/posts/${el.slog}`}>
-                  <div className="postItCont">
-                    <div className="postIt">
-                      <div className="titulo">{el.title}</div>
-                      <small>{el.created_at.slice(0, 10)}</small>
-                      <div className="nota">{el.content}</div>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </BoxList>
-          )}
-        </div>
+        <BlogNavbar setKeyword={getKeyword} />
+        <BlogPostList metaList={metaList} keyword={keyword} />
       </WhiteBoard>
     </Wrapper>
   );
