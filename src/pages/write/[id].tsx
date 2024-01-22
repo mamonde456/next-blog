@@ -1,4 +1,4 @@
-import useLoggedIn from "@/hook/useLoggedIn";
+import useLoggedIn from "@/hook/useAuth";
 import { useRouter } from "next/router";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
@@ -26,25 +26,11 @@ const Form = styled.form`
   position: relative;
   .title {
     height: 50px;
-    /* height: 30px;
-    width: 350px;
-    border: none;
-    background: none;
-    position: absolute;
-    top: 60px;
-    left: 110px; */
     font-size: 24px;
   }
 `;
 const TextEditor = styled.textarea`
   height: 550px;
-  /* border: none;
-  background: none;
-  position: absolute;
-  left: 105px;
-  top: 100px;
-  line-height: 24px; */
-  /* background: red; */
 `;
 
 const BtnBox = styled.div`
@@ -52,10 +38,8 @@ const BtnBox = styled.div`
 `;
 const TextPriveiw = styled.div`
   width: 100%;
-  /* width: 500px; */
   height: 100%;
   position: relative;
-  /* background-color: #f9f9f9ed; */
   background-image: url("/notebook.jpg");
   background-size: cover;
 `;
@@ -76,10 +60,6 @@ const Title = styled.h1`
   max-height: 85px;
   overflow-y: scroll;
   padding: 10px;
-  /* display: flex; */
-  /* flex-direction: column; */
-  /* flex-wrap: wrap; */
-  /* white-space: nowrap; */
   word-break: break-all;
   margin-bottom: 20px;
   position: absolute;
@@ -280,48 +260,40 @@ export default function Write() {
     }
   };
   return (
-    <>
-      {/* <ResetBackgroundImage /> */}
-      <RequireAuth>
-        <Wrapper>
-          <Form onSubmit={handleSubmit}>
-            <label>title</label>
-            <input
-              type="text"
-              name="title"
-              className="title"
-              required
-              defaultValue={title}
-              onChange={(e) => setTitle(e.currentTarget.value)}
-            ></input>
-            <label>content</label>
-            <TextEditor
-              name="content"
-              required
-              defaultValue={content}
-              onChange={(e) => setContent(e.currentTarget.value)}
-            />
-            <BtnBox>
-              <button type="button" onClick={(e) => handleSave(e)}>
-                임시저장
-              </button>
-              <input type="submit" value="업로드"></input>
-            </BtnBox>
-          </Form>
-          <TextPriveiw>
-            {/* <div className="browser-header">
-          <div className="browser-btn red"></div>
-          <div className="browser-btn yellow"></div>
-          <div className="browser-btn green"></div>
-        </div> */}
-            <Title>{title}</Title>
-            <TextContents>
-              <ReactMarkdown>{content}</ReactMarkdown>
-            </TextContents>
-          </TextPriveiw>
-          <BackBtn onClick={() => router.push("/")}>{"< 뒤로가기"}</BackBtn>
-        </Wrapper>
-      </RequireAuth>
-    </>
+    <RequireAuth>
+      <Wrapper>
+        <Form onSubmit={handleSubmit}>
+          <label>title</label>
+          <input
+            type="text"
+            name="title"
+            className="title"
+            required
+            defaultValue={title}
+            onChange={(e) => setTitle(e.currentTarget.value)}
+          ></input>
+          <label>content</label>
+          <TextEditor
+            name="content"
+            required
+            defaultValue={content}
+            onChange={(e) => setContent(e.currentTarget.value)}
+          />
+          <BtnBox>
+            <button type="button" onClick={(e) => handleSave(e)}>
+              임시저장
+            </button>
+            <input type="submit" value="업로드"></input>
+          </BtnBox>
+        </Form>
+        <TextPriveiw>
+          <Title>{title}</Title>
+          <TextContents>
+            <ReactMarkdown>{content}</ReactMarkdown>
+          </TextContents>
+        </TextPriveiw>
+        <BackBtn onClick={() => router.push("/")}>{"< 뒤로가기"}</BackBtn>
+      </Wrapper>
+    </RequireAuth>
   );
 }

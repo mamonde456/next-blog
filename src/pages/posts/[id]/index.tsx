@@ -10,7 +10,7 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import useUserInfo from "@/hook/useUserInfo";
 import { getCurrentUserFollowing, setCurrentUserFollow } from "@/utils/user";
 import img from "../../../../public/notebook.jpg";
-import useLoggedIn from "@/hook/useLoggedIn";
+import useLoggedIn from "@/hook/useAuth";
 import { useRouter } from "next/router";
 import { deleteDoc, doc } from "firebase/firestore";
 
@@ -93,32 +93,23 @@ export default function detail({ data, content }: IDetailProps) {
       const userInfo = userSessionInfo && JSON.parse(userSessionInfo);
       console.log(userInfo);
       const userId = auth.currentUser?.uid || userInfo.uid;
-      // 현재 방문한 게시글 작성자
-      const id = data.owner.id;
-      console.log(userId, id);
-      const currentFollowUsers = await getCurrentUserFollowing(userId, id);
-      console.log(currentFollowUsers);
-      const currentFollowUsersKeys = Object.keys(currentFollowUsers);
+      if (userInfo && userId) {
+        // 현재 방문한 게시글 작성자
+        const id = data.owner.id;
+        console.log(userId, id);
+        const currentFollowUsers = await getCurrentUserFollowing(userId, id);
+        console.log(currentFollowUsers);
+        const currentFollowUsersKeys = Object.keys(currentFollowUsers);
 
-      if (currentFollowUsersKeys.length > 0) {
-        setIsFollow(true);
-        setIsLoading(true);
-      } else {
-        setIsFollow(false);
-        setIsLoading(true);
+        if (currentFollowUsersKeys.length > 0) {
+          setIsFollow(true);
+          setIsLoading(true);
+        } else {
+          setIsFollow(false);
+          setIsLoading(true);
+        }
       }
     })();
-    // const dbRef = ref(getDatabase());
-    // get(child(dbRef, `followUsers/${userId}/${id}`)).then((snapshot) => {
-    //   console.log(snapshot.exists());
-    //   if (snapshot.exists()) {
-    //     console.log(snapshot.val());
-    //     setIsFollow(true);
-    //   } else {
-    //     setIsFollow(false);
-    //     console.log("No data available");
-    //   }
-    // });
   }, []);
 
   const handleFollowButtonClick = () => {
@@ -183,15 +174,6 @@ export default function detail({ data, content }: IDetailProps) {
           </button>
           <button onClick={onRemovePost}>삭제</button>
         </div>
-        {/* <div className="postItCont">
-          <div className="postIt">
-            <div className="titulo">목차</div>
-            <div className="nota">
-              Lorem ipsum dolor venenatis velit nunc, porta pharetra ligula
-              interdum mollis.
-            </div>
-          </div>
-        </div> */}
         <Content style={{ whiteSpace: "pre-line" }}>
           <Markdown remarkPlugins={[[remarkGfm, { singleTilde: false }]]}>
             {content}
