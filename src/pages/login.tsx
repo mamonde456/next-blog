@@ -6,7 +6,7 @@ import {
 } from "firebase/auth";
 import { useEffect, useRef } from "react";
 import { auth } from "../../firebase";
-import useLoggedIn from "@/hook/useLoggedIn";
+import useLoggedIn from "@/hook/useAuth";
 import { useRouter } from "next/router";
 import styled from "styled-components";
 import LinkToEmailAuth from "@/components/auth/LinkToEmailAuth";

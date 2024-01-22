@@ -1,4 +1,4 @@
-import useLoggedIn from "@/hook/useLoggedIn";
+import useLoggedIn from "@/hook/useAuth";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
