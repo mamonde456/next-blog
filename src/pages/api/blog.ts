@@ -2,21 +2,87 @@ import { NextApiRequest, NextApiResponse } from "next";
 import fs from "fs-extra";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
+import matter from "gray-matter";
+
+interface IMethodType {
+  [index: string]: () => void;
+}
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
+  const method = req.method || "";
+  // req method 분기 처리
+  const methodType: IMethodType = {
+    POST: () => createMdFileFromPost(req, res), // md 파일 생성
+    PUT: () => updateMdFile(req, res), // md 파일 수정
+    DELETE: () => deleteMdFile(req, res),
+  };
+
+  if (methodType[method]) methodType[method]();
+  else {
+    res.setHeader("Allow", ["PUT", "POST", "DELETE"]);
+    res.status(405).end(`Method ${req.method} Not Allowed`);
+  }
+}
+
+const deleteMdFile = async (req: NextApiRequest, res: NextApiResponse) => {
+  const { id } = req.query;
+  const files = await fs.readdir(path.join("__post"));
+  try {
+    for (let i = 0; i < files.length; i++) {
+      const readFile = await fs.readFile(path.join(`__post/${files[i]}`));
+      const { data: matterData } = matter(readFile);
+      if (matterData.id === id) {
+        await fs.unlink(path.join(__dirname, `${matterData.slog}.md`));
+        return;
+      }
+    }
+    res.status(200).end("file deleted successfully");
+  } catch (error) {
+    res.status(404).end(error);
+  }
+};
+
+const updateMdFile = async (req: NextApiRequest, res: NextApiResponse) => {
+  const { id, title, description, content, userConfig } = req.body;
+  if (!title && !content) return;
+  const currentKrTime = getKoreanTime();
+  const files = await fs.readdir(path.join("__post"));
+  try {
+    for (let i = 0; i < files.length; i++) {
+      const readFile = await fs.readFile(path.join(`__post/${files[i]}`));
+      const { data: matterData } = matter(readFile);
+      if (id === matterData.id) {
+        const newContent = generateAndCombineMetaData(
+          {
+            id,
+            title,
+            description,
+            slog: matterData.slog,
+            content,
+            koreanTime: matterData.created_at,
+            updateTime: currentKrTime,
+          },
+          userConfig
+        );
+        await fs.writeFile(path.join(`__post/${files[i]}`), newContent);
+        return;
+      }
+    }
+    res.status(200).end("ok");
+  } catch (error) {
+    res.status(404).end(error);
+  }
+};
+
+const createMdFileFromPost = (req: NextApiRequest, res: NextApiResponse) => {
   // 클라이언트에서 보낸 마크다운 내용
-  const { title, content, userConfig } = req.body;
+  const { id, title, description, content, userConfig } = req.body;
   if (!title && !content) return;
 
   const slog = replaceTitleWithSlog(title);
   const koreanTime = getKoreanTime();
   const combinedContent = generateAndCombineMetaData(
-    {
-      title,
-      slog,
-      content,
-      koreanTime,
-    },
+    { id, title, description, slog, content, koreanTime, updateTime: "" },
     userConfig
   );
   const filePath = configureFilePath(slog);
@@ -30,7 +96,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       console.error(err);
       res.status(500).json({ message: "Server error" });
     });
-}
+};
 
 const replaceTitleWithSlog = (title: string) => {
   const spacesRegExp = /\s+/g;
@@ -57,14 +123,17 @@ const getKoreanTime = () => {
 };
 
 interface metaType {
+  id: string;
   title: string;
+  description: string;
   slog: string;
   content: string;
   koreanTime: string;
+  updateTime: string;
 }
 
 const generateAndCombineMetaData = (
-  { title, slog, content, koreanTime }: metaType,
+  { id, title, description, slog, content, koreanTime, updateTime }: metaType,
   userConfig: {
     displayName: string;
     email: string;
@@ -72,16 +141,20 @@ const generateAndCombineMetaData = (
     uid: string;
   }
 ) => {
+  // 메타 데이터에 추가시 띄어쓰기 주의
   const meta = `---
+id: ${id}
 title: ${title}
 slog: ${slog}
 created_at: ${koreanTime}
+update_at: ${updateTime}
 owner: {
   photoUrl: ${userConfig.photoUrl},
   id: ${userConfig.uid},
   displayName: ${userConfig.displayName},
   email: ${userConfig.email},
 }
+description: ${description}
 ---`;
 
   return `${meta}\n${content}`;
