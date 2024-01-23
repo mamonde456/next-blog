@@ -1,4 +1,3 @@
-import useLoggedIn from "@/hook/useAuth";
 import { useRouter } from "next/router";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
@@ -6,6 +5,7 @@ import styled, { createGlobalStyle } from "styled-components";
 import { auth, firestore } from "../../../firebase";
 import RequireAuth from "@/components/common/RequireAuth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import useAuth from "@/hook/useAuth";
 
 const Wrapper = styled.div`
   height: 100%;
@@ -73,11 +73,12 @@ const BackBtn = styled.button`
   top: 0;
 `;
 export default function Write() {
-  const [content, setContent] = useState("");
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [content, setContent] = useState("");
   const router = useRouter();
   const { action, id: params } = router.query;
-  const { isLoggedIn } = useLoggedIn();
+  const isLoggedIn = useAuth();
 
   useEffect(() => {
     setContent("");
@@ -188,7 +189,13 @@ export default function Write() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ title, content: data, userConfig }),
+      body: JSON.stringify({
+        id: params,
+        title,
+        description,
+        content: data,
+        userConfig,
+      }),
     });
 
     if (!response.ok) {
@@ -272,6 +279,17 @@ export default function Write() {
             defaultValue={title}
             onChange={(e) => setTitle(e.currentTarget.value)}
           ></input>
+          <label>
+            description
+            <input
+              type="text"
+              name="title"
+              className="title"
+              required
+              defaultValue={description}
+              onChange={(e) => setDescription(e.currentTarget.value)}
+            ></input>
+          </label>
           <label>content</label>
           <TextEditor
             name="content"
