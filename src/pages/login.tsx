@@ -1,16 +1,10 @@
-import {
-  createUserWithEmailAndPassword,
-  isSignInWithEmailLink,
-  signInWithEmailAndPassword,
-  signInWithEmailLink,
-} from "firebase/auth";
 import { useEffect, useRef } from "react";
-import { auth } from "../../firebase";
-import useLoggedIn from "@/hook/useAuth";
-import { useRouter } from "next/router";
 import styled from "styled-components";
 import LinkToEmailAuth from "@/components/auth/LinkToEmailAuth";
 import IdAndPasswordAuth from "@/components/auth/IdAndPasswordAuth";
+import useAuth from "@/hook/useAuth";
+import { checkAuthentication } from "@/utils/auth";
+import { useRouter } from "next/router";
 
 const Wrapper = styled.div`
   /* height: 100%; */
@@ -130,6 +124,16 @@ export default function Login() {
   const emailIdRef = useRef<HTMLDivElement>(null);
   const emailLinkRef = useRef<HTMLDivElement>(null);
   const LoginFormRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  useEffect(() => {
+    // 이미 로그인한 상태로 로그인 페이지 이동
+    (async () => {
+      const isUserAuthenticated = await checkAuthentication();
+      if (isUserAuthenticated) {
+        router.push("/");
+      }
+    })();
+  }, []);
 
   const clickLoginBtn = (e: React.MouseEvent<HTMLDivElement>) => {
     const loginType = e.currentTarget.dataset.loginType;
