@@ -9,8 +9,7 @@ import { set, ref, get, child, getDatabase, remove } from "firebase/database";
 import { useEffect, useLayoutEffect, useState } from "react";
 import useUserInfo from "@/hook/useUserInfo";
 import { getCurrentUserFollowing, setCurrentUserFollow } from "@/utils/user";
-import img from "../../../../public/notebook.jpg";
-import useLoggedIn from "@/hook/useAuth";
+import useAuth from "@/hook/useAuth";
 import { useRouter } from "next/router";
 import { deleteDoc, doc } from "firebase/firestore";
 
@@ -80,7 +79,7 @@ interface Owner {
 export default function detail({ data, content }: IDetailProps) {
   const [isFollow, setIsFollow] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { isLoggedIn } = useLoggedIn();
+  const isLoggedIn = useAuth();
   const router = useRouter();
 
   const useIsomorphicLayoutEffect =
@@ -88,12 +87,12 @@ export default function detail({ data, content }: IDetailProps) {
   const userInfod = useUserInfo();
   useIsomorphicLayoutEffect(() => {
     (async () => {
-      // 현재 로그인한 유저
-      const userSessionInfo = window.sessionStorage.getItem("userInfo") || "";
-      const userInfo = userSessionInfo && JSON.parse(userSessionInfo);
-      console.log(userInfo);
-      const userId = auth.currentUser?.uid || userInfo.uid;
-      if (userInfo && userId) {
+      if (isLoggedIn) {
+        // 현재 로그인한 유저
+        const userSessionInfo = window.sessionStorage.getItem("userInfo") || "";
+        const userInfo = userSessionInfo && JSON.parse(userSessionInfo);
+        console.log(userInfo);
+        const userId = auth.currentUser?.uid || userInfo.uid;
         // 현재 방문한 게시글 작성자
         const id = data.owner.id;
         console.log(userId, id);
@@ -136,8 +135,18 @@ export default function detail({ data, content }: IDetailProps) {
   };
 
   const onRemovePost = async () => {
-    const id = data.id;
-    await deleteDoc(doc(firestore, "blog", id));
+    // firebase 문서 삭제
+    // const id = data.id;
+    // await deleteDoc(doc(firestore, "blog", id));
+
+    // 로컬 문서 삭제
+    const response = await fetch(`/api/blog?${data.id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
     alert("문서가 삭제되었습니다.");
   };
   return (
