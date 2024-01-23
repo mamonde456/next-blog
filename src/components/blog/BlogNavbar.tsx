@@ -2,9 +2,11 @@ import Link from "next/link";
 import styled from "styled-components";
 
 const InfoList = styled.div`
+  width: 35%;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  padding: 10px 30px;
   nav {
     display: flex;
     gap: 10px;
