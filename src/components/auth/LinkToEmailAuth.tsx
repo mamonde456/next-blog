@@ -7,7 +7,7 @@ import {
 } from "firebase/auth";
 import { useEffect } from "react";
 import { useRouter } from "next/router";
-import useLoggedIn from "@/hook/useLoggedIn";
+import useAuth from "@/hook/useAuth";
 
 const InputLabel = styled.div`
   /* color: white; */
@@ -62,7 +62,7 @@ interface Props {
 
 export default function LinkToEmailAuth({ resetLoginBtn }: Props) {
   const router = useRouter();
-  const { isLoggedIn } = useLoggedIn();
+  const isLoggedIn = useAuth();
 
   useEffect(() => {
     resetLoginBtn();
@@ -118,7 +118,7 @@ export default function LinkToEmailAuth({ resetLoginBtn }: Props) {
   return (
     <form onSubmit={handleEmailSubmit}>
       <InputBox>
-        <input type="text" name="email" placeholder=" " />
+        <input type="text" name="email" placeholder=" " autoComplete="off" />
         <InputLabel>이메일 링크</InputLabel>
       </InputBox>
       {/* <label>

@@ -123,42 +123,18 @@ export default function IdAndPasswordAuth() {
         throw err;
       }
     }
-    // signInWithEmailAndPassword(auth, email, password)
-    //   .then((userCredential) => {
-    //     console.log(userCredential);
-    //     window.sessionStorage.setItem(
-    //       "userInfo",
-    //       JSON.stringify(userCredential.user)
-    //     );
-    //   })
-    //   .catch((err) => {
-    //     console.log("email, password login error ", err);
-    //     const errorCode = err.code;
-    //     console.log(errorCode);
-    //     if (errorCode.includes("invalid-credential")) {
-    //       throw err;
-    //     }
-    //   });
   };
 
   return (
     <form onSubmit={handleLogin}>
       <InputBox>
-        <input type="text" name="email" placeholder=" " />
+        <input type="text" name="email" autoComplete="off" placeholder=" " />
         <InputLabel>아이디</InputLabel>
       </InputBox>
       <InputBox>
         <input type="text" name="password" placeholder=" " />
         <InputLabel>비밀번호</InputLabel>
       </InputBox>
-      {/* <label>
-      이메일
-      <input type="text" name="email" />
-    </label> */}
-      {/* <label>
-      비밀번호
-      <input type="text" name="password" />
-    </label> */}
       <button type="submit">send</button>
     </form>
   );

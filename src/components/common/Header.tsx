@@ -1,4 +1,3 @@
-import useLoggedIn from "@/hook/useAuth";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -6,6 +5,7 @@ import styled from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 import { auth } from "../../../firebase";
 import { signOut } from "firebase/auth";
+import useAuth from "@/hook/useAuth";
 
 const Wrapper = styled.header`
   width: 1200px;
@@ -39,7 +39,7 @@ const ProfileIcon = styled.div`
 `;
 
 export default function Header() {
-  let { isLoggedIn } = useLoggedIn();
+  const isLoggedIn = useAuth();
 
   const router = useRouter();
   const [id, setId] = useState("");
