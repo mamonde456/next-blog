@@ -12,6 +12,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   const method = req.method || "";
   // req method 분기 처리
   const methodType: IMethodType = {
+    GET: () => getMdFile(req, res), // md 파일 불러오기
     POST: () => createMdFileFromPost(req, res), // md 파일 생성
     PUT: () => updateMdFile(req, res), // md 파일 수정
     DELETE: () => deleteMdFile(req, res),
@@ -19,26 +20,46 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
   if (methodType[method]) methodType[method]();
   else {
-    res.setHeader("Allow", ["PUT", "POST", "DELETE"]);
+    res.setHeader("Allow", ["GET", "PUT", "POST", "DELETE"]);
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }
 
+const getMdFile = async (req: NextApiRequest, res: NextApiResponse) => {
+  const { id } = req.query;
+  const selectedFile = [];
+  const files = await fs.readdir(path.join("__post"));
+  try {
+    for (let i = 0; i < files.length; i++) {
+      const readFile = await fs.readFile(path.join(`__post/${files[i]}`));
+      const { data: matterData, content } = matter(readFile);
+      if (matterData.id === id) {
+        selectedFile.push(matterData, content);
+        break;
+      }
+    }
+    res.status(200).json(selectedFile);
+  } catch (error) {
+    res.status(404).json(error);
+  }
+};
+
 const deleteMdFile = async (req: NextApiRequest, res: NextApiResponse) => {
   const { id } = req.query;
+  console.log(id);
   const files = await fs.readdir(path.join("__post"));
   try {
     for (let i = 0; i < files.length; i++) {
       const readFile = await fs.readFile(path.join(`__post/${files[i]}`));
       const { data: matterData } = matter(readFile);
       if (matterData.id === id) {
-        await fs.unlink(path.join(__dirname, `${matterData.slog}.md`));
-        return;
+        await fs.unlink(path.join("__post", `${id}.md`));
+        break;
       }
     }
     res.status(200).end("file deleted successfully");
   } catch (error) {
-    res.status(404).end(error);
+    res.status(404).json(error);
   }
 };
 
@@ -85,7 +106,7 @@ const createMdFileFromPost = (req: NextApiRequest, res: NextApiResponse) => {
     { id, title, description, slog, content, koreanTime, updateTime: "" },
     userConfig
   );
-  const filePath = configureFilePath(slog);
+  const filePath = configureFilePath(id);
 
   // 비동기적으로 파일 작성
   fs.writeFile(filePath, combinedContent)
@@ -160,9 +181,9 @@ description: ${description}
   return `${meta}\n${content}`;
 };
 
-const configureFilePath = (slog: string) => {
+const configureFilePath = (id: string) => {
   // 파일명 설정 (공백을 '-' 로 치환)
-  const fileName = `${slog}.md`;
+  const fileName = `${id}.md`;
   // 파일 경로 설정
   return path.join(process.cwd(), "__post", fileName);
 };
