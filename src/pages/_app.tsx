@@ -4,9 +4,10 @@ import type { AppProps } from "next/app";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 
-const AllWarpper = styled.div<{ window: { width: number; height: number } }>`
-  width: ${(props) => (props.window.width >= 1200 ? 1200 + "px" : 100 + "%")};
-  height: ${(props) => props.window.height + "px"};
+const AllWarpper = styled.div<{ $window: { width: number; height: number } }>`
+  width: ${($props) =>
+    $props.$window.width >= 1200 ? 1200 + "px" : 100 + "%"};
+  height: ${($props) => $props.$window.height + "px"};
   margin: 0 auto;
 `;
 
@@ -25,7 +26,7 @@ export default function App({ Component, pageProps }: AppProps) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
   return (
-    <AllWarpper window={{ width: resize.width, height: resize.height }}>
+    <AllWarpper $window={{ width: resize.width, height: resize.height }}>
       <Header></Header>
       <Component {...pageProps} />
     </AllWarpper>
