@@ -84,15 +84,26 @@ export default function Write() {
     setContent("");
     setTitle("");
     // autoSaveDraft() // 5분마다 임시글 자동 저장
-    // checkPostExists()
+    checkPostExists();
   }, []);
 
-  const checkPostExists = () => {
+  const checkPostExists = async () => {
     if (action === "new") {
       return;
     } else if (action === "edit") {
       // 기존 글 가져오기
       // getPostById()
+      const response = await fetch(`/api/blog?id=${params}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const [mata, content] = await response.json();
+      console.log(mata, content);
+      setTitle(mata.title);
+      setDescription(mata.description);
+      setContent(content);
     } else if (action === "draft") {
       // 임시 글 가져오기
       // getDraftFromIndexDB()
@@ -273,8 +284,7 @@ export default function Write() {
           <label>title</label>
           <input
             type="text"
-            name="title"
-            className="title"
+            // className="title"
             required
             defaultValue={title}
             onChange={(e) => setTitle(e.currentTarget.value)}
@@ -283,8 +293,7 @@ export default function Write() {
             description
             <input
               type="text"
-              name="title"
-              className="title"
+              // className="description"
               required
               defaultValue={description}
               onChange={(e) => setDescription(e.currentTarget.value)}
@@ -292,7 +301,6 @@ export default function Write() {
           </label>
           <label>content</label>
           <TextEditor
-            name="content"
             required
             defaultValue={content}
             onChange={(e) => setContent(e.currentTarget.value)}
