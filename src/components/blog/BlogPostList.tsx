@@ -212,7 +212,7 @@ export default function BlogPostList({ metaList, keyword }: IProps) {
       ) : (
         <BoxList>
           {postList?.map((el) => (
-            <Link key={el?.slog} href={`/posts/${el?.slog}`}>
+            <Link key={el?.slog} href={`/posts/${el?.id}`}>
               <PostItCont>
                 <PostIt>
                   <PostItTitle>{el?.title}</PostItTitle>
