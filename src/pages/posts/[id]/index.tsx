@@ -140,13 +140,15 @@ export default function detail({ data, content }: IDetailProps) {
     // await deleteDoc(doc(firestore, "blog", id));
 
     // 로컬 문서 삭제
-    const response = await fetch(`/api/blog?${data.id}`, {
+    const response = await fetch(`/api/blog?id=${data.id}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
       },
     });
-
+    if (response.ok) {
+      router.push("/");
+    }
     alert("문서가 삭제되었습니다.");
   };
   return (
@@ -174,7 +176,7 @@ export default function detail({ data, content }: IDetailProps) {
           <button
             onClick={() =>
               router.push({
-                pathname: `/write/${data.slog}`,
+                pathname: `/write/${data.id}`,
                 query: { action: "edit" },
               })
             }
