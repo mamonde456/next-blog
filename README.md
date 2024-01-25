@@ -1,11 +1,23 @@
 # Next.js 로 정적 블로그 만들기
 
+학습 목적으로 만들어보는 정적 블로그 구현기.
+firebase를 통한 CRUD와 로컬에 문서를 저장/삭제/수정하는 CRUD를 구현해보았습니다.
+(현재는 로컬 저장만 지원하고 있습니다. 추후, 로그인하지 않은 계정은 로컬 저장 지원)
+
 <p align="center">
 <img src="https://github.com/mamonde456/next-blog/assets/81732659/7fe6125d-ed13-4caa-99d4-2436324e108c" />
 </p>
 
+### 로그인 화면
+
 <p align="center">
 <img src="https://github.com/mamonde456/next-blog/assets/81732659/72d0f5e2-bd50-48d5-b2d0-4c80fb6209a1" />
+</p>
+
+### 글작성 화면
+
+<p align="center">
+<img src="https://github.com/mamonde456/next-blog/assets/81732659/0426d606-b3e4-43dc-a3de-5130598175c7" />
 </p>
 
 ## 실행
@@ -20,7 +32,6 @@ git clone https://github.com/mamonde456/next-blog.git
 npm i
 
 // 실행
-
 npm run dev
 
 ```
@@ -94,6 +105,19 @@ npm run dev
 - checkAuthentication 함수 => useAuth 훅으로 대체(중복 제거) & import useAuth로 변경
 - saves/index.tsx 파일에 style 추가
 
+#### 24.1.23
+
+- util 함수에 로그인 상태 체크 함수 추가 (리액트 훅 주기와 맞지 않음.)
+- matter 데이터에 description 추가
+- 로컬 문서 삭제 로직 추가
+- HTTP 메서드에 따른 분기 처리
+  - 문서 수정 로직 추가
+  - 문서 삭제 로직 추가
+- 로그인한 상태로 로그인 페이지 접속 시 메인홈으로 이동
+- className에 따른 렌더링 이슈 수정
+- 주석 삭제
+- style css 수정
+
 ### 개선점
 
 - style css 수정
@@ -103,3 +127,4 @@ npm run dev
 - 프로필 이미지 자르기 기능에서 자르기 영역이 이미지 바깥에서 시작하는 오류 수정
 - firebase에 문서 저장시 마크다운 형식으로 저장되지 않는 점 개선 필요
 - 현재 로그인한 사용자 감지하는 함수 통일 필요
+- ~~로컬 파일 삭제 로직~~
