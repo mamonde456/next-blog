@@ -1,10 +1,14 @@
 import useAuth from "@/hook/useAuth";
 import { checkAuthentication } from "@/utils/auth";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { JsxElement } from "typescript";
 
-export default function RequireAuth({ children }: JsxElement) {
+type RequireAuthProps = {
+  children: ReactNode;
+};
+
+export default function RequireAuth({ children }: RequireAuthProps) {
   const [isAuth, setIsAuth] = useState(false);
   const router = useRouter();
 
@@ -16,7 +20,7 @@ export default function RequireAuth({ children }: JsxElement) {
         router.push("/login");
       }
     })();
-  }, []);
+  }, [isAuth]);
 
-  return isAuth ? children : null;
+  return isAuth ? <>{children}</> : null;
 }
