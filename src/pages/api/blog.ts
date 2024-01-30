@@ -3,6 +3,7 @@ import fs from "fs-extra";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
 import matter from "gray-matter";
+import { getKoreanTime } from "@/utils/common";
 
 interface IMethodType {
   [index: string]: () => void;
@@ -135,12 +136,6 @@ const replaceTitleWithSlog = (title: string) => {
   } else {
     return uuidv4();
   }
-};
-
-const getKoreanTime = () => {
-  const now = new Date();
-  now.setHours(now.getHours() + 9);
-  return now.toISOString();
 };
 
 interface metaType {
