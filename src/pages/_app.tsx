@@ -27,7 +27,7 @@ export default function App({ Component, pageProps }: AppProps) {
   }, []);
   return (
     <AllWarpper $window={{ width: resize.width, height: resize.height }}>
-      <Header></Header>
+      {/* <Header></Header> */}
       <Component {...pageProps} />
     </AllWarpper>
   );
