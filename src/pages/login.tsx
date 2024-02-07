@@ -125,15 +125,15 @@ export default function Login() {
   const emailLinkRef = useRef<HTMLDivElement>(null);
   const LoginFormRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const isAuth = useAuth();
   useEffect(() => {
     // 이미 로그인한 상태로 로그인 페이지 이동
     (async () => {
-      const isUserAuthenticated = await checkAuthentication();
-      if (isUserAuthenticated) {
+      if (isAuth) {
         router.push("/");
       }
     })();
-  }, []);
+  }, [isAuth]);
 
   const clickLoginBtn = (e: React.MouseEvent<HTMLDivElement>) => {
     const loginType = e.currentTarget.dataset.loginType;
