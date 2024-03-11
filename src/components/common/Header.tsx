@@ -57,7 +57,7 @@ export default function Header() {
           <Link href={"/"}>BEGIN.log</Link>
         </h1>
         <ProfileBox>
-          {router.pathname !== "/write" && isLoggedIn && (
+          {router.pathname !== "/write" && (
             <Link href={{ pathname: `/write/${id}`, query: { action: "new" } }}>
               글 작성
             </Link>
@@ -76,7 +76,6 @@ export default function Header() {
           )}
         </ProfileBox>
       </nav>
-      {/* <div>search</div> */}
     </Wrapper>
   );
 }
