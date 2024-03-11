@@ -164,7 +164,7 @@ title: ${title}
 slog: ${slog}
 created_at: ${koreanTime}
 update_at: ${updateTime}
-owner: {
+userConfig: {
   photoUrl: ${userConfig.photoUrl},
   id: ${userConfig.uid},
   displayName: ${userConfig.displayName},
