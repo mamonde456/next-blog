@@ -11,7 +11,11 @@ import useUserInfo from "@/hook/useUserInfo";
 import { getCurrentUserFollowing, setCurrentUserFollow } from "@/utils/user";
 import useAuth from "@/hook/useAuth";
 import { useRouter } from "next/router";
-import { deleteDoc, doc } from "firebase/firestore";
+import { deleteDoc, doc, getDoc } from "firebase/firestore";
+import { checkAuthentication } from "@/utils/auth";
+import DeleteButton from "@/components/ui/button/DeleteButton";
+import EditButton from "@/components/ui/button/EditButton";
+import BackButton from "@/components/ui/button/BackButton";
 
 const Wrapper = styled.div`
   height: 100%;
@@ -53,11 +57,18 @@ const NotebookWrap = styled.div`
   width: 700px;
   height: 800px;
   background-color: white;
-  background-image: url("/notebook.jpg");
+  /* background-image: url("/notebook.jpg"); */
   background-size: cover;
   /* border: solid 1px black; */
   box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
   border-radius: 10px;
+`;
+
+const BtnContainer = styled.div`
+  display: flex;
+  justify-content: right;
+  padding: 20px 30px;
+  gap: 10px;
 `;
 
 interface IDetailProps {
@@ -79,22 +90,28 @@ interface Owner {
 export default function detail({ data, content }: IDetailProps) {
   const [isFollow, setIsFollow] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [meta, setMeta] = useState(data);
+  const [posts, setPosts] = useState(content);
   const isLoggedIn = useAuth();
   const router = useRouter();
+  const { id } = router.query;
 
   const useIsomorphicLayoutEffect =
     typeof window !== "undefined" ? useLayoutEffect : useEffect;
   const userInfod = useUserInfo();
   useIsomorphicLayoutEffect(() => {
     (async () => {
-      if (isLoggedIn) {
+      const isUserAuthenticated = await checkAuthentication();
+      getPostById();
+      if (isUserAuthenticated) {
         // 현재 로그인한 유저
+        console.log("test12");
         const userSessionInfo = window.sessionStorage.getItem("userInfo") || "";
         const userInfo = userSessionInfo && JSON.parse(userSessionInfo);
         console.log(userInfo);
         const userId = auth.currentUser?.uid || userInfo.uid;
         // 현재 방문한 게시글 작성자
-        const id = data.owner.id;
+        const id = data?.owner.id;
         console.log(userId, id);
         const currentFollowUsers = await getCurrentUserFollowing(userId, id);
         console.log(currentFollowUsers);
@@ -107,9 +124,31 @@ export default function detail({ data, content }: IDetailProps) {
           setIsFollow(false);
           setIsLoading(true);
         }
-      }
+      } else return;
     })();
   }, []);
+
+  const getPostById = async () => {
+    const docRef = doc(firestore, "posts", `${id}`);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      console.log("Document data:", docSnap.data());
+      const firebaseData = docSnap.data();
+      const meta = {
+        id: firebaseData.id,
+        title: firebaseData.title,
+        created_at: firebaseData.created_at,
+        slog: firebaseData.slog,
+        owner: firebaseData.userConfig,
+      };
+      const decodedText = decodeURIComponent(firebaseData.content);
+      setMeta(meta);
+      setPosts(decodedText);
+    } else {
+      // docSnap.data() will be undefined in this case
+      console.log("No such document!");
+    }
+  };
 
   const handleFollowButtonClick = () => {
     // 현재 로그인한 유저
@@ -137,10 +176,10 @@ export default function detail({ data, content }: IDetailProps) {
   const onRemovePost = async () => {
     // firebase 문서 삭제
     // const id = data.id;
-    // await deleteDoc(doc(firestore, "blog", id));
+    // await deleteDoc(doc(firestore, "posts", id));
 
     // 로컬 문서 삭제
-    const response = await fetch(`/api/blog?id=${data.id}`, {
+    const response = await fetch(`/api/posts?id=${data.id}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -154,13 +193,24 @@ export default function detail({ data, content }: IDetailProps) {
   return (
     <Wrapper>
       <NotebookWrap>
-        <Title>{data?.title}</Title>
+        <Title>{meta?.title || ""}</Title>
+        <BtnContainer>
+          <EditButton
+            onClick={() =>
+              router.push({
+                pathname: `/write/${meta.id}`,
+                query: { action: "edit" },
+              })
+            }
+          />
+          <DeleteButton onClick={onRemovePost} />
+        </BtnContainer>
         <MetaData>
           <UserInfo>
             <span>
-              {data?.owner?.displayName || data?.owner?.email.split("@")[0]}
+              {meta?.owner?.displayName || meta?.owner?.email.split("@")[0]}
             </span>
-            {data?.owner.email === userInfod?.email ? null : (
+            {meta?.owner.email === userInfod?.email ? null : (
               <>
                 {isLoggedIn && isLoading && (
                   <button onClick={handleFollowButtonClick}>
@@ -170,24 +220,11 @@ export default function detail({ data, content }: IDetailProps) {
               </>
             )}
           </UserInfo>
-          <div>{data?.created_at.slice(0, 10)}</div>
+          <div>{meta?.created_at.slice(0, 10)}</div>
         </MetaData>
-        <div>
-          <button
-            onClick={() =>
-              router.push({
-                pathname: `/write/${data.id}`,
-                query: { action: "edit" },
-              })
-            }
-          >
-            수정
-          </button>
-          <button onClick={onRemovePost}>삭제</button>
-        </div>
         <Content style={{ whiteSpace: "pre-line" }}>
           <Markdown remarkPlugins={[[remarkGfm, { singleTilde: false }]]}>
-            {content}
+            {posts}
           </Markdown>
         </Content>
       </NotebookWrap>
@@ -204,15 +241,18 @@ export const getStaticPaths = async () => {
 };
 
 export const getStaticProps = async ({ params }: any) => {
-  const markdownWithMetadata = await fs.readFile(
-    path.join(`__post/${params.id}.md`),
-    "utf-8"
-  );
-  const { data, content } = await matter(markdownWithMetadata);
-  return {
-    props: {
-      data,
-      content,
-    },
-  };
+  // const markdownWithMetadata = await fs.readFile(
+  //   path.join(`__post/${params.id}.md`),
+  //   "utf-8"
+  // );
+  // if (markdownWithMetadata) {
+  // const { data, content } = await matter(markdownWithMetadata);
+  // return {
+  //   props: {
+  //     data,
+  //     content,
+  //   },
+  // };
+  // }
+  return { props: {} };
 };
