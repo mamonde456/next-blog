@@ -1,8 +1,12 @@
 import useAuth from "@/hook/useAuth";
 import { getCurrentUserFollowing } from "@/utils/user";
+import { collection, doc, getDoc, getDocs } from "firebase/firestore";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
+import { firestore } from "../../../firebase";
+import { checkAuthentication } from "@/utils/auth";
+import { IFirebasePost } from "@/types/blog";
 
 const Wrapper = styled.div`
   width: 65%;
@@ -143,9 +147,10 @@ interface IProps {
 export default function BlogPostList({ metaList, keyword }: IProps) {
   const [category, setCategory] = useState(false);
   const [postList, setPostList] = useState<any>([]);
-
   const isLoggedIn = useAuth();
-
+  useEffect(() => {
+    console.log(postList);
+  }, [postList]);
   useEffect(() => {
     setPostList([]);
     const result = metaList.filter(
@@ -155,15 +160,38 @@ export default function BlogPostList({ metaList, keyword }: IProps) {
   }, [keyword]);
 
   useEffect(() => {
-    if (category) {
-      setFollowingTab();
-    } else {
-      setPostList(metaList);
-    }
-  }, [category]);
-
-  const setFollowingTab = async () => {
     setPostList([]);
+    (async () => {
+      if (isLoggedIn) {
+        if (category) {
+          setFollowingPosts();
+        } else {
+          getLatestPosts();
+        }
+      } else {
+        setPostList(metaList);
+      }
+    })();
+  }, [category, isLoggedIn]);
+
+  const getLatestPosts = async () => {
+    const querySnapshot = await getDocs(collection(firestore, "posts"));
+    if (querySnapshot) {
+      const posts: IFirebasePost[] = [];
+      querySnapshot.forEach((doc) => {
+        console.log(doc);
+        console.log(doc.data());
+        posts.push(doc.data() as IFirebasePost);
+      });
+      setPostList([...posts, ...postList]);
+    } else {
+      setPostList([
+        { title: "팔로우가 없습니다!", slog: "", created_at: " string" },
+      ]);
+    }
+  };
+
+  const setFollowingPosts = async () => {
     const userInfo = window.sessionStorage.getItem("userInfo");
     const userId = userInfo && JSON.parse(userInfo).uid;
     console.log(userId);
@@ -195,35 +223,20 @@ export default function BlogPostList({ metaList, keyword }: IProps) {
           )}
         </div>
       </PostTitle>
-      {category ? (
-        <BoxList>
-          {postList?.map((el) => (
-            <Link key={el?.slog} href={`/posts/${el?.slog}`}>
-              <PostItCont>
-                <PostIt>
-                  <PostItTitle>{el?.title}</PostItTitle>
-                  <small>{el?.created_at.slice(0, 10)}</small>
-                  <PostItNote>{el?.description}</PostItNote>
-                </PostIt>
-              </PostItCont>
-            </Link>
-          ))}
-        </BoxList>
-      ) : (
-        <BoxList>
-          {postList?.map((el) => (
-            <Link key={el?.slog} href={`/posts/${el?.id}`}>
-              <PostItCont>
-                <PostIt>
-                  <PostItTitle>{el?.title}</PostItTitle>
-                  <small>{el?.created_at.slice(0, 10)}</small>
-                  <PostItNote>{el?.description}</PostItNote>
-                </PostIt>
-              </PostItCont>
-            </Link>
-          ))}
-        </BoxList>
-      )}
+
+      <BoxList>
+        {postList?.map((el) => (
+          <Link key={el?.id} href={`/posts/${el?.id}`}>
+            <PostItCont>
+              <PostIt>
+                <PostItTitle>{el?.title}</PostItTitle>
+                <small>{el?.created_at?.slice(0, 10)}</small>
+                <PostItNote>{el?.description}</PostItNote>
+              </PostIt>
+            </PostItCont>
+          </Link>
+        ))}
+      </BoxList>
     </Wrapper>
   );
 }
