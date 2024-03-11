@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { v4 as uuidv4 } from "uuid";
 import styled from "styled-components";
-import SignIcon from "../ui/SignIcon";
+import SignIcon from "../ui/button/auth/SignIcon";
 import useAuth from "@/hook/useAuth";
 
 const Wrapper = styled.div`
