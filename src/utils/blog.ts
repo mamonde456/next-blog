@@ -12,7 +12,7 @@ export const saveDraftToIndexedDB = (post: IIndexedDB) => {
     // window.indexedDB = window.indexedDB;
     // window.IDBTransaction = window.IDBTransaction;
     // window.IDBKeyRange = window.IDBKeyRange;
-    const req = window.indexedDB.open("blog", 1);
+    const req = window.indexedDB.open("posts", 1);
     req.onerror = function (e) {
       console.log("error ", e);
     };
@@ -92,7 +92,8 @@ export const getDraftFromIndexDB = () => {
 // firebase 함수
 
 export const getAllPostsFromFirebase = async () => {
-  const querySnapshot = await getDocs(collection(firestore, "blog"));
+  const querySnapshot = await getDocs(collection(firestore, "posts"));
+  console.log(querySnapshot);
   if (querySnapshot) {
     const posts: IFirebasePost[] = [];
     querySnapshot.forEach((doc) => {
