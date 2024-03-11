@@ -4,7 +4,7 @@ const Wrapper = styled.div`
   .ui-bookmark {
     --icon-size: 20px;
     --icon-secondary-color: rgb(244, 244, 244);
-    --icon-hover-color: gold;
+    --icon-hover-color: #828282;
     --icon-primary-color: gold;
     --icon-circle-border: 1px solid var(--icon-primary-color);
     --icon-circle-size: 35px;
