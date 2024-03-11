@@ -5,6 +5,8 @@ import {
 import styled from "styled-components";
 import { auth } from "../../../firebase";
 import { useRouter } from "next/router";
+import { setUserData } from "@/utils/user";
+import { IUserInfo } from "@/types/users";
 
 const InputLabel = styled.div`
   /* color: white; */
@@ -69,12 +71,16 @@ export default function IdAndPasswordAuth() {
       try {
         await signInUser(email, password);
       } catch (err) {
-        console.log("tset");
         console.log("로그인 실패, 계정 생성 후 다시 로그인 시도");
-        await createUser(email, password);
-        console.log(err);
-        count = count + 1;
-        await handleWithEmailAndPassword(email, password);
+        const isCreateAccount = confirm("계정을 생성하시겠습니까?");
+        if (isCreateAccount) {
+          await createUser(email, password);
+          console.log(err);
+          count = count + 1;
+          await handleWithEmailAndPassword(email, password);
+        } else {
+          return console.log("로그인 실패");
+        }
       }
     };
     return handleWithEmailAndPassword(email.value, password.value);
@@ -115,6 +121,14 @@ export default function IdAndPasswordAuth() {
       );
       const user = userCredential.user;
       window.sessionStorage.setItem("userInfo", JSON.stringify(user));
+      const userInfo: IUserInfo = {
+        email: user.email || "",
+        displayName: (user.email && user.email.split("@")[0]) || "",
+        photoUrl: "",
+        uid: user.uid,
+        bio: "",
+      };
+      setUserData(userInfo);
       router.push("/");
     } catch (err: any) {
       console.log("email, password login error ", err);
