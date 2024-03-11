@@ -5,6 +5,7 @@ import IdAndPasswordAuth from "@/components/auth/IdAndPasswordAuth";
 import useAuth from "@/hook/useAuth";
 import { checkAuthentication } from "@/utils/auth";
 import { useRouter } from "next/router";
+import GitHubButton from "@/components/ui/button/social/GitHubButton";
 
 const Wrapper = styled.div`
   /* height: 100%; */
@@ -114,10 +115,13 @@ const EmailLinkBox = styled.div`
   }
 `;
 const SocialBox = styled.div`
-  display: none;
-  &.active {
+  display: flex;
+  gap: 20px;
+  justify-content: space-around;
+  /* display: none; */
+  /* &.active {
     display: block;
-  }
+  } */
 `;
 
 export default function Login() {
@@ -125,15 +129,6 @@ export default function Login() {
   const emailLinkRef = useRef<HTMLDivElement>(null);
   const LoginFormRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const isAuth = useAuth();
-  useEffect(() => {
-    // 이미 로그인한 상태로 로그인 페이지 이동
-    (async () => {
-      if (isAuth) {
-        router.push("/");
-      }
-    })();
-  }, [isAuth]);
 
   const clickLoginBtn = (e: React.MouseEvent<HTMLDivElement>) => {
     const loginType = e.currentTarget.dataset.loginType;
@@ -168,9 +163,16 @@ export default function Login() {
         <LoginBox data-login-type="emailLink" onClick={clickLoginBtn}>
           이메일 링크
         </LoginBox>
-        <LoginBox data-login-type="github" onClick={clickLoginBtn}>
-          깃헙
+        <LoginBox>
+          <SocialBox>
+            <GitHubButton />
+            {/* <GitHubButton /> */}
+            {/* <GitHubButton /> */}
+          </SocialBox>
         </LoginBox>
+        {/* <LoginBox data-login-type="github" onClick={clickLoginBtn}>
+          깃헙
+        </LoginBox> */}
       </LoginContainer>
       <LoginFormContainer ref={LoginFormRef}>
         <EmailIdBox ref={emailIdRef}>
@@ -179,7 +181,7 @@ export default function Login() {
         <EmailLinkBox ref={emailLinkRef}>
           <LinkToEmailAuth resetLoginBtn={resetLoginBtn} />
         </EmailLinkBox>
-        <SocialBox>소셜 로그인</SocialBox>
+        {/* <SocialBox>소셜 로그인</SocialBox> */}
       </LoginFormContainer>
     </Wrapper>
   );
