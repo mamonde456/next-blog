@@ -1,5 +1,5 @@
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { auth, storage } from "../../../firebase";
+import { auth, storage } from "../../../../firebase";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { updateProfile } from "firebase/auth";
 import RequireAuth from "@/components/common/RequireAuth";
@@ -211,12 +211,12 @@ export default function SettingProfile() {
               disabled
             />
           </label>
-          <Btn type="button" className="reset">
+          {/* <Btn type="button" className="reset">
             비밀번호 재설정
           </Btn>
           <Btn type="submit" className="save">
             save
-          </Btn>
+          </Btn> */}
         </FormContainer>
       </Wrapper>
     </RequireAuth>
