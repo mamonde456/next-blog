@@ -1,3 +1,4 @@
+import { IUserInfo } from "@/types/users";
 import { db } from "../../firebase";
 import { set, ref, get, child, getDatabase } from "firebase/database";
 
@@ -38,4 +39,11 @@ export const getCurrentUserFollowing = async (
     console.log("No data available");
     return [];
   }
+};
+
+export const setUserData = (userInfo: IUserInfo) => {
+  const id = userInfo.uid;
+  set(ref(db, "users/" + id), {
+    ...userInfo,
+  });
 };
