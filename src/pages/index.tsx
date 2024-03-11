@@ -8,6 +8,7 @@ import BlogNavbar from "@/components/blog/BlogNavbar";
 import BlogPostList from "@/components/blog/BlogPostList";
 import MainMenu from "@/components/common/MainMenu";
 import MainPosts from "@/components/blog/MainPosts";
+import { ILocalMeta, IMeta } from "@/types/blog";
 
 const Wrapper = styled.div`
   /* display: flex;
@@ -127,18 +128,7 @@ const BookListTitle = styled.div`
   margin-bottom: 20px;
 `;
 
-interface IProps {
-  sortFrontmatter: [
-    {
-      title: string;
-      slog: string;
-      created_at: string;
-      owner: { [index: string]: string };
-    }
-  ];
-}
-
-export default function Home({ sortFrontmatter: metaList }: IProps) {
+export default function Home() {
   const [keyword, setKeyword] = useState("");
   const getKeyword = (keyword: string) => {
     setKeyword(keyword);
@@ -199,7 +189,6 @@ export const getStaticProps = async () => {
   for (let i = 0; i < file.length; i++) {
     const readFile = await fs.readFile(path.join(`__post/${file[i]}`));
     const { data: frontmatter } = matter(readFile);
-    console.log(frontmatter);
     frontmatter.created_at = new Date(frontmatter.created_at).toISOString();
     metaArr.push(frontmatter);
   }
