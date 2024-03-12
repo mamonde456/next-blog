@@ -8,7 +8,7 @@ import BlogNavbar from "@/components/blog/BlogNavbar";
 import BlogPostList from "@/components/blog/BlogPostList";
 import MainMenu from "@/components/common/MainMenu";
 import MainPosts from "@/components/blog/MainPosts";
-import { ILocalMeta, IMeta } from "@/types/blog";
+import { IMeta } from "@/types/blog";
 
 const Wrapper = styled.div`
   /* display: flex;
@@ -21,19 +21,6 @@ const Wrapper = styled.div`
   background: white;
   margin-top: 0.8%;
   border-radius: 10px;
-`;
-
-const WhiteBoard = styled.div`
-  width: 95%;
-  height: 70%;
-  display: flex;
-  justify-content: space-evenly;
-  align-items: center;
-  gap: 50px;
-  border: solid 4px black;
-  box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5);
-  overflow-y: scroll;
-  background-color: #ffffff;
 `;
 
 const SideMenuList = styled.div`
