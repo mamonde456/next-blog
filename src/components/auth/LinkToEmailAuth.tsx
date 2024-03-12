@@ -8,6 +8,8 @@ import {
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 import useAuth from "@/hook/useAuth";
+import { setUserData } from "@/utils/user";
+import { IUserInfo } from "@/types/users";
 
 const InputLabel = styled.div`
   /* color: white; */
@@ -94,6 +96,15 @@ export default function LinkToEmailAuth({ resetLoginBtn }: Props) {
             })
           );
           console.log(result);
+          const userInfo: IUserInfo = {
+            email: result.user.email || "",
+            displayName:
+              (result.user.email && result.user.email.split("@")[0]) || "",
+            photoUrl: "",
+            uid: result.user.uid,
+            bio: "",
+          };
+          setUserData(userInfo);
           router.push("/");
         })
         .catch((err) => {
