@@ -1,6 +1,7 @@
 import { IUserInfo } from "@/types/users";
-import { db } from "../../firebase";
+import { db, firestore } from "../../firebase";
 import { set, ref, get, child, getDatabase } from "firebase/database";
+import { doc, setDoc } from "firebase/firestore";
 
 interface followDataType {
   name: string;
@@ -23,7 +24,7 @@ export const setCurrentUserFollow = (
 export const getCurrentUserFollowing = async (
   userId: string,
   id?: string
-): any => {
+) => {
   const dbRef = ref(getDatabase());
   console.log(userId, id);
   const BASE_URL = `followUsers/`;
@@ -41,9 +42,9 @@ export const getCurrentUserFollowing = async (
   }
 };
 
-export const setUserData = (userInfo: IUserInfo) => {
+export const setUserData = async (userInfo: IUserInfo) => {
   const id = userInfo.uid;
-  set(ref(db, "users/" + id), {
+  await setDoc(doc(firestore, "users", id), {
     ...userInfo,
   });
 };
