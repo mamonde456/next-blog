@@ -1,4 +1,4 @@
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../../firebase";
 import { Dispatch, SetStateAction } from "react";
 
@@ -14,4 +14,15 @@ export const checkAuthentication = async (): Promise<boolean> => {
     }
   });
   return isUserAuthenticated;
+};
+
+export const signOutUser = () => {
+  signOut(auth)
+    .then(() => {
+      console.log("로그아웃");
+    })
+    .catch((error) => {
+      console.log("로그아웃 실패");
+      console.log("err msg, ", error);
+    });
 };
