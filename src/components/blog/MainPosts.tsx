@@ -61,12 +61,12 @@ const TabContainer = styled.div`
   margin-bottom: 20px;
 `;
 
-const Tab = styled.div<{ isLoggedIn: Boolean }>`
+const Tab = styled.div<{ $isLoggedIn: Boolean }>`
   &:hover {
     background-color: #eeeeee;
   }
   &:not(.selected) {
-    width: ${(props) => props.isLoggedIn && "50%"};
+    width: ${(props) => props.$isLoggedIn && "50%"};
     height: 100%;
     padding: 10px;
     text-align: center;
@@ -134,11 +134,11 @@ export default function MainPosts() {
   return (
     <MainBoard>
       <TabContainer>
-        <Tab isLoggedIn={isLoggedIn} onClick={() => setCategory(false)}>
+        <Tab $isLoggedIn={isLoggedIn} onClick={() => setCategory(false)}>
           최신탭
         </Tab>
         {isLoggedIn && (
-          <Tab isLoggedIn={isLoggedIn} onClick={() => setCategory(true)}>
+          <Tab $isLoggedIn={isLoggedIn} onClick={() => setCategory(true)}>
             팔로우탭
           </Tab>
         )}
