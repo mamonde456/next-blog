@@ -103,6 +103,7 @@ export default function LinkToEmailAuth({ resetLoginBtn }: Props) {
             photoUrl: "",
             uid: result.user.uid,
             bio: "",
+            chatRooms: [],
           };
           setUserData(userInfo);
           router.push("/");
