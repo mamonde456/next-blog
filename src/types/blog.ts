@@ -44,3 +44,18 @@ export interface IFirebasePost {
     like: number;
   };
 }
+
+export interface IChatRoomInfoType {
+  title: string;
+  lastMessage: string;
+  timestamp: string;
+  chatRoomId: string;
+}
+
+export interface IChatMessagseType {
+  id: string;
+  message: string;
+  name: string;
+  timestamp: Timestamp;
+  uid: string;
+}
