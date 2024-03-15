@@ -13,7 +13,7 @@ export const addPostToBookmark = (
 
 export const removePostFromBookmark = (userId: string, postId: string) => {
   const firebasePosts = listenToBookmarkChanges(userId);
-  const Post = firebasePosts.find((post) => post.id === postId);
+  const Post = firebasePosts.find((post) => post?.id === postId);
   if (Post) {
     remove(ref(db, `bookmarks/${userId}/${postId}`));
   } else {
