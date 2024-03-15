@@ -6,6 +6,7 @@ export interface IUserInfo {
   photoUrl: string | null;
   uid: string;
   bio: string | null;
+  chatRooms?: string[];
 }
 
 export interface IGuestBooks extends IUserInfo {
@@ -13,6 +14,9 @@ export interface IGuestBooks extends IUserInfo {
 }
 
 export interface IGuestbook {
+  id: string;
+  displayName?: string;
+  photoUrl?: string;
   author: string;
   message: string;
   timestamp: Timestamp;
