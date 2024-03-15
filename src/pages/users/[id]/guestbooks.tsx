@@ -13,6 +13,8 @@ import { useEffect, useState } from "react";
 import { IGuestBooks, IGuestbook, IUserInfo } from "@/types/users";
 import { firestore } from "../../../../firebase";
 import { v4 as uuidv4 } from "uuid";
+import ItemList from "@/components/ui/ItemList";
+import { formatTimestampToDateStr } from "@/utils/common";
 
 const Wrapper = styled.div`
   /* display: flex;
@@ -90,8 +92,16 @@ const MSGInputContainer = styled.div`
 const MessageContent = styled.div`
   width: 100%;
   display: flex;
+  flex-direction: column;
   flex: 2;
 `;
+
+const GuestContainer = styled.div`
+  display: flex;
+`;
+
+const GuestProfile = styled.div``;
+const GuestText = styled.span``;
 
 export default function Guestbooks() {
   const {
@@ -127,7 +137,6 @@ export default function Guestbooks() {
 
   useEffect(() => {
     if (isLoaded) {
-      const guestbooksData: IGuestbook[] = [];
       const unsub = onSnapshot(
         doc(firestore, "users", id as string),
         {
@@ -136,10 +145,12 @@ export default function Guestbooks() {
         (doc) => {
           console.log(doc.data());
           const guestData = doc.data()?.guestbooks;
+
           console.log(guestData);
           setGuestbooks(guestData);
         }
       );
+
       return () => unsub();
     } else {
       return console.log("firestore 초기화 중");
@@ -152,12 +163,17 @@ export default function Guestbooks() {
       JSON.parse(window.sessionStorage.getItem("userInfo") || "");
     const userId = userInfo.uid;
     const guestbooksRef = doc(firestore, `users`, id as string);
+    const displayName = userInfo.displayName
+      ? userInfo.displayName
+      : userInfo.email.split("@")[0];
 
     await setDoc(
       guestbooksRef,
       {
         guestbooks: arrayUnion({
           id: uuidv4(),
+          displayName,
+          photoUrl: userInfo.photoUrl,
           author: userId,
           message: data,
           timestamp: Timestamp.fromDate(new Date()),
@@ -174,8 +190,10 @@ export default function Guestbooks() {
         <MessageContent>
           {guestbooks?.map((item) => (
             <div key={item.id}>
-              <span>{item.author}</span>
+              <span>{item.displayName}</span>
+              <span>{item.photoUrl}</span>
               <span>{item.message}</span>
+              <span>{formatTimestampToDateStr(item.timestamp)}</span>
             </div>
           ))}
         </MessageContent>
