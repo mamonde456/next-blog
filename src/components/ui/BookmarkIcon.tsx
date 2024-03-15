@@ -206,7 +206,7 @@ const Wrapper = styled.div`
 
 export default function BookmarkIcon() {
   return (
-    <Wrapper>
+    <Wrapper title="bookmark">
       <label className="ui-bookmark">
         <input type="checkbox" />
         <div className="bookmark">
