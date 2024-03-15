@@ -5,7 +5,7 @@ import {
 import styled from "styled-components";
 import { auth } from "../../../firebase";
 import { useRouter } from "next/router";
-import { setUserData } from "@/utils/user";
+import { getCurrentUserData, setUserData } from "@/utils/user";
 import { IUserInfo } from "@/types/users";
 
 const InputLabel = styled.div`
@@ -94,7 +94,15 @@ export default function IdAndPasswordAuth() {
         password
       );
       const user = userCredential.user;
-      window.sessionStorage.setItem("userInfo", JSON.stringify(user));
+      const userInfo: IUserInfo = {
+        email: user.email || "",
+        displayName: (user.email && user.email.split("@")[0]) || "",
+        photoUrl: "",
+        uid: user.uid,
+        bio: "",
+        chatRooms: [],
+      };
+      window.sessionStorage.setItem("userInfo", JSON.stringify(userInfo));
       alert("계정 생성 완료");
     } catch (err) {
       console.log("계정 생성 err, ", err);
@@ -120,15 +128,10 @@ export default function IdAndPasswordAuth() {
         password
       );
       const user = userCredential.user;
-      window.sessionStorage.setItem("userInfo", JSON.stringify(user));
-      const userInfo: IUserInfo = {
-        email: user.email || "",
-        displayName: (user.email && user.email.split("@")[0]) || "",
-        photoUrl: "",
-        uid: user.uid,
-        bio: "",
-      };
-      setUserData(userInfo);
+      const userInfo = await getCurrentUserData(user.uid);
+      console.log("userInfouserInfouserInfo, ", userInfo);
+      window.sessionStorage.setItem("userInfo", JSON.stringify(userInfo));
+
       router.push("/");
     } catch (err: any) {
       console.log("email, password login error ", err);
