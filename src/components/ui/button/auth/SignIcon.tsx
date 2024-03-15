@@ -69,11 +69,10 @@ const Wrapper = styled.div`
   }
 `;
 
-type SignPropsType = { signType: "signin" | "signout" };
-export default function SignIcon({ signType }: SignPropsType) {
-  console.log(signType);
+type SignPropsType = { signType: "signin" | "signout"; onClick?: () => void };
+export default function SignIcon({ signType, onClick }: SignPropsType) {
   return (
-    <Wrapper>
+    <Wrapper onClick={onClick}>
       <button className="Btn">
         {signType === "signin" && (
           <>
