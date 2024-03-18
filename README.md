@@ -17,7 +17,7 @@ firebase를 통한 CRUD와 로컬에 문서를 저장/삭제/수정하는 CRUD�
 ### 글작성 화면
 
 <p align="center">
-<img src="https://github.com/mamonde456/next-blog/assets/81732659/0426d606-b3e4-43dc-a3de-5130598175c7" />
+<img src="https://github.com/mamonde456/next-blog/assets/81732659/047534bf-df8d-4b36-8eb5-0538ac80e718" />
 </p>
 
 ## 실행
