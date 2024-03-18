@@ -5,19 +5,19 @@ firebase를 통한 CRUD와 로컬에 문서를 저장/삭제/수정하는 CRUD�
 (현재는 로컬 저장만 지원하고 있습니다. 추후, 로그인하지 않은 계정은 로컬 저장 지원)
 
 <p align="center">
-<img src="https://github.com/mamonde456/next-blog/assets/81732659/7fe6125d-ed13-4caa-99d4-2436324e108c" />
+<img src="https://github.com/mamonde456/next-blog/assets/81732659/06b8adf6-6049-4c56-8e25-403228c0500c" />
 </p>
 
 ### 로그인 화면
 
 <p align="center">
-<img src="https://github.com/mamonde456/next-blog/assets/81732659/72d0f5e2-bd50-48d5-b2d0-4c80fb6209a1" />
+<img src="https://github.com/mamonde456/next-blog/assets/81732659/37bf99a7-ea92-4dd2-8328-8e081311ed89" />
 </p>
 
 ### 글작성 화면
 
 <p align="center">
-<img src="https://github.com/mamonde456/next-blog/assets/81732659/047534bf-df8d-4b36-8eb5-0538ac80e718" />
+<img src="https://github.com/mamonde456/next-blog/assets/81732659/1661ee0d-d675-4b0c-b2b4-ed7a809bfdf4" />
 </p>
 
 ## 실행
