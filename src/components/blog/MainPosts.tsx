@@ -77,7 +77,11 @@ const Tab = styled.div<{ $isLoggedIn: Boolean }>`
   cursor: pointer;
 `;
 
-export default function MainPosts() {
+type PostListType = {
+  getPostList: (posts: IFirebasePost[]) => void;
+};
+
+export default function MainPosts({ getPostList }: PostListType) {
   const [category, setCategory] = useState(false);
   const [postList, setPostList] = useState<IFirebasePost[]>([]);
   const isLoggedIn = useAuth();
@@ -86,7 +90,9 @@ export default function MainPosts() {
     (async () => {
       const posts = await getAllPostsFromFirebase();
       if (posts !== null) {
+        posts.reverse();
         setPostList([...posts]);
+        getPostList([...posts]);
       } else {
         console.log("데이터가 없습니다.");
       }
@@ -117,7 +123,7 @@ export default function MainPosts() {
     if (userInfo != null) {
       const followingUser = await getCurrentUserFollowing(userId);
       if (followingUser) {
-        let tapArr: any = [];
+        let tapArr: IFirebasePost[] = [];
         const followingList = Object.keys(followingUser);
         postList.forEach((el) => {
           if (followingList.includes(el.userConfig.uid)) {
