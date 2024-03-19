@@ -16,14 +16,28 @@ import { checkAuthentication } from "@/utils/auth";
 import DeleteButton from "@/components/ui/button/DeleteButton";
 import EditButton from "@/components/ui/button/EditButton";
 import BackButton from "@/components/ui/button/BackButton";
+import MainMenu from "@/components/common/MainMenu";
 
 const Wrapper = styled.div`
+  /* display: flex;
   height: 100%;
-  padding-top: 50px;
-  display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: center; */
+  width: 100%;
+  height: 98%;
+  display: flex;
+  background: white;
+  margin-top: 0.8%;
+  border-radius: 10px;
 `;
+
+const SideMenuList = styled.div`
+  flex: 2;
+  width: 300px;
+  height: 100%;
+  /* background: yellow; */
+`;
+
 const Title = styled.div`
   padding: 10px;
   font-size: 42px;
@@ -54,14 +68,14 @@ const Content = styled.div`
 `;
 
 const NotebookWrap = styled.div`
-  width: 700px;
-  height: 800px;
+  /* width: 700px; */
+  /* height: 800px; */
+  flex: 4;
   background-color: white;
   /* background-image: url("/notebook.jpg"); */
   background-size: cover;
-  /* border: solid 1px black; */
-  box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
-  border-radius: 10px;
+  border-right: solid 1px rgba(0, 0, 0, 0.2);
+  /* border-radius: 10px; */
 `;
 
 const BtnContainer = styled.div`
@@ -192,19 +206,25 @@ export default function detail({ data, content }: IDetailProps) {
   };
   return (
     <Wrapper>
+      <MainMenu />
       <NotebookWrap>
         <Title>{meta?.title || ""}</Title>
         <BtnContainer>
-          <EditButton
-            onClick={() =>
-              router.push({
-                pathname: `/write/${meta.id}`,
-                query: { action: "edit" },
-              })
-            }
-          />
-          <DeleteButton onClick={onRemovePost} />
+          {isLoggedIn && isLoading && (
+            <>
+              <EditButton
+                onClick={() =>
+                  router.push({
+                    pathname: `/write/${meta.id}`,
+                    query: { action: "edit" },
+                  })
+                }
+              />
+              <DeleteButton onClick={onRemovePost} />
+            </>
+          )}
         </BtnContainer>
+
         <MetaData>
           <UserInfo>
             <span>
@@ -228,6 +248,7 @@ export default function detail({ data, content }: IDetailProps) {
           </Markdown>
         </Content>
       </NotebookWrap>
+      <SideMenuList />
     </Wrapper>
   );
 }
