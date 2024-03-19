@@ -8,7 +8,7 @@ import BlogNavbar from "@/components/blog/BlogNavbar";
 import BlogPostList from "@/components/blog/BlogPostList";
 import MainMenu from "@/components/common/MainMenu";
 import MainPosts from "@/components/blog/MainPosts";
-import { IMeta } from "@/types/blog";
+import { IFirebasePost, IMeta } from "@/types/blog";
 
 const Wrapper = styled.div`
   /* display: flex;
@@ -115,12 +115,53 @@ const BookListTitle = styled.div`
   margin-bottom: 20px;
 `;
 
+const SearchList = styled.ul`
+  width: 95%;
+  height: 100px;
+  bottom: -85px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 0 5px 4px rgba(0, 0, 0, 0.1);
+  position: absolute;
+`;
+const SearchItem = styled.li`
+  padding: 10px;
+  &:hover {
+    background-color: #eee;
+  }
+`;
+
 export default function Home() {
   const [keyword, setKeyword] = useState("");
-  const getKeyword = (keyword: string) => {
-    setKeyword(keyword);
-    console.log(keyword);
+  const [searchResult, setSearchResult] = useState<IFirebasePost[]>([]);
+  const [posts, setPosts] = useState<IFirebasePost[]>([]);
+
+  const getPostList = (postList: IFirebasePost[]) => {
+    console.log(postList);
+    setPosts(postList);
   };
+
+  useEffect(() => {
+    if (keyword) {
+      const result: IFirebasePost[] = posts.filter((post) => {
+        const content = encodeURIComponent(post.content);
+        console.log(post.title, keyword);
+        if (
+          post.title.includes(keyword) ||
+          content.includes(keyword) ||
+          post.description.includes(keyword)
+        ) {
+          return post;
+        }
+      });
+      setSearchResult(result);
+    }
+  }, [keyword]);
 
   return (
     <Wrapper>
@@ -129,7 +170,7 @@ export default function Home() {
         <BlogPostList metaList={metaList} keyword={keyword} />
       </WhiteBoard> */}
       <MainMenu />
-      <MainPosts />
+      <MainPosts getPostList={getPostList} />
       <SideMenuList>
         <Search>
           <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -137,7 +178,36 @@ export default function Home() {
               <path d="M21.53 20.47l-3.66-3.66C19.195 15.24 20 13.214 20 11c0-4.97-4.03-9-9-9s-9 4.03-9 9 4.03 9 9 9c2.215 0 4.24-.804 5.808-2.13l3.66 3.66c.147.146.34.22.53.22s.385-.073.53-.22c.295-.293.295-.767.002-1.06zM3.5 11c0-4.135 3.365-7.5 7.5-7.5s7.5 3.365 7.5 7.5-3.365 7.5-7.5 7.5-7.5-3.365-7.5-7.5z"></path>
             </g>
           </svg>
-          <Input placeholder="Search" type="search" className="input" />
+          <Input
+            placeholder="Search"
+            type="search"
+            className="input"
+            onInput={(e) => setKeyword(e.currentTarget.value)}
+          />
+          {keyword && (
+            <>
+              {searchResult.length > 0 ? (
+                <SearchList>
+                  {searchResult?.map((item) => (
+                    <SearchItem key={item.id}>
+                      <Link href={`/posts/${item.id}`}>
+                        <div>{item.title}</div>
+                        <div>
+                          @
+                          {item.userConfig.displayName ||
+                            item.userConfig.email.split("@")[0]}
+                        </div>
+                      </Link>
+                    </SearchItem>
+                  ))}
+                </SearchList>
+              ) : (
+                <SearchList>
+                  <SearchItem>검색 결과가 없습니다.</SearchItem>
+                </SearchList>
+              )}
+            </>
+          )}
         </Search>
         {/* <Bookmark>
           <BookMarkTitle>
