@@ -2,7 +2,7 @@
 
 학습 목적으로 만들어보는 정적 블로그 구현기.
 firebase를 통한 CRUD와 로컬에 문서를 저장/삭제/수정하는 CRUD를 구현해보았습니다.
-(현재는 로컬 저장만 지원하고 있습니다. 추후, 로그인하지 않은 계정은 로컬 저장 지원)
+현재는 수정 중입니다.
 
 <p align="center">
 <img src="https://github.com/mamonde456/next-blog/assets/81732659/06b8adf6-6049-4c56-8e25-403228c0500c" />
@@ -43,6 +43,7 @@ npm run dev
 [마크다운 블로그 - md 파일을 이용하여 블로그 구현하기](https://velog.io/@mamonde456/Next로-마크다운-블로그를-만들어보자-1)<br/>
 [마크다운 블로그 - input을 이용하여 입력값으로 포스팅하기](https://velog.io/@mamonde456/Next로-마크다운-블로그를-만들어보자-2)<br/>
 [마크다운 블로그 - 임시저장 기능을 만들어보자 & 개선점](https://velog.io/@mamonde456/Next로-마크다운-블로그를-만들어보자-3)<br/>
+[마크다운 블로그 - 추가 기능 덧붙이기 & 개선점](https://velog.io/@mamonde456/Next로-마크다운-블로그를-만들어보자-3)<br/>
 
 ### 구현 목록
 
