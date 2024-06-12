@@ -94,7 +94,7 @@ export default function Saves() {
   const [postList, setPostList] = useState<{ [key: string]: any }[]>([]);
   const router = useRouter();
   useEffect(() => {
-    setPostList([]);
+    // setPostList([]);
     if (!window) {
       alert(
         "Your browser doesn't support a stable version of IndexedDB. Such and such feature will not be available."
@@ -103,7 +103,8 @@ export default function Saves() {
       // window.indexedDB = window.indexedDB;
       // window.IDBTransaction = window.IDBTransaction;
       // window.IDBKeyRange = window.IDBKeyRange;
-      const open = window.indexedDB.open("test", 2);
+
+      const open = window.indexedDB.open("posts", 1);
       open.onerror = function (e) {
         console.log("error ", e);
       };
@@ -128,16 +129,17 @@ export default function Saves() {
               setPostList((prev) => [...prev, cursor.value]);
             }
             cursor.continue();
+          } else {
+            db.close();
           }
         };
-        db.close();
       };
     }
     return () => {};
   }, []);
 
   const handleRemoveSaves = () => {
-    const open = window.indexedDB.open("test", 2);
+    const open = window.indexedDB.open("posts", 1);
     open.onerror = function (e) {
       console.log("error ", e);
     };
@@ -180,7 +182,7 @@ export default function Saves() {
                   })
                 }
               >
-                {el.post.title}
+                {el?.title}
               </span>
             </Box>
           );
