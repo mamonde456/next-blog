@@ -204,11 +204,15 @@ const Wrapper = styled.div`
   }
 `;
 
-export default function BookmarkIcon() {
+export default function BookmarkIcon({ isLoggedIn }: { isLoggedIn: boolean }) {
   return (
     <Wrapper title="bookmark">
       <label className="ui-bookmark">
-        <input type="checkbox" />
+        <input
+          type="checkbox"
+          defaultChecked={!isLoggedIn && false}
+          onChange={() => console.log()}
+        />
         <div className="bookmark">
           <svg viewBox="0 0 32 32">
             <g>

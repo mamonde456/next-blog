@@ -91,17 +91,25 @@ const Wrapper = styled.div`
 
 interface IProps {
   getLikeState: (state: boolean) => void;
+  isLoggedIn: boolean;
 }
 
-export default function LikeIcon({ getLikeState }: IProps) {
+export default function LikeIcon({ getLikeState, isLoggedIn }: IProps) {
   const [isLike, setIsLike] = useState(false);
   useEffect(() => {
+    if (!isLoggedIn) return;
     getLikeState(isLike);
   }, [isLike]);
   return (
     <Wrapper onClick={() => setIsLike((prev) => !prev)}>
       <div className="heart-container" title="Like">
-        <input type="checkbox" className="checkbox" id="Give-It-An-Id" />
+        <input
+          type="checkbox"
+          className="checkbox"
+          id="Give-It-An-Id"
+          defaultChecked={!isLoggedIn && false}
+          onChange={() => console.log()}
+        />
         <div className="svg-container">
           <svg
             viewBox="0 0 24 24"

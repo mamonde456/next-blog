@@ -3,11 +3,15 @@ import { onValue, ref } from "firebase/database";
 import { db, firestore } from "../../../../firebase";
 import { useEffect, useState } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
-import { addPostToBookmark, removePostFromBookmark } from "@/features/bookmark";
-import { decrementLikeCount, incrementLikeCount } from "@/features/like";
+import {
+  addPostToBookmark,
+  removePostFromBookmark,
+} from "@/utils/features/bookmark";
+import { decrementLikeCount, incrementLikeCount } from "@/utils/features/like";
 import styled from "styled-components";
 import BookmarkIcon from "../BookmarkIcon";
 import LikeIcon from "../LikeIcon";
+import useAuth from "@/hook/useAuth";
 
 const MetaContainer = styled.div`
   height: 40px;
@@ -33,6 +37,7 @@ interface IMeta {
 export default function MetaItem({ item }: IMeta) {
   const [likeCount, setLikeCount] = useState(0);
   const [isBookmark, setIsBookmark] = useState(false);
+  const isLoggedIn = useAuth();
 
   useEffect(() => {
     const userInfo = window.sessionStorage.getItem("userInfo");
@@ -106,11 +111,16 @@ export default function MetaItem({ item }: IMeta) {
   return (
     <MetaContainer>
       <MetaContent>
-        <LikeIcon getLikeState={getLikeState} />
+        <LikeIcon getLikeState={getLikeState} isLoggedIn={isLoggedIn} />
         <span>{likeCount}</span>
       </MetaContent>
-      <MetaContent onClick={() => setIsBookmark((prev) => !prev)}>
-        <BookmarkIcon />
+      <MetaContent
+        onClick={() => {
+          if (!isLoggedIn) return;
+          setIsBookmark((prev) => !prev);
+        }}
+      >
+        <BookmarkIcon isLoggedIn={isLoggedIn} />
         <span>북마크</span>
       </MetaContent>
     </MetaContainer>
