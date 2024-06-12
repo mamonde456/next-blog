@@ -1,4 +1,9 @@
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import {
+  getDownloadURL,
+  ref,
+  uploadBytes,
+  uploadString,
+} from "firebase/storage";
 import { auth, storage } from "../../../../firebase";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { updateProfile } from "firebase/auth";
@@ -11,6 +16,7 @@ import ReactCrop, {
 } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import ProfileImageCropper from "@/components/users/ProfileImageCropper";
+import { useRouter } from "next/router";
 
 const Wrapper = styled.div`
   padding-top: 150px;
@@ -67,19 +73,77 @@ const Btn = styled.button`
   border: solid 1px black;
 `;
 
-const imagesUploadHandler = (file: any) => {
-  const userId = auth.currentUser?.uid;
-  const storeageRef = ref(storage, `profile-image/${userId}`);
-  uploadBytes(storeageRef, file).then((snapshot) => {
-    console.log("uploaded a file");
-    console.log(snapshot);
-  });
-};
+const ImgCropModal = styled.div`
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background-color: #fff;
+  padding: 10px;
+  border-radius: 5px;
+`;
 export default function SettingProfile() {
   const [preview, setPreview] = useState<string | null>(null);
   const [src, setSrc] = useState<string | null>(null);
   const [openCrop, setOpenCrop] = useState(false);
+  // const imageInputRef = useRef<HTMLInputElement>(null);
   const imageRef = useRef<HTMLInputElement>(null);
+  const previewRef = useRef<HTMLImageElement>(null);
+  const previewCanvasRef = useRef(null);
+  const [crop, setCrop] = useState<Crop>({
+    unit: "px", // Can be 'px' or '%'
+    x: 100,
+    y: 100,
+    width: 200,
+    height: 200,
+  });
+  const [completedCrop, setCompletedCrop] = useState(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    console.log("Test");
+    if (
+      !completedCrop ||
+      previewCanvasRef.current === null ||
+      previewRef.current === null
+    ) {
+      console.log(previewRef.current);
+      return;
+    }
+
+    const image = previewRef.current;
+    const canvas = previewCanvasRef.current;
+    console.log(image);
+
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = completedCrop.width;
+    canvas.height = completedCrop.height;
+    console.log(
+      completedCrop.x,
+      completedCrop.y,
+      completedCrop.width,
+      completedCrop.height
+    );
+    if (!image.complete) {
+      console.log(image.complete);
+      return;
+    }
+    // 해당 crop 영역의 이미지를 canvas에 그림
+    ctx.drawImage(
+      image,
+      completedCrop.x * scaleX,
+      completedCrop.y * scaleY,
+      completedCrop.width * scaleX,
+      completedCrop.height * scaleY,
+      0,
+      0,
+      completedCrop.width,
+      completedCrop.height
+    );
+  }, [completedCrop]);
 
   const getAvatarImg = () => {
     const { userId } = getUserProfile();
@@ -109,15 +173,21 @@ export default function SettingProfile() {
         console.log("업로드 실패");
       });
   };
+  const onImageLoaded = useCallback((image) => {
+    // imageRef.current = image;
+    console.log(image instanceof HTMLImageElement);
+    console.log(previewRef.current instanceof HTMLImageElement);
+  }, []);
 
   const profileSubmitHandler = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const username = e.currentTarget.username.value;
-    if (imageRef) {
-      const fileImg = imageRef?.current?.files?.[0];
-      console.log(fileImg);
-      // userProfileUpdateHandler(username);
-      // imagesUploadHandler(fileImg);
+    const user = auth.currentUser;
+    const username = e.currentTarget.value;
+    if (imageRef && imageRef.current && imageRef.current.files) {
+      const fileImg = imageRef.current.files[0];
+      userProfileUpdateHandler(username);
+      imagesUploadHandler(fileImg);
+      router.push("/users/" + user?.uid);
     }
   };
 
@@ -131,6 +201,29 @@ export default function SettingProfile() {
 
     return { username, photoURL, userId };
   };
+
+  const imagesUploadHandler = (file: any) => {
+    const reader = new FileReader();
+    console.log(file);
+    reader.onload = function (e) {
+      const dataUrl = e.target?.result;
+      console.log(dataUrl);
+    };
+    reader.readAsDataURL(file);
+    const userId = auth.currentUser?.uid;
+    const storeageRef = ref(storage, `profile-image/${userId}`);
+    uploadBytes(storeageRef, file).then((snapshot) => {
+      console.log("uploaded a file");
+      console.log(snapshot);
+    });
+  };
+  useEffect(() => {
+    return () => {
+      if (preview) {
+        URL.revokeObjectURL(preview);
+      }
+    };
+  }, [preview]);
 
   const handleImgUpload = (e: React.FormEvent<HTMLInputElement>) => {
     console.log(e.currentTarget.files);
@@ -157,6 +250,7 @@ export default function SettingProfile() {
 
       if (imageFile) {
         const objectUrl = URL.createObjectURL(imageFile);
+        console.log(objectUrl);
         setPreview(objectUrl);
         setOpenCrop(true);
       } else {
@@ -164,61 +258,88 @@ export default function SettingProfile() {
       }
     }
   };
-  useEffect(() => {
-    return () => {
-      if (preview) {
-        URL.revokeObjectURL(preview);
-      }
-    };
-  }, [preview]);
-
   const handleImageAndStatus = (isOpen: boolean, imgUrl: string) => {
     setOpenCrop(isOpen);
+    // console.log(imgUrl);
     setSrc(imgUrl);
   };
-  return (
-    <RequireAuth>
-      <Wrapper>
-        <div>setting profile</div>
 
-        <FormContainer onSubmit={profileSubmitHandler}>
-          {openCrop && (
-            <ProfileImageCropper
-              src={preview}
-              handleImageAndStatus={handleImageAndStatus}
-            ></ProfileImageCropper>
-          )}
-          <AvatarImg>
-            <img src={src || " "}></img>
-          </AvatarImg>
+  const onCropComplete = (crop) => {
+    console.log(crop);
+    if (crop.width && crop.height) {
+      setCompletedCrop(crop);
+      console.log(crop);
+    }
+  };
+
+  const onImgCrop = () => {
+    // getCropImg(completedCrop);
+    if (previewCanvasRef.current) {
+      const canvas = previewCanvasRef.current;
+      const imgUrl = canvas.toDataURL("image/jpeg");
+      console.log(imgUrl);
+      // canvas.toBlob((blob) => {
+      //   imagesUploadHandler(blob);
+      // });
+      handleImageAndStatus(false, imgUrl);
+    }
+  };
+  return (
+    <Wrapper>
+      <div>setting profile</div>
+
+      <FormContainer onSubmit={profileSubmitHandler}>
+        {openCrop && (
+          <ImgCropModal>
+            <ReactCrop
+              crop={crop}
+              aspect={1}
+              onChange={(c, percentCrop) => setCrop(c)}
+              onComplete={onCropComplete}
+              // locked
+            >
+              <img
+                ref={previewRef}
+                src={preview || ""}
+                onLoad={onImageLoaded}
+              />
+            </ReactCrop>
+            <Btn type="button" onClick={onImgCrop}>
+              crop
+            </Btn>
+            <canvas ref={previewCanvasRef} />
+          </ImgCropModal>
+        )}
+        <AvatarImg>
+          <img src={src || " "}></img>
+        </AvatarImg>
+        <input
+          ref={imageRef}
+          type="file"
+          name="avatar"
+          accept="image/*"
+          onChange={handleImgUpload}
+        />
+        <label>
+          username
+          <input type="text" name="username" />
+        </label>
+        <label>
+          email
           <input
-            ref={imageRef}
-            type="file"
-            name="avatar"
-            accept="image/*"
-            onChange={handleImgUpload}
+            type="text"
+            name="email"
+            value={auth?.currentUser?.email || ""}
+            disabled
           />
-          <label>
-            username
-            <input type="text" name="username" />
-          </label>
-          <label>
-            email
-            <input
-              type="text"
-              name="email"
-              value={auth?.currentUser?.email || ""}
-              disabled
-            />
-          </label>
-          {/* <Btn type="button" className="reset">
+        </label>
+        {/* <Btn type="button" className="reset">
             비밀번호 재설정
-          </Btn>
-          <Btn type="submit" className="save">
-            save
           </Btn> */}
-        </FormContainer>
-      </Wrapper>
-    </RequireAuth>
+        <Btn type="submit" className="save">
+          save
+        </Btn>
+      </FormContainer>
+    </Wrapper>
   );
 }
