@@ -6,7 +6,7 @@ import remarkGfm from "remark-gfm";
 import styled from "styled-components";
 import { auth, db, firestore } from "../../../../firebase";
 import { set, ref, get, child, getDatabase, remove } from "firebase/database";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import useUserInfo from "@/hook/useUserInfo";
 import { getCurrentUserFollowing, setCurrentUserFollow } from "@/utils/user";
 import useAuth from "@/hook/useAuth";
@@ -17,6 +17,7 @@ import DeleteButton from "@/components/ui/button/DeleteButton";
 import EditButton from "@/components/ui/button/EditButton";
 import BackButton from "@/components/ui/button/BackButton";
 import MainMenu from "@/components/common/MainMenu";
+import { IUserInfo } from "@/types/users";
 
 const Wrapper = styled.div`
   /* display: flex;
@@ -109,21 +110,20 @@ export default function detail({ data, content }: IDetailProps) {
   const isLoggedIn = useAuth();
   const router = useRouter();
   const { id } = router.query;
+  const userInfoRef = useRef(null);
 
-  const useIsomorphicLayoutEffect =
-    typeof window !== "undefined" ? useLayoutEffect : useEffect;
-  const userInfod = useUserInfo();
-  useIsomorphicLayoutEffect(() => {
+  useLayoutEffect(() => {
     (async () => {
+      const userSessionInfo = window.sessionStorage.getItem("userInfo") || "";
+      const userInfo = userSessionInfo && JSON.parse(userSessionInfo);
+      const userId = auth.currentUser?.uid || userInfo.uid;
+      userInfoRef.current = userInfo;
       const isUserAuthenticated = await checkAuthentication();
+      console.log("Tst", userInfoRef.current);
       getPostById();
       if (isUserAuthenticated) {
         // 현재 로그인한 유저
         console.log("test12");
-        const userSessionInfo = window.sessionStorage.getItem("userInfo") || "";
-        const userInfo = userSessionInfo && JSON.parse(userSessionInfo);
-        console.log(userInfo);
-        const userId = auth.currentUser?.uid || userInfo.uid;
         // 현재 방문한 게시글 작성자
         const id = data?.owner.id;
         console.log(userId, id);
@@ -155,6 +155,7 @@ export default function detail({ data, content }: IDetailProps) {
         slog: firebaseData.slog,
         owner: firebaseData.userConfig,
       };
+      console.log(meta);
       const decodedText = decodeURIComponent(firebaseData.content);
       setMeta(meta);
       setPosts(decodedText);
@@ -209,28 +210,30 @@ export default function detail({ data, content }: IDetailProps) {
       <MainMenu />
       <NotebookWrap>
         <Title>{meta?.title || ""}</Title>
-        <BtnContainer>
-          {isLoggedIn && isLoading && (
-            <>
-              <EditButton
-                onClick={() =>
-                  router.push({
-                    pathname: `/write/${meta.id}`,
-                    query: { action: "edit" },
-                  })
-                }
-              />
-              <DeleteButton onClick={onRemovePost} />
-            </>
-          )}
-        </BtnContainer>
+        {meta?.owner.uid === userInfoRef.current?.uid && (
+          <BtnContainer>
+            {isLoggedIn && (
+              <>
+                <EditButton
+                  onClick={() =>
+                    router.push({
+                      pathname: `/write/${meta.id}`,
+                      query: { action: "edit" },
+                    })
+                  }
+                />
+                <DeleteButton onClick={onRemovePost} />
+              </>
+            )}
+          </BtnContainer>
+        )}
 
         <MetaData>
           <UserInfo>
             <span>
               {meta?.owner?.displayName || meta?.owner?.email.split("@")[0]}
             </span>
-            {meta?.owner.email === userInfod?.email ? null : (
+            {meta?.owner.email === userInfoRef?.email ? null : (
               <>
                 {isLoggedIn && isLoading && (
                   <button onClick={handleFollowButtonClick}>
