@@ -28,6 +28,7 @@ export const saveDraftToIndexedDB = (post: IIndexedDB) => {
       const db = req.result;
       const tx = db.transaction("MyObjectStore", "readwrite");
       const store = tx.objectStore("MyObjectStore");
+      console.log("save", store);
 
       // add post data
       store.put(post);
@@ -60,7 +61,7 @@ export const saveDraftToIndexedDB = (post: IIndexedDB) => {
 export const getDraftFromIndexDB = () => {
   if (window) {
     const indexDBValueArr: IIndexedDB[] = [];
-    const open = indexedDB.open("test", 2);
+    const open = indexedDB.open("posts", 1);
     open.onupgradeneeded = function () {
       const db = open.result;
       db.createObjectStore("MyObjectStore", { keyPath: "id" });
@@ -93,12 +94,11 @@ export const getDraftFromIndexDB = () => {
 
 export const getAllPostsFromFirebase = async () => {
   const querySnapshot = await getDocs(collection(firestore, "posts"));
-  console.log(querySnapshot);
   if (querySnapshot) {
     const posts: IFirebasePost[] = [];
     querySnapshot.forEach((doc) => {
       // console.log(doc);
-      // console.log(doc.data());
+      console.log(doc.data());
       const title = doc.data().title;
       const content = doc.data().content;
       const decodedText = decodeURIComponent(title);
@@ -107,6 +107,7 @@ export const getAllPostsFromFirebase = async () => {
       doc.data().content = decodedContent;
       posts.push(doc.data() as IFirebasePost);
     });
+    posts.sort((a, b) => b.update_at.nanoseconds - a.update_at.nanoseconds);
     return posts;
   } else {
     return null;
