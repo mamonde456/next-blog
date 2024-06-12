@@ -14,11 +14,11 @@ import useAuth from "@/hook/useAuth";
 import { getKoreanTime } from "@/utils/common";
 import { v4 as uuidv4 } from "uuid";
 import { checkAuthentication } from "@/utils/auth";
-import { saveDraftToIndexedDB } from "@/utils/\bblog";
 import { IIndexedDB } from "@/types/blog";
 import BasicButton from "@/components/ui/button/BasicButton";
 import SubmitButton from "@/components/ui/button/SubmitButton";
 import BackButton from "@/components/ui/button/BackButton";
+import { saveDraftToIndexedDB } from "@/utils/\bblog";
 
 const Wrapper = styled.div`
   /* display: flex;
@@ -116,6 +116,7 @@ const TextPriveiw = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 10px;
   padding: 10px;
   /* position: relative; */
@@ -226,7 +227,7 @@ export default function Write() {
 
   const getDraftFromIndexDB = () => {
     if (window) {
-      const open = indexedDB.open("test", 2);
+      const open = indexedDB.open("posts", 1);
       open.onupgradeneeded = function () {
         const db = open.result;
         db.createObjectStore("MyObjectStore", { keyPath: "id" });
@@ -242,8 +243,9 @@ export default function Write() {
           const cursor = e?.target?.result;
           if (cursor) {
             if (cursor.key === router.query.id) {
-              setTitle(cursor.value.post.title);
-              setContent(cursor.value.post.text);
+              setTitle(cursor.value.title);
+              setDescription(cursor.value.description);
+              setContent(cursor.value.content);
             }
             cursor.continue();
           }
@@ -355,6 +357,7 @@ export default function Write() {
       description,
     };
     saveDraftToIndexedDB(config);
+    router.push("/saves");
   };
 
   return (
