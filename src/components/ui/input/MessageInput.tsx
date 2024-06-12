@@ -129,11 +129,13 @@ export default function MessageInput({
 
   const sendDataToParent = (e: React.MouseEvent<HTMLButtonElement>) => {
     handleChildData(msg);
+    setMsg("");
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       handleChildData(msg);
+      setMsg("");
     }
   };
 
@@ -147,7 +149,7 @@ export default function MessageInput({
             viewBox="0 0 337 337"
           >
             <circle
-              stroke-width="20"
+              strokeWidth="20"
               stroke="#6c6c6c"
               fill="none"
               r="158.5"
@@ -156,13 +158,13 @@ export default function MessageInput({
             ></circle>
             <path
               stroke-linecap="round"
-              stroke-width="25"
+              strokeWidth="25"
               stroke="#6c6c6c"
               d="M167.759 79V259"
             ></path>
             <path
               stroke-linecap="round"
-              stroke-width="25"
+              strokeWidth="25"
               stroke="#6c6c6c"
               d="M79 167.138H259"
             ></path>
@@ -192,7 +194,7 @@ export default function MessageInput({
           <path
             strokeLinejoin="round"
             strokeLinecap="round"
-            stroke-width="33.67"
+            strokeWidth="33.67"
             stroke="#6c6c6c"
             d="M646.293 331.888L17.7538 17.6187L155.245 331.888M646.293 331.888L17.753 646.157L155.245 331.888M646.293 331.888L318.735 330.228L155.245 331.888"
           ></path>
