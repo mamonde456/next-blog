@@ -6,6 +6,7 @@ import useAuth from "@/hook/useAuth";
 import { checkAuthentication } from "@/utils/auth";
 import { useRouter } from "next/router";
 import GitHubButton from "@/components/ui/button/social/GitHubButton";
+import GitHubAuth from "@/components/auth/GitHubAuth";
 
 const Wrapper = styled.div`
   /* height: 100%; */
@@ -164,7 +165,7 @@ export default function Login() {
           이메일 링크
         </LoginBox>
         <LoginBox>
-          <SocialBox>
+          <SocialBox onClick={GitHubAuth}>
             <GitHubButton />
             {/* <GitHubButton /> */}
             {/* <GitHubButton /> */}
