@@ -1,14 +1,12 @@
 import { Timestamp } from "firebase/firestore";
 
 export interface IMeta {
-  [index: string]: {
-    id: string;
-    title: string;
-    created_at: string;
-    slog: string;
-    description: string;
-    userConfig: Owner;
-  };
+  id: string;
+  title: string;
+  created_at: string;
+  slog: string;
+  description: string;
+  userConfig: Owner;
 }
 
 export interface IPost extends IMeta {}
@@ -21,6 +19,7 @@ interface Owner {
 }
 
 export interface IIndexedDB {
+  [index: string]: any;
   id: string;
   title: string;
   content: string;
