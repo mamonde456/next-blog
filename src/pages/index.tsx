@@ -4,8 +4,6 @@ import path from "path";
 import matter from "gray-matter";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
-import BlogNavbar from "@/components/blog/BlogNavbar";
-import BlogPostList from "@/components/blog/BlogPostList";
 import MainMenu from "@/components/common/MainMenu";
 import MainPosts from "@/components/blog/MainPosts";
 import { IFirebasePost, IMeta } from "@/types/blog";
