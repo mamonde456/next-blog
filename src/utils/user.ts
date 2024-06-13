@@ -15,19 +15,21 @@ import {
 interface followDataType {
   name: string;
   email: string;
-  imageUrl: string;
-  id: string;
+  photoUrl: string;
+  uid: string;
 }
 export const setCurrentUserFollow = (
-  uid: string,
-  { name, email, imageUrl, id }: followDataType
+  currentUid: string,
+  { name, email, photoUrl, uid }: followDataType
 ) => {
-  set(ref(db, `followUsers/${uid}/${id}`), {
-    username: name,
-    email: email,
-    profile_img: imageUrl,
-    id: id,
-  });
+  if (name && email && photoUrl && uid) {
+    set(ref(db, `followUsers/${currentUid}/${uid}`), {
+      username: name,
+      email,
+      photoUrl,
+      uid,
+    });
+  }
 };
 
 export const getCurrentUserFollowing = async (userId: string, id?: string) => {
