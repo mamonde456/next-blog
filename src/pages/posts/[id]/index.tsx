@@ -87,7 +87,7 @@ const BtnContainer = styled.div`
   gap: 10px;
 `;
 
-export default function detail({}: {}) {
+export default function Detail() {
   const [isFollow, setIsFollow] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [meta, setMeta] = useState<IMeta>();
