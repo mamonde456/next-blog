@@ -15,7 +15,6 @@ import ReactCrop, {
   type Crop,
 } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
-import ProfileImageCropper from "@/components/users/ProfileImageCropper";
 import { useRouter } from "next/router";
 
 const Wrapper = styled.div`
@@ -89,7 +88,7 @@ export default function SettingProfile() {
   // const imageInputRef = useRef<HTMLInputElement>(null);
   const imageRef = useRef<HTMLInputElement>(null);
   const previewRef = useRef<HTMLImageElement>(null);
-  const previewCanvasRef = useRef(null);
+  const previewCanvasRef = useRef<HTMLCanvasElement>(null);
   const [crop, setCrop] = useState<Crop>({
     unit: "px", // Can be 'px' or '%'
     x: 100,
@@ -97,36 +96,30 @@ export default function SettingProfile() {
     width: 200,
     height: 200,
   });
-  const [completedCrop, setCompletedCrop] = useState(null);
+  const [completedCrop, setCompletedCrop] = useState<Crop | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    console.log("Test");
     if (
       !completedCrop ||
       previewCanvasRef.current === null ||
       previewRef.current === null
     ) {
-      console.log(previewRef.current);
       return;
     }
 
     const image = previewRef.current;
     const canvas = previewCanvasRef.current;
-    console.log(image);
 
     const scaleX = image.naturalWidth / image.width;
     const scaleY = image.naturalHeight / image.height;
     const ctx = canvas.getContext("2d");
 
+    if (!ctx) return console.log("2d 캔버스 가져오기 실패");
+
     canvas.width = completedCrop.width;
     canvas.height = completedCrop.height;
-    console.log(
-      completedCrop.x,
-      completedCrop.y,
-      completedCrop.width,
-      completedCrop.height
-    );
+
     if (!image.complete) {
       console.log(image.complete);
       return;
@@ -162,6 +155,7 @@ export default function SettingProfile() {
   };
   const userProfileUpdateHandler = (username: string) => {
     const user = auth.currentUser;
+    if (!user) return;
     updateProfile(user, {
       displayName: username,
       photoURL: getAvatarImg(),
@@ -173,11 +167,11 @@ export default function SettingProfile() {
         console.log("업로드 실패");
       });
   };
-  const onImageLoaded = useCallback((image) => {
-    // imageRef.current = image;
-    console.log(image instanceof HTMLImageElement);
-    console.log(previewRef.current instanceof HTMLImageElement);
-  }, []);
+  // const onImageLoaded = useCallback((image) => {
+  //   // imageRef.current = image;
+  //   console.log(image instanceof HTMLImageElement);
+  //   console.log(previewRef.current instanceof HTMLImageElement);
+  // }, []);
 
   const profileSubmitHandler = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -264,11 +258,9 @@ export default function SettingProfile() {
     setSrc(imgUrl);
   };
 
-  const onCropComplete = (crop) => {
-    console.log(crop);
+  const onCropComplete = (crop: Crop) => {
     if (crop.width && crop.height) {
       setCompletedCrop(crop);
-      console.log(crop);
     }
   };
 
@@ -301,7 +293,7 @@ export default function SettingProfile() {
               <img
                 ref={previewRef}
                 src={preview || ""}
-                onLoad={onImageLoaded}
+                // onLoad={onImageLoaded}
               />
             </ReactCrop>
             <Btn type="button" onClick={onImgCrop}>
