@@ -73,11 +73,20 @@ export const getDraftFromIndexDB = () => {
       const store = tx.objectStore("MyObjectStore");
 
       const request = store.openCursor();
-      request.onsuccess = function (e: any) {
-        const cursor = e?.target?.result;
+      request.onsuccess = function (e: Event) {
+        const request = e?.target as IDBRequest;
+        const cursor = request.result as IDBCursorWithValue;
         if (cursor) {
-          const key = cursor.key;
-          indexDBValueArr.push({ key: cursor.value });
+          // const key = cursor.key as string;
+          const value = cursor.value;
+          const indexedDBObject: IIndexedDB = {
+            id: value.id,
+            title: value.title,
+            content: value.content,
+            description: value.description,
+          };
+
+          indexDBValueArr.push(indexedDBObject);
           // if (cursor.key === router.query.id) {
           //   setTitle(cursor.value.post.title);
           //   setContent(cursor.value.post.text);
