@@ -18,6 +18,7 @@ import EditButton from "@/components/ui/button/EditButton";
 import BackButton from "@/components/ui/button/BackButton";
 import MainMenu from "@/components/common/MainMenu";
 import { IUserInfo } from "@/types/users";
+import { IFirebasePost, IMeta } from "@/types/blog";
 
 const Wrapper = styled.div`
   /* display: flex;
@@ -86,31 +87,15 @@ const BtnContainer = styled.div`
   gap: 10px;
 `;
 
-interface IDetailProps {
-  data: {
-    id: string;
-    title: string;
-    created_at: string;
-    slog: string;
-    owner: Owner;
-  };
-  content: string;
-}
-interface Owner {
-  displayName: string;
-  email: string;
-  photoUrl: string;
-  id: string;
-}
-export default function detail({ data, content }: IDetailProps) {
+export default function detail({}: {}) {
   const [isFollow, setIsFollow] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [meta, setMeta] = useState(data);
-  const [posts, setPosts] = useState(content);
+  const [meta, setMeta] = useState<IMeta>();
+  const [posts, setPosts] = useState("");
   const isLoggedIn = useAuth();
   const router = useRouter();
   const { id } = router.query;
-  const userInfoRef = useRef(null);
+  const userInfoRef = useRef<IUserInfo | null>(null);
 
   useLayoutEffect(() => {
     (async () => {
@@ -118,27 +103,29 @@ export default function detail({ data, content }: IDetailProps) {
       const userInfo = userSessionInfo && JSON.parse(userSessionInfo);
       const userId = auth.currentUser?.uid || userInfo.uid;
       userInfoRef.current = userInfo;
+      console.log(isLoggedIn);
       const isUserAuthenticated = await checkAuthentication();
-      console.log("Tst", userInfoRef.current);
       getPostById();
       if (isUserAuthenticated) {
         // 현재 로그인한 유저
-        console.log("test12");
         // 현재 방문한 게시글 작성자
-        const id = data?.owner.id;
-        console.log(userId, id);
-        const currentFollowUsers = await getCurrentUserFollowing(userId, id);
-        console.log(currentFollowUsers);
-        const currentFollowUsersKeys = Object.keys(currentFollowUsers);
+        if (meta) {
+          console.log(meta);
+          const id = meta.userConfig.uid;
+          console.log(userId, id);
+          const currentFollowUsers = await getCurrentUserFollowing(userId, id);
+          console.log(currentFollowUsers);
+          const currentFollowUsersKeys = Object.keys(currentFollowUsers);
 
-        if (currentFollowUsersKeys.length > 0) {
-          setIsFollow(true);
-          setIsLoading(true);
-        } else {
-          setIsFollow(false);
-          setIsLoading(true);
-        }
-      } else return;
+          if (currentFollowUsersKeys.length > 0) {
+            setIsFollow(true);
+            setIsLoading(true);
+          } else {
+            setIsFollow(false);
+            setIsLoading(true);
+          }
+        } else return;
+      }
     })();
   }, []);
 
@@ -148,12 +135,13 @@ export default function detail({ data, content }: IDetailProps) {
     if (docSnap.exists()) {
       console.log("Document data:", docSnap.data());
       const firebaseData = docSnap.data();
-      const meta = {
+      const meta: IMeta = {
         id: firebaseData.id,
         title: firebaseData.title,
+        description: firebaseData.description,
         created_at: firebaseData.created_at,
         slog: firebaseData.slog,
-        owner: firebaseData.userConfig,
+        userConfig: firebaseData.userConfig,
       };
       console.log(meta);
       const decodedText = decodeURIComponent(firebaseData.content);
@@ -171,20 +159,23 @@ export default function detail({ data, content }: IDetailProps) {
     const userInfo =
       window.sessionStorage.getItem("userInfo") &&
       JSON.parse(window.sessionStorage.getItem("userInfo") || "");
-    const uid = user?.uid || userInfo.uid;
-    console.log(data);
-    const id = data.owner.id;
-    const name = data.owner.displayName;
-    const email = data.owner.email;
-    const imageUrl = data.owner.photoUrl;
+    const currentUid = user?.uid || userInfo.uid;
+    const uid = meta?.userConfig.uid || "";
+    const name =
+      meta?.userConfig.displayName ||
+      meta?.userConfig.email.split("@")[0] ||
+      "";
+    const email = meta?.userConfig.email || "";
+    const photoUrl = meta?.userConfig.photoUrl || "";
 
     // 팔로우 컬렉션에 추가
     if (isFollow) {
-      remove(ref(db, `followUsers/${uid}/${id}`));
+      remove(ref(db, `followUsers/${currentUid}/${uid}`));
       setIsFollow(false);
     } else {
+      if (!name && !id && !email && !photoUrl) return;
       setIsFollow(true);
-      setCurrentUserFollow(uid, { name, id, email, imageUrl });
+      setCurrentUserFollow(currentUid, { name, uid, email, photoUrl });
     }
   };
 
@@ -194,7 +185,7 @@ export default function detail({ data, content }: IDetailProps) {
     // await deleteDoc(doc(firestore, "posts", id));
 
     // 로컬 문서 삭제
-    const response = await fetch(`/api/posts?id=${data.id}`, {
+    const response = await fetch(`/api/posts?id=${meta?.id}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -210,14 +201,14 @@ export default function detail({ data, content }: IDetailProps) {
       <MainMenu />
       <NotebookWrap>
         <Title>{meta?.title || ""}</Title>
-        {meta?.owner.uid === userInfoRef.current?.uid && (
+        {meta?.userConfig?.uid === userInfoRef.current?.uid && (
           <BtnContainer>
             {isLoggedIn && (
               <>
                 <EditButton
                   onClick={() =>
                     router.push({
-                      pathname: `/write/${meta.id}`,
+                      pathname: `/write/${meta?.id}`,
                       query: { action: "edit" },
                     })
                   }
@@ -231,9 +222,10 @@ export default function detail({ data, content }: IDetailProps) {
         <MetaData>
           <UserInfo>
             <span>
-              {meta?.owner?.displayName || meta?.owner?.email.split("@")[0]}
+              {meta?.userConfig?.displayName ||
+                meta?.userConfig?.email.split("@")[0]}
             </span>
-            {meta?.owner.email === userInfoRef?.email ? null : (
+            {meta?.userConfig.email === userInfoRef.current?.email ? null : (
               <>
                 {isLoggedIn && isLoading && (
                   <button onClick={handleFollowButtonClick}>
