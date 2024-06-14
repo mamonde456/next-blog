@@ -19,6 +19,7 @@ import BackButton from "@/components/ui/button/BackButton";
 import MainMenu from "@/components/common/MainMenu";
 import { IUserInfo } from "@/types/users";
 import { IFirebasePost, IMeta } from "@/types/blog";
+import { formatTimestampToDateStr } from "@/utils/common";
 
 const Wrapper = styled.div`
   /* display: flex;
@@ -235,7 +236,7 @@ export default function Detail() {
               </>
             )}
           </UserInfo>
-          <div>{meta?.created_at.slice(0, 10)}</div>
+          <div>{formatTimestampToDateStr(meta?.created_at || null)}</div>
         </MetaData>
         <Content style={{ whiteSpace: "pre-line" }}>
           <Markdown remarkPlugins={[[remarkGfm, { singleTilde: false }]]}>

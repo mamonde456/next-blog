@@ -1,5 +1,11 @@
 import { IFirebasePost, IIndexedDB } from "@/types/blog";
-import { Timestamp, collection, getDocs } from "firebase/firestore";
+import {
+  Timestamp,
+  collection,
+  getDocs,
+  orderBy,
+  query,
+} from "firebase/firestore";
 import { firestore } from "../../firebase";
 
 // indexedDB에 임시 저장
@@ -102,7 +108,9 @@ export const getDraftFromIndexDB = () => {
 // firebase 함수
 
 export const getAllPostsFromFirebase = async () => {
-  const querySnapshot = await getDocs(collection(firestore, "posts"));
+  const postsRef = collection(firestore, "posts");
+  const q = query(postsRef, orderBy("created_at", "desc"));
+  const querySnapshot = await getDocs(q);
   if (querySnapshot) {
     const posts: IFirebasePost[] = [];
     querySnapshot.forEach((doc) => {
@@ -116,7 +124,6 @@ export const getAllPostsFromFirebase = async () => {
       doc.data().content = decodedContent;
       posts.push(doc.data() as IFirebasePost);
     });
-    posts.sort((a, b) => b.update_at.nanoseconds - a.update_at.nanoseconds);
     return posts;
   } else {
     return null;
