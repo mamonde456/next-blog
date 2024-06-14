@@ -3,7 +3,7 @@ import { Timestamp } from "firebase/firestore";
 export interface IMeta {
   id: string;
   title: string;
-  created_at: string;
+  created_at: Timestamp;
   slog: string;
   description: string;
   userConfig: Owner;

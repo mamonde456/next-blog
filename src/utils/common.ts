@@ -15,7 +15,8 @@ interface ObjectTimestampType {
   seconds: number;
 }
 type TimestampType = Timestamp | ObjectTimestampType;
-export const formatTimestampToDateStr = (timestamp: TimestampType) => {
+export const formatTimestampToDateStr = (timestamp: TimestampType | null) => {
+  if (!timestamp) return;
   if (timestamp instanceof Timestamp) {
     // firestore Timestamp 타입 지원
     const date = timestamp.toDate();

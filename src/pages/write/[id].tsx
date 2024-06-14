@@ -4,6 +4,7 @@ import ReactMarkdown from "react-markdown";
 import styled from "styled-components";
 import { auth, firestore } from "../../../firebase";
 import {
+  Timestamp,
   doc,
   getDoc,
   serverTimestamp,
@@ -284,7 +285,7 @@ export default function Write() {
         await setDoc(doc(firestore, "posts", `${params}`), {
           id: params,
           title,
-          created_at: getKoreanTime(),
+          created_at: Timestamp.fromDate(new Date()),
           description,
           content: encodedText,
           userConfig,
