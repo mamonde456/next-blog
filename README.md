@@ -4,7 +4,7 @@ firebase와 Next를 사용하여 블로그를 제작해보는 사이드 프로�
 
 - 계속 수정해나가고 있습니다.
 
-- 사이트: <a href="https://next-blog-six-amber.vercel.app/"></a>
+- 사이트: https://next-blog-six-amber.vercel.app/
 
 - 기술 스택: Next, TypeScript, Firebase, styled-components
 - 배포: vercel
