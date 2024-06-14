@@ -1,8 +1,13 @@
 # Next.js 로 정적 블로그 만들기
 
-학습 목적으로 만들어보는 정적 블로그 구현기.
-firebase를 통한 CRUD와 로컬에 문서를 저장/삭제/수정하는 CRUD를 구현해보았습니다.
-현재는 수정 중입니다.
+firebase와 Next를 사용하여 블로그를 제작해보는 사이드 프로젝트.
+
+- 계속 수정해나가고 있습니다.
+
+- 사이트: <a href="https://next-blog-six-amber.vercel.app/"></a>
+
+- 기술 스택: Next, TypeScript, Firebase, styled-components
+- 배포: vercel
 
 <p align="center">
 <img src="https://github.com/mamonde456/next-blog/assets/81732659/06b8adf6-6049-4c56-8e25-403228c0500c" />
@@ -157,6 +162,12 @@ npm run dev
 
 - 검색 로직 추가
 
+#### 24.6.14
+
+- 기본 프로필 이미지 추가
+- 프로필 이미지 설정 추가
+- 버그 수정 (게시물 최신순 출력)
+
 ### 개선점
 
 - style css 수정 (작업중)
@@ -168,3 +179,5 @@ npm run dev
 - 현재 로그인한 사용자 감지하는 함수 통일 필요
 - ~~로컬 파일 삭제 로직~~
 - 쪽지 페이지 자동 스크롤 기능 수정 필요
+
+- 버그 수정 필요 (각 페이지 별 테스트 필요)
