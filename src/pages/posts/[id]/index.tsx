@@ -22,12 +22,8 @@ import { IFirebasePost, IMeta } from "@/types/blog";
 import { formatTimestampToDateStr } from "@/utils/common";
 
 const Wrapper = styled.div`
-  /* display: flex;
-  height: 100%;
-  justify-content: center;
-  align-items: center; */
   width: 100%;
-  height: 98%;
+  height: 100%;
   display: flex;
   background: white;
   margin-top: 0.8%;
@@ -42,7 +38,7 @@ const SideMenuList = styled.div`
 `;
 
 const Title = styled.div`
-  padding: 10px;
+  padding: 40px;
   font-size: 42px;
   color: black;
   font-weight: 700;
@@ -54,37 +50,52 @@ const MetaData = styled.div`
   display: flex;
   justify-content: space-between;
   padding: 0px 30px;
-  margin-bottom: 20px;
+  margin-bottom: 40px;
 `;
 
 const UserInfo = styled.div`
   display: flex;
+  align-items: center;
   gap: 10px;
   span {
     font-size: 18px;
   }
 `;
+const PostsInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: right;
+`;
+
+const getImageUrl = (src: string) => `${src ? src : "/blank-profile.svg"}`;
+const UserImg = styled.div<{ src: string }>`
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: white;
+  background-image: url(${(props) => getImageUrl(props.src)});
+  background-size: cover;
+  background-position: center;
+`;
+
 const Content = styled.div`
   width: 100%;
-  height: 500px;
   padding: 30px;
+  padding-bottom: 200px;
 `;
 
 const NotebookWrap = styled.div`
-  /* width: 700px; */
-  /* height: 800px; */
+  height: 100%;
   flex: 4;
   background-color: white;
-  /* background-image: url("/notebook.jpg"); */
-  background-size: cover;
   border-right: solid 1px rgba(0, 0, 0, 0.2);
-  /* border-radius: 10px; */
 `;
 
 const BtnContainer = styled.div`
   display: flex;
   justify-content: right;
-  padding: 20px 30px;
+  /* padding: 20px 30px; */
+  padding: 10px 0px;
   gap: 10px;
 `;
 
@@ -202,26 +213,10 @@ export default function Detail() {
       <MainMenu />
       <NotebookWrap>
         <Title>{meta?.title || ""}</Title>
-        {meta?.userConfig?.uid === userInfoRef.current?.uid && (
-          <BtnContainer>
-            {isLoggedIn && (
-              <>
-                <EditButton
-                  onClick={() =>
-                    router.push({
-                      pathname: `/write/${meta?.id}`,
-                      query: { action: "edit" },
-                    })
-                  }
-                />
-                <DeleteButton onClick={onRemovePost} />
-              </>
-            )}
-          </BtnContainer>
-        )}
 
         <MetaData>
           <UserInfo>
+            <UserImg src={meta?.userConfig.photoUrl || ""}></UserImg>
             <span>
               {meta?.userConfig?.displayName ||
                 meta?.userConfig?.email.split("@")[0]}
@@ -236,7 +231,26 @@ export default function Detail() {
               </>
             )}
           </UserInfo>
-          <div>{formatTimestampToDateStr(meta?.created_at || null)}</div>
+          <PostsInfo>
+            {meta?.userConfig?.uid === userInfoRef.current?.uid && (
+              <BtnContainer>
+                {isLoggedIn && (
+                  <>
+                    <EditButton
+                      onClick={() =>
+                        router.push({
+                          pathname: `/write/${meta?.id}`,
+                          query: { action: "edit" },
+                        })
+                      }
+                    />
+                    <DeleteButton onClick={onRemovePost} />
+                  </>
+                )}
+              </BtnContainer>
+            )}
+            <div>{formatTimestampToDateStr(meta?.created_at || null)}</div>
+          </PostsInfo>
         </MetaData>
         <Content style={{ whiteSpace: "pre-line" }}>
           <Markdown remarkPlugins={[[remarkGfm, { singleTilde: false }]]}>
