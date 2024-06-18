@@ -125,7 +125,7 @@ export default function Detail() {
         // 현재 로그인한 유저
         // 현재 방문한 게시글 작성자
         console.log(meta);
-        const id = meta.userConfig.uid;
+        const id = meta?.userConfig.uid;
         console.log(userId, id);
         const currentFollowUsers = await getCurrentUserFollowing(userId, id);
         console.log(currentFollowUsers);
