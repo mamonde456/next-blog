@@ -13,11 +13,11 @@ const Wrapper = styled.div`
   height: 100%;
   justify-content: center;
   align-items: center; */
+  min-height: 100vh;
   width: 100%;
-  height: 98%;
+  height: 100%;
   display: flex;
   background: white;
-  margin-top: 0.8%;
   border-radius: 10px;
 `;
 

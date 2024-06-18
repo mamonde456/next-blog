@@ -22,16 +22,20 @@ import { IFirebasePost, IMeta } from "@/types/blog";
 import { formatTimestampToDateStr } from "@/utils/common";
 
 const Wrapper = styled.div`
-  /* display: flex;
-  height: 100%;
-  justify-content: center;
-  align-items: center; */
   width: 100%;
-  height: 98%;
+  /* height: 100%; */
   display: flex;
-  background: white;
-  margin-top: 0.8%;
+  /* margin-top: 0.8%; */
+  background-color: white;
   border-radius: 10px;
+`;
+
+const NotebookWrap = styled.div`
+  height: 100%;
+  min-height: 100vh;
+  flex: 4;
+  background-color: white;
+  border-right: solid 1px rgba(0, 0, 0, 0.2);
 `;
 
 const SideMenuList = styled.div`
@@ -42,7 +46,7 @@ const SideMenuList = styled.div`
 `;
 
 const Title = styled.div`
-  padding: 10px;
+  padding: 40px;
   font-size: 42px;
   color: black;
   font-weight: 700;
@@ -54,37 +58,46 @@ const MetaData = styled.div`
   display: flex;
   justify-content: space-between;
   padding: 0px 30px;
-  margin-bottom: 20px;
+  margin-bottom: 40px;
 `;
 
 const UserInfo = styled.div`
   display: flex;
+  align-items: center;
   gap: 10px;
   span {
     font-size: 18px;
   }
 `;
-const Content = styled.div`
-  width: 100%;
-  height: 500px;
-  padding: 30px;
+const PostsInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: right;
 `;
 
-const NotebookWrap = styled.div`
-  /* width: 700px; */
-  /* height: 800px; */
-  flex: 4;
+const getImageUrl = (src: string) => `${src ? src : "/blank-profile.svg"}`;
+const UserImg = styled.div<{ src: string }>`
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
   background-color: white;
-  /* background-image: url("/notebook.jpg"); */
+  background-image: url(${(props) => getImageUrl(props.src)});
   background-size: cover;
-  border-right: solid 1px rgba(0, 0, 0, 0.2);
-  /* border-radius: 10px; */
+  background-position: center;
+`;
+
+const Content = styled.div`
+  width: 100%;
+  padding: 30px;
+  padding-bottom: 200px;
+  background-color: white;
 `;
 
 const BtnContainer = styled.div`
   display: flex;
   justify-content: right;
-  padding: 20px 30px;
+  /* padding: 20px 30px; */
+  padding: 10px 0px;
   gap: 10px;
 `;
 
@@ -98,7 +111,7 @@ export default function Detail() {
   const { id } = router.query;
   const userInfoRef = useRef<IUserInfo | null>(null);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     (async () => {
       const userSessionInfo = window.sessionStorage.getItem("userInfo") || "";
       const userInfo = userSessionInfo && JSON.parse(userSessionInfo);
@@ -107,26 +120,26 @@ export default function Detail() {
       console.log(isLoggedIn);
       const isUserAuthenticated = await checkAuthentication();
       getPostById();
-      if (isUserAuthenticated) {
+      if (userInfo) {
+        console.log("로그인");
         // 현재 로그인한 유저
         // 현재 방문한 게시글 작성자
-        if (meta) {
-          console.log(meta);
-          const id = meta.userConfig.uid;
-          console.log(userId, id);
-          const currentFollowUsers = await getCurrentUserFollowing(userId, id);
-          console.log(currentFollowUsers);
-          const currentFollowUsersKeys = Object.keys(currentFollowUsers);
+        console.log(meta);
+        const id = meta.userConfig.uid;
+        console.log(userId, id);
+        const currentFollowUsers = await getCurrentUserFollowing(userId, id);
+        console.log(currentFollowUsers);
+        const currentFollowUsersKeys = Object.keys(currentFollowUsers);
+        console.log(currentFollowUsersKeys);
 
-          if (currentFollowUsersKeys.length > 0) {
-            setIsFollow(true);
-            setIsLoading(true);
-          } else {
-            setIsFollow(false);
-            setIsLoading(true);
-          }
-        } else return;
-      }
+        if (currentFollowUsersKeys.length > 0) {
+          setIsFollow(true);
+          setIsLoading(true);
+        } else {
+          setIsFollow(false);
+          setIsLoading(true);
+        }
+      } else return;
     })();
   }, []);
 
@@ -202,33 +215,17 @@ export default function Detail() {
       <MainMenu />
       <NotebookWrap>
         <Title>{meta?.title || ""}</Title>
-        {meta?.userConfig?.uid === userInfoRef.current?.uid && (
-          <BtnContainer>
-            {isLoggedIn && (
-              <>
-                <EditButton
-                  onClick={() =>
-                    router.push({
-                      pathname: `/write/${meta?.id}`,
-                      query: { action: "edit" },
-                    })
-                  }
-                />
-                <DeleteButton onClick={onRemovePost} />
-              </>
-            )}
-          </BtnContainer>
-        )}
 
         <MetaData>
           <UserInfo>
+            <UserImg src={meta?.userConfig.photoUrl || ""}></UserImg>
             <span>
               {meta?.userConfig?.displayName ||
                 meta?.userConfig?.email.split("@")[0]}
             </span>
-            {meta?.userConfig.email === userInfoRef.current?.email ? null : (
+            {meta?.userConfig.email !== userInfoRef.current?.email && (
               <>
-                {isLoggedIn && isLoading && (
+                {isLoggedIn && (
                   <button onClick={handleFollowButtonClick}>
                     {isFollow ? "following" : "follow"}
                   </button>
@@ -236,7 +233,26 @@ export default function Detail() {
               </>
             )}
           </UserInfo>
-          <div>{formatTimestampToDateStr(meta?.created_at || null)}</div>
+          <PostsInfo>
+            {meta?.userConfig?.uid === userInfoRef.current?.uid && (
+              <BtnContainer>
+                {isLoggedIn && (
+                  <>
+                    <EditButton
+                      onClick={() =>
+                        router.push({
+                          pathname: `/write/${meta?.id}`,
+                          query: { action: "edit" },
+                        })
+                      }
+                    />
+                    <DeleteButton onClick={onRemovePost} />
+                  </>
+                )}
+              </BtnContainer>
+            )}
+            <div>{formatTimestampToDateStr(meta?.created_at || null)}</div>
+          </PostsInfo>
         </MetaData>
         <Content style={{ whiteSpace: "pre-line" }}>
           <Markdown remarkPlugins={[[remarkGfm, { singleTilde: false }]]}>

@@ -99,11 +99,11 @@ body {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb)); */
-  background-color: rgb(206, 206, 206);
+  /* background-color: rgb(206, 206, 206); */
   /* background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab); */
   background-size: 400% 400%;
-  animation: gradient 15s ease infinite;
-  height: 100vh;
+  /* animation: gradient 15s ease infinite; */
+  /* height: 100vh; */
 }
 
 @keyframes gradient {

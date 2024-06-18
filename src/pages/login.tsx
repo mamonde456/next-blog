@@ -49,6 +49,8 @@ const LoginFormContainer = styled.div`
   margin-bottom: 20px;
   position: relative;
   -webkit-transition: ease 0.2s;
+  box-shadow: 5px 5px 8px rgba(0, 0, 0, 0.5);
+
   &.hidden {
     display: none;
   }

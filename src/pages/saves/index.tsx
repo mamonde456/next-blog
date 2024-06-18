@@ -66,11 +66,16 @@ const Input = styled.input`
     box-shadow: 0 0 0 4px rgb(76 84 234 / 10%);
   }
 `;
+const HeaderBox = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+`;
+const Title = styled.h1`
+  padding: 10px;
+`;
 const RemoveBtn = styled.div`
   padding: 10px;
-  position: absolute;
-  right: 10px;
-  top: 10px;
 `;
 
 const SaveBox = styled.div`
@@ -81,14 +86,23 @@ const SaveBox = styled.div`
   padding: 10px;
   position: relative;
 `;
-
+const PostList = styled.div`
+  display: flex;
+  flex-direction: column;
+  margin-top: 50px;
+`;
 const Box = styled.div`
   border-radius: 10px;
-  background: #ece6e6;
   padding: 10px;
   margin: 20px;
   text-align: center;
   overflow: hidden;
+  border: solid 1px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  &:hover {
+    background-color: black;
+    color: white;
+  }
 `;
 export default function Saves() {
   const [postList, setPostList] = useState<{ [key: string]: any }[]>([]);
@@ -166,15 +180,19 @@ export default function Saves() {
     <Wrapper>
       <MainMenu />
       <SaveBox>
-        <RemoveBtn>
-          <BasicButton type="button" onClick={() => handleRemoveSaves()}>
-            모든 임시글 삭제
-          </BasicButton>
-        </RemoveBtn>
-        {postList?.map((el) => {
-          return (
-            <Box key={el.id}>
-              <span
+        <HeaderBox>
+          <Title>임시글 리스트</Title>
+          <RemoveBtn>
+            <BasicButton type="button" onClick={() => handleRemoveSaves()}>
+              모든 임시글 삭제
+            </BasicButton>
+          </RemoveBtn>
+        </HeaderBox>
+        <PostList>
+          {postList?.map((el) => {
+            return (
+              <Box
+                key={el.id}
                 onClick={() =>
                   router.push({
                     pathname: `/write/${el.id}`,
@@ -182,11 +200,11 @@ export default function Saves() {
                   })
                 }
               >
-                {el?.title}
-              </span>
-            </Box>
-          );
-        })}
+                <span>{el?.title}</span>
+              </Box>
+            );
+          })}
+        </PostList>
       </SaveBox>
       <SideMenuList>
         {" "}
