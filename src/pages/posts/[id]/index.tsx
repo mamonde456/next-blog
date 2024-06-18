@@ -23,11 +23,19 @@ import { formatTimestampToDateStr } from "@/utils/common";
 
 const Wrapper = styled.div`
   width: 100%;
-  height: 100%;
+  /* height: 100%; */
   display: flex;
-  background: white;
-  margin-top: 0.8%;
+  /* margin-top: 0.8%; */
+  background-color: white;
   border-radius: 10px;
+`;
+
+const NotebookWrap = styled.div`
+  height: 100%;
+  min-height: 100vh;
+  flex: 4;
+  background-color: white;
+  border-right: solid 1px rgba(0, 0, 0, 0.2);
 `;
 
 const SideMenuList = styled.div`
@@ -82,13 +90,7 @@ const Content = styled.div`
   width: 100%;
   padding: 30px;
   padding-bottom: 200px;
-`;
-
-const NotebookWrap = styled.div`
-  height: 100%;
-  flex: 4;
   background-color: white;
-  border-right: solid 1px rgba(0, 0, 0, 0.2);
 `;
 
 const BtnContainer = styled.div`
@@ -109,7 +111,7 @@ export default function Detail() {
   const { id } = router.query;
   const userInfoRef = useRef<IUserInfo | null>(null);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     (async () => {
       const userSessionInfo = window.sessionStorage.getItem("userInfo") || "";
       const userInfo = userSessionInfo && JSON.parse(userSessionInfo);
@@ -118,26 +120,26 @@ export default function Detail() {
       console.log(isLoggedIn);
       const isUserAuthenticated = await checkAuthentication();
       getPostById();
-      if (isUserAuthenticated) {
+      if (userInfo) {
+        console.log("로그인");
         // 현재 로그인한 유저
         // 현재 방문한 게시글 작성자
-        if (meta) {
-          console.log(meta);
-          const id = meta.userConfig.uid;
-          console.log(userId, id);
-          const currentFollowUsers = await getCurrentUserFollowing(userId, id);
-          console.log(currentFollowUsers);
-          const currentFollowUsersKeys = Object.keys(currentFollowUsers);
+        console.log(meta);
+        const id = meta.userConfig.uid;
+        console.log(userId, id);
+        const currentFollowUsers = await getCurrentUserFollowing(userId, id);
+        console.log(currentFollowUsers);
+        const currentFollowUsersKeys = Object.keys(currentFollowUsers);
+        console.log(currentFollowUsersKeys);
 
-          if (currentFollowUsersKeys.length > 0) {
-            setIsFollow(true);
-            setIsLoading(true);
-          } else {
-            setIsFollow(false);
-            setIsLoading(true);
-          }
-        } else return;
-      }
+        if (currentFollowUsersKeys.length > 0) {
+          setIsFollow(true);
+          setIsLoading(true);
+        } else {
+          setIsFollow(false);
+          setIsLoading(true);
+        }
+      } else return;
     })();
   }, []);
 
@@ -221,9 +223,9 @@ export default function Detail() {
               {meta?.userConfig?.displayName ||
                 meta?.userConfig?.email.split("@")[0]}
             </span>
-            {meta?.userConfig.email === userInfoRef.current?.email ? null : (
+            {meta?.userConfig.email !== userInfoRef.current?.email && (
               <>
-                {isLoggedIn && isLoading && (
+                {isLoggedIn && (
                   <button onClick={handleFollowButtonClick}>
                     {isFollow ? "following" : "follow"}
                   </button>

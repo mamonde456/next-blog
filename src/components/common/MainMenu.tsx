@@ -10,8 +10,8 @@ import { signOutUser } from "@/utils/auth";
 const Wrapper = styled.div`
   /* width: 200px; */
   flex: 1;
-  height: 100%;
-  /* background: blue; */
+  /* min-height: 100vh; */
+  /* height: 100%; */
   border-right: solid 1px rgba(0, 0, 0, 0.2);
 `;
 
@@ -44,7 +44,7 @@ const Menu = styled.li`
     height: 40px;
   }
   &:last-child {
-    position: absolute;
+    position: fixed;
     bottom: 30px;
     /* padding: 10px; */
     &:hover {
