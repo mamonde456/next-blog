@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getAllPostsFromFirebase } from "@/utils/\bblog";
 import { IFirebasePost } from "@/types/blog";
 import Link from "next/link";
@@ -82,8 +82,9 @@ type PostListType = {
 };
 
 export default function MainPosts({ getPostList }: PostListType) {
-  const [category, setCategory] = useState(false);
+  const [category, setCategory] = useState<"latest" | "following">("latest");
   const [postList, setPostList] = useState<IFirebasePost[]>([]);
+  const [displayPosts, setDisplayPosts] = useState<IFirebasePost[]>([]);
   const isLoggedIn = useAuth();
 
   useEffect(() => {
@@ -103,48 +104,58 @@ export default function MainPosts({ getPostList }: PostListType) {
     const userInfo = window.sessionStorage.getItem("userInfo");
     if (userInfo != null) {
       // 로그인
-      if (category) {
+      if (category === "following") {
         // 팔로우탭
-        setCategory(true);
-        setFollowingPosts(postList);
-      } else {
+        setCategory("following");
+        // updateFollowingPosts(postList);
+        setDisplayPosts(updateFollowingPosts(postList));
+      } else if (category === "latest") {
         // 최신탭
-        setCategory(false);
+        setCategory("latest");
+        setDisplayPosts(postList);
       }
     } else {
       // 최신탭
-      setCategory(false);
+      setCategory("latest");
+      setDisplayPosts(postList);
     }
   }, [category]);
 
-  const setFollowingPosts = async (postList: IFirebasePost[]) => {
+  const getFollowingUser = async () => {
     const userInfo = window.sessionStorage.getItem("userInfo");
     const userId = userInfo && JSON.parse(userInfo).uid;
-    if (userInfo != null) {
-      const followingUser = await getCurrentUserFollowing(userId);
-      if (followingUser) {
-        let tapArr: IFirebasePost[] = [];
-        const followingList = Object.keys(followingUser);
-        postList.forEach((el) => {
-          if (followingList.includes(el.userConfig.uid)) {
-            tapArr.push(el);
-          }
-        });
-        setPostList(() => [...tapArr]);
-      } else {
-        setPostList([]);
-      }
+    const followingUser = await getCurrentUserFollowing(userId);
+    return followingUser;
+  };
+
+  const updateFollowingPosts = (postList: IFirebasePost[]) => {
+    const followingUser = getFollowingUser();
+    if (followingUser) {
+      const followingList = Object.keys(followingUser);
+      return postList.filter((el) => followingList.includes(el.userConfig.uid));
+      // let tapArr: IFirebasePost[] = [];
+      // postList.forEach((el) => {
+      //   if (followingList.includes(el.userConfig.uid)) {
+      //     tapArr.push(el);
+      //   }
+      // });
+      // setPostList(() => [...tapArr]);
+    } else {
+      return [];
     }
   };
 
   return (
     <MainBoard>
       <TabContainer>
-        <Tab $isLoggedIn={isLoggedIn} onClick={() => setCategory(false)}>
+        <Tab $isLoggedIn={isLoggedIn} onClick={() => setCategory("latest")}>
           최신탭
         </Tab>
         {isLoggedIn && (
-          <Tab $isLoggedIn={isLoggedIn} onClick={() => setCategory(true)}>
+          <Tab
+            $isLoggedIn={isLoggedIn}
+            onClick={() => setCategory("following")}
+          >
             팔로우탭
           </Tab>
         )}
