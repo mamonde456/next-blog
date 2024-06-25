@@ -12,7 +12,11 @@ import {
   onSnapshot,
   setDoc,
 } from "firebase/firestore";
-import { getAllUserData, getUserInfoFromSession } from "@/utils/user";
+import {
+  getAllUserData,
+  getUserInfoFromSession,
+  updateUserInfoFromSession,
+} from "@/utils/user";
 import { IUserInfo } from "@/types/users";
 import ChattingRoom from "@/components/blog/\bchats/ChattingRoom";
 import { IChatRoomInfoType } from "@/types/blog";
@@ -153,10 +157,16 @@ export default function Chats() {
   //   const chatRef = ref(db, `messages/${userId}/chatting_room/${chatUser}`);
   // }, [chatUser]);
 
-  const createChatRoom = () => {
-    const userInfo = getUserInfoFromSession();
-    // 채팅방 만드는 함수들
-    createMetaChats(userInfo);
+  const createChatRoom = async (user: IUserInfo) => {
+    const userInfo: IUserInfo = await updateUserInfoFromSession();
+    const existingChatRoom = userInfo.chatRooms?.find((chatRoom) => {
+      return chatRoom.userList.some((chatUser) => chatUser.uid === user.uid);
+    });
+    if (existingChatRoom) {
+      console.log("이미 동일한 채팅방 존재");
+      return;
+    }
+    createMetaChats(userInfo, user);
 
     // 채팅방 만들기
     // 1. 로그인한 사용자가 참여한 채팅방 아이디 조회
@@ -164,7 +174,7 @@ export default function Chats() {
     // 3. 채팅방 정보 및 참여자 정보로 ui 구성
   };
 
-  const createMetaChats = (userInfo: IUserInfo) => {
+  const createMetaChats = (userInfo: IUserInfo, user: IUserInfo) => {
     if (chatUser) {
       // const dbRef = ref(db, "messages/");
       // const newMetaRef = push(dbRef);
@@ -175,28 +185,51 @@ export default function Chats() {
       const userId = userInfo.uid;
       const userChatRoomsRef = doc(firestore, "users", userId);
       const selectedUserChatRoomRef = doc(firestore, "users", chatUser.uid);
-      const anotherMetaData = {
+      const currentMetaData = {
         title: chatUser.displayName,
         lastMessage: "",
         timestamp: Timestamp.fromDate(new Date()),
         chatRoomId,
+        userList: [
+          {
+            displayName: chatUser.displayName,
+            uid: chatUser.uid,
+            photoUrl: chatUser.photoUrl,
+          },
+        ],
       };
-      const currentMetaData = {
+
+      const anotherMetaData = {
         title: userInfo.displayName,
         lastMessage: "",
         timestamp: Timestamp.fromDate(new Date()),
         chatRoomId,
+        userList: [
+          {
+            displayName: chatUser.displayName,
+            uid: chatUser.uid,
+            photoUrl: chatUser.photoUrl,
+          },
+        ],
       };
-      setDoc(
-        userChatRoomsRef,
-        { chatRooms: arrayUnion(currentMetaData) },
-        { merge: true }
-      );
-      setDoc(
-        selectedUserChatRoomRef,
-        { chatRooms: arrayUnion(anotherMetaData) },
-        { merge: true }
-      );
+      if (userInfo.uid === user.uid) {
+        setDoc(
+          userChatRoomsRef,
+          { chatRooms: arrayUnion(currentMetaData) },
+          { merge: true }
+        );
+      } else {
+        setDoc(
+          userChatRoomsRef,
+          { chatRooms: arrayUnion(currentMetaData) },
+          { merge: true }
+        );
+        setDoc(
+          selectedUserChatRoomRef,
+          { chatRooms: arrayUnion(anotherMetaData) },
+          { merge: true }
+        );
+      }
     }
   };
 
@@ -246,7 +279,7 @@ export default function Chats() {
 
   const handleSelectedUser = (user: IUserInfo) => {
     setChatUser(user);
-    createChatRoom();
+    createChatRoom(user);
   };
 
   const handleSelectedChat = (chat: IChatRoomInfoType) => {

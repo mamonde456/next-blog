@@ -6,11 +6,19 @@ export interface IUserInfo {
   photoUrl: string | null;
   uid: string;
   bio: string | null;
-  chatRooms?: string[];
+  chatRooms?: IchatRooms[];
+}
+
+export interface IchatRooms {
+  chatRoomId: string;
+  lastMessage: string;
+  timestamp: Timestamp;
+  title: string;
+  userList: [{ uid: string; photoUrl: string; displayName: string }];
 }
 
 export interface IGuestBooks extends IUserInfo {
-  guestbooks: IGuestbook[];
+  guestbooks?: IGuestbook[];
 }
 
 export interface IGuestbook {
