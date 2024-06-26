@@ -124,6 +124,14 @@ export const getAllPostsFromFirebase = async () => {
       doc.data().content = decodedContent;
       posts.push(doc.data() as IFirebasePost);
     });
+    posts.sort((a, b) => {
+      if (a.created_at.seconds === b.created_at.seconds) {
+        return a.created_at.nanoseconds - b.created_at.nanoseconds;
+      } else {
+        return a.created_at.seconds - b.created_at.seconds;
+      }
+    });
+
     return posts;
   } else {
     return null;
