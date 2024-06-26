@@ -15,6 +15,7 @@ import { firestore } from "../../../../firebase";
 import { v4 as uuidv4 } from "uuid";
 import ItemList from "@/components/ui/ItemList";
 import { formatTimestampToDateStr } from "@/utils/common";
+import Image from "next/image";
 
 const Wrapper = styled.div`
   /* display: flex;
@@ -87,6 +88,7 @@ const Input = styled.input`
 const MSGInputContainer = styled.div`
   border-top: solid 1px rgba(0, 0, 0, 0.2);
   padding: 20px 10px;
+  z-index: 1;
 `;
 
 const MessageContent = styled.div`
@@ -94,14 +96,31 @@ const MessageContent = styled.div`
   display: flex;
   flex-direction: column;
   flex: 2;
+  padding: 10px;
+  padding-top: 30px;
 `;
 
 const GuestContainer = styled.div`
+  width: 100%;
   display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  img {
+    border-radius: 50%;
+  }
 `;
 
-const GuestProfile = styled.div``;
-const GuestText = styled.span``;
+const GuestProfile = styled.div`
+  width: 100%;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  /* padding: 5px 10px; */
+`;
+const GuestTextBox = styled.div`
+  word-break: break-all;
+`;
 
 export default function Guestbooks() {
   const {
@@ -145,8 +164,7 @@ export default function Guestbooks() {
         (doc) => {
           console.log(doc.data());
           const guestData = doc.data()?.guestbooks;
-
-          console.log(guestData);
+          setGuestbooks([]);
           setGuestbooks(guestData);
         }
       );
@@ -166,7 +184,6 @@ export default function Guestbooks() {
     const displayName = userInfo.displayName
       ? userInfo.displayName
       : userInfo.email.split("@")[0];
-
     await setDoc(
       guestbooksRef,
       {
@@ -189,12 +206,23 @@ export default function Guestbooks() {
       <MainContent>
         <MessageContent>
           {guestbooks?.map((item) => (
-            <div key={item.id}>
-              <span>{item.displayName}</span>
-              <span>{item.photoUrl}</span>
-              <span>{item.message}</span>
-              <span>{formatTimestampToDateStr(item.timestamp)}</span>
-            </div>
+            <GuestContainer key={item.id}>
+              <Image
+                src={item.photoUrl || "/blank-profile.svg"}
+                width={60}
+                height={60}
+                alt="사용자의 프로필 이미지"
+              />
+              <div>
+                <GuestProfile>
+                  <span>{item.displayName}</span>
+                  <small>{formatTimestampToDateStr(item.timestamp)}</small>
+                </GuestProfile>
+                <GuestTextBox>
+                  <span>{item.message}</span>
+                </GuestTextBox>
+              </div>
+            </GuestContainer>
           ))}
         </MessageContent>
         <MSGInputContainer>
