@@ -149,39 +149,24 @@ export default function Chats() {
     })();
   }, []);
 
-  // useEffect(() => {
-  //   const userInfo =
-  //     window.sessionStorage.getItem("userInfo") &&
-  //     JSON.parse(window.sessionStorage.getItem("userInfo") || "");
-  //   const userId = userInfo.uid;
-  //   const chatRef = ref(db, `messages/${userId}/chatting_room/${chatUser}`);
-  // }, [chatUser]);
-
-  const createChatRoom = async (user: IUserInfo) => {
+  const createChatRoom = async (selectedUser: IUserInfo) => {
     const userInfo: IUserInfo = await updateUserInfoFromSession();
     const existingChatRoom = userInfo.chatRooms?.find((chatRoom) => {
-      return chatRoom.userList.some((chatUser) => chatUser.uid === user.uid);
+      return chatRoom.userList.some(
+        (chatUser) => chatUser.uid === selectedUser.uid
+      );
     });
     if (existingChatRoom) {
       console.log("이미 동일한 채팅방 존재");
       return;
     }
-    createMetaChats(userInfo, user);
-
-    // 채팅방 만들기
-    // 1. 로그인한 사용자가 참여한 채팅방 아이디 조회
-    // 2. 채팅방 아이디로 채팅방 정보 및 참여자 조회
-    // 3. 채팅방 정보 및 참여자 정보로 ui 구성
+    createMetaChats(userInfo, selectedUser);
   };
 
-  const createMetaChats = (userInfo: IUserInfo, user: IUserInfo) => {
+  const createMetaChats = (userInfo: IUserInfo, selectedUser: IUserInfo) => {
     if (chatUser) {
-      // const dbRef = ref(db, "messages/");
-      // const newMetaRef = push(dbRef);
-      // const chatRoomId = newMetaRef.key;
       const chatRoomId = uuidv4();
 
-      console.log(chatRoomId);
       const userId = userInfo.uid;
       const userChatRoomsRef = doc(firestore, "users", userId);
       const selectedUserChatRoomRef = doc(firestore, "users", chatUser.uid);
@@ -212,7 +197,7 @@ export default function Chats() {
           },
         ],
       };
-      if (userInfo.uid === user.uid) {
+      if (userInfo.uid === selectedUser.uid) {
         setDoc(
           userChatRoomsRef,
           { chatRooms: arrayUnion(currentMetaData) },
@@ -232,50 +217,6 @@ export default function Chats() {
       }
     }
   };
-
-  const sendMessage = (members: any) => {
-    if (chatUser) {
-      const userInfo = getUserInfoFromSession();
-      // 여기서부터 모르겠다...
-      const chatRoomId = chatUser.chatRooms;
-      // const dbRef = ref(db, "members/");
-
-      // const newMetaRef = push(dbRef);
-
-      // set(newMetaRef, newMembers)
-      //   .then(() => console.log("채팅 멤버 데이터 저장 성공"))
-      //   .catch((error) => console.log("채팅 멤버 데이터 저장 실패, ", error));
-    }
-  };
-
-  // const createChatRoom = () => {
-  //   try {
-  //     const userInfo =
-  //       window.sessionStorage.getItem("userInfo") &&
-  //       JSON.parse(window.sessionStorage.getItem("userInfo") || "");
-  //     const userId = userInfo.uid;
-  //     setChatUsers([...chatUsers, userId]);
-
-  //     chatUsers.forEach((userId, currentIndex) => {
-  //       console.log(userId);
-  //       return;
-  //       const prevUserList = chatUsers.slice(0, currentIndex);
-  //       const nextUserList = chatUsers.slice(currentIndex + 1);
-  //       const userList = [...prevUserList, ...nextUserList];
-  //       const newChattingRoomKey = push(
-  //         child(ref(db), "messages/" + userId + "chatting_room")
-  //       ).key;
-  //       set(ref(db, `messages/${userId}/chatting_room/${newChattingRoomKey}`), {
-  //         from: userId,
-  //         to: [...userList],
-  //         // message: message,
-  //         timestamp: Timestamp.fromDate(new Date()),
-  //       });
-  //     });
-  //   } catch (error) {
-  //     console.log("create chat room, ", error);
-  //   }
-  // };
 
   const handleSelectedUser = (user: IUserInfo) => {
     setChatUser(user);
