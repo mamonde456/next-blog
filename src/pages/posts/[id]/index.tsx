@@ -113,8 +113,6 @@ export default function Detail() {
 
   useEffect(() => {
     (async () => {
-      console.log(isLoggedIn);
-      const isUserAuthenticated = await checkAuthentication();
       const metaData = await getPostById();
       checkIfAuthorIsFollowed(metaData);
     })();
@@ -130,9 +128,7 @@ export default function Detail() {
       // 현재 방문한 게시글 작성자
       const id = meta?.userConfig.uid;
       const currentFollowUsers = await getCurrentUserFollowing(userId, id);
-      console.log(currentFollowUsers);
       const currentFollowUsersKeys = Object.keys(currentFollowUsers);
-      console.log(currentFollowUsersKeys);
 
       if (currentFollowUsersKeys.length > 0) {
         setIsFollow(true);
