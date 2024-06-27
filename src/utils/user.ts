@@ -1,5 +1,5 @@
-import { IUserInfo } from "@/types/users";
-import { db, firestore } from "../../firebase";
+import { IGuestBooks, IUserInfo } from "@/types/users";
+import { auth, db, firestore } from "../../firebase";
 import { set, ref, get, child, getDatabase } from "firebase/database";
 import {
   doc,
@@ -13,18 +13,18 @@ import {
 } from "firebase/firestore";
 
 interface followDataType {
-  name: string;
+  displayName: string;
   email: string;
   photoUrl: string;
   uid: string;
 }
 export const setCurrentUserFollow = (
   currentUid: string,
-  { name, email, photoUrl, uid }: followDataType
+  { displayName, email, photoUrl, uid }: followDataType
 ) => {
-  if (name && email && photoUrl && uid) {
+  if (email && uid) {
     set(ref(db, `followUsers/${currentUid}/${uid}`), {
-      username: name,
+      displayName,
       email,
       photoUrl,
       uid,
@@ -62,15 +62,36 @@ export const getUserInfoFromSession = () => {
   return userInfoString ? JSON.parse(userInfoString) : null;
 };
 
+export const setUserInfoFromSession = (userInfo: IUserInfo) => {
+  window.sessionStorage.setItem("userInfo", JSON.stringify(userInfo));
+  return getUserInfoFromSession();
+};
+
+export const updateUserInfoFromSession = async () => {
+  const userInfo: IUserInfo = getUserInfoFromSession();
+  const newUserInfo = (await getCurrentUserData(userInfo.uid)) as IGuestBooks;
+  if (newUserInfo) {
+    const updatedUserInfo = setUserInfoFromSession(newUserInfo);
+    return updatedUserInfo;
+  }
+};
+
 export const getCurrentUserData = async (currentUserId?: string) => {
-  const docRef = doc(firestore, `users/${currentUserId}`);
-  const docSnap = await getDoc(docRef);
-  if (docSnap.exists()) {
-    console.log("사용자 데이터가 존재합니다.");
-    return docSnap.data();
+  if (currentUserId) {
+    const docRef = doc(firestore, `users/${currentUserId}`);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      console.log("사용자 데이터가 존재합니다.");
+      return docSnap.data();
+    } else {
+      console.log("사용자 데이터가 존재하지 않습니다.");
+      return;
+    }
   } else {
-    console.log("사용자 데이터가 존재하지 않습니다.");
-    return;
+    const user = auth.currentUser;
+    if (user) {
+      return user;
+    }
   }
 };
 

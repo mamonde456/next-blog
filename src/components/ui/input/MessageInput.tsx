@@ -1,18 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 
 const Wrapper = styled.div`
-  /* width: fit-content; */
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  /* background-color: #2d2d2d; */
-  background-color: #f1f1f1;
-  padding: 0 15px;
-  border-radius: 10px;
-  border: 1px solid rgb(156, 156, 156);
-  /* border: 1px solid rgb(63, 63, 63); */
+  form {
+    /* width: fit-content; */
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* background-color: #2d2d2d; */
+    background-color: #f1f1f1;
+    padding: 0 15px;
+    border-radius: 10px;
+    border: 1px solid rgb(156, 156, 156);
+    /* border: 1px solid rgb(63, 63, 63); */
+  }
 
   &:focus-within {
     border: 1px solid rgb(110, 110, 110);
@@ -125,17 +127,18 @@ export default function MessageInput({
 }: {
   handleChildData: (data: string) => void;
 }) {
-  const [msg, setMsg] = useState("");
+  const messageRef = useRef<HTMLInputElement>(null);
 
-  const sendDataToParent = (e: React.MouseEvent<HTMLButtonElement>) => {
-    handleChildData(msg);
-    setMsg("");
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      handleChildData(msg);
-      setMsg("");
+  const sendDataToParent = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const {
+      currentTarget: {
+        message: { value },
+      },
+    } = e;
+    handleChildData(value);
+    if (messageRef && messageRef.current) {
+      messageRef.current.value = "";
     }
   };
 
@@ -173,33 +176,35 @@ export default function MessageInput({
         </label>
         <input type="file" id="file" name="file" />
       </div> */}
-      <input
-        required
-        placeholder="Message..."
-        type="text"
-        id="messageInput"
-        onInput={(e) => setMsg(e.currentTarget.value)}
-        onKeyDown={handleKeyDown}
-      />
-      <button id="sendButton" onClick={sendDataToParent}>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 664 663"
-        >
-          <path
+      <form onSubmit={sendDataToParent}>
+        <input
+          ref={messageRef}
+          required
+          placeholder="Message..."
+          type="text"
+          id="messageInput"
+          name="message"
+        />
+        <button id="sendButton">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
             fill="none"
-            d="M646.293 331.888L17.7538 17.6187L155.245 331.888M646.293 331.888L17.753 646.157L155.245 331.888M646.293 331.888L318.735 330.228L155.245 331.888"
-          ></path>
-          <path
-            strokeLinejoin="round"
-            strokeLinecap="round"
-            strokeWidth="33.67"
-            stroke="#6c6c6c"
-            d="M646.293 331.888L17.7538 17.6187L155.245 331.888M646.293 331.888L17.753 646.157L155.245 331.888M646.293 331.888L318.735 330.228L155.245 331.888"
-          ></path>
-        </svg>
-      </button>
+            viewBox="0 0 664 663"
+          >
+            <path
+              fill="none"
+              d="M646.293 331.888L17.7538 17.6187L155.245 331.888M646.293 331.888L17.753 646.157L155.245 331.888M646.293 331.888L318.735 330.228L155.245 331.888"
+            ></path>
+            <path
+              strokeLinejoin="round"
+              strokeLinecap="round"
+              strokeWidth="33.67"
+              stroke="#6c6c6c"
+              d="M646.293 331.888L17.7538 17.6187L155.245 331.888M646.293 331.888L17.753 646.157L155.245 331.888M646.293 331.888L318.735 330.228L155.245 331.888"
+            ></path>
+          </svg>
+        </button>
+      </form>
     </Wrapper>
   );
 }

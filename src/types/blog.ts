@@ -31,7 +31,7 @@ export interface IFirebasePost {
   title: string;
   description: string;
   content: string;
-  created_at: string;
+  created_at: Timestamp;
   update_at: Timestamp;
   userConfig: {
     displayName: string | null;

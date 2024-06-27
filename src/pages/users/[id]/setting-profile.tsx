@@ -197,6 +197,7 @@ export default function SettingProfile() {
   };
 
   const imagesUploadHandler = (file: any) => {
+    if (!file) return;
     const reader = new FileReader();
     console.log(file);
     reader.onload = function (e) {

@@ -113,35 +113,32 @@ export default function Detail() {
 
   useEffect(() => {
     (async () => {
-      const userSessionInfo = window.sessionStorage.getItem("userInfo") || "";
-      const userInfo = userSessionInfo && JSON.parse(userSessionInfo);
-      const userId = auth.currentUser?.uid || userInfo.uid;
-      userInfoRef.current = userInfo;
-      console.log(isLoggedIn);
-      const isUserAuthenticated = await checkAuthentication();
-      getPostById();
-      if (userInfo) {
-        console.log("로그인");
-        // 현재 로그인한 유저
-        // 현재 방문한 게시글 작성자
-        console.log(meta);
-        const id = meta?.userConfig.uid;
-        console.log(userId, id);
-        const currentFollowUsers = await getCurrentUserFollowing(userId, id);
-        console.log(currentFollowUsers);
-        const currentFollowUsersKeys = Object.keys(currentFollowUsers);
-        console.log(currentFollowUsersKeys);
-
-        if (currentFollowUsersKeys.length > 0) {
-          setIsFollow(true);
-          setIsLoading(true);
-        } else {
-          setIsFollow(false);
-          setIsLoading(true);
-        }
-      } else return;
+      const metaData = await getPostById();
+      checkIfAuthorIsFollowed(metaData);
     })();
   }, []);
+
+  const checkIfAuthorIsFollowed = async (metaData: IMeta | undefined) => {
+    const userSessionInfo = window.sessionStorage.getItem("userInfo") || "";
+    const userInfo = userSessionInfo && JSON.parse(userSessionInfo);
+    const userId = auth.currentUser?.uid || userInfo.uid;
+    userInfoRef.current = userInfo;
+    if (userInfo && metaData) {
+      // 현재 로그인한 유저
+      // 현재 방문한 게시글 작성자
+      const id = meta?.userConfig.uid;
+      const currentFollowUsers = await getCurrentUserFollowing(userId, id);
+      const currentFollowUsersKeys = Object.keys(currentFollowUsers);
+
+      if (currentFollowUsersKeys.length > 0) {
+        setIsFollow(true);
+        setIsLoading(true);
+      } else {
+        setIsFollow(false);
+        setIsLoading(true);
+      }
+    } else return;
+  };
 
   const getPostById = async () => {
     const docRef = doc(firestore, "posts", `${id}`);
@@ -157,10 +154,10 @@ export default function Detail() {
         slog: firebaseData.slog,
         userConfig: firebaseData.userConfig,
       };
-      console.log(meta);
       const decodedText = decodeURIComponent(firebaseData.content);
       setMeta(meta);
       setPosts(decodedText);
+      return meta;
     } else {
       // docSnap.data() will be undefined in this case
       console.log("No such document!");
@@ -175,21 +172,30 @@ export default function Detail() {
       JSON.parse(window.sessionStorage.getItem("userInfo") || "");
     const currentUid = user?.uid || userInfo.uid;
     const uid = meta?.userConfig.uid || "";
-    const name =
-      meta?.userConfig.displayName ||
-      meta?.userConfig.email.split("@")[0] ||
-      "";
-    const email = meta?.userConfig.email || "";
-    const photoUrl = meta?.userConfig.photoUrl || "";
+    const metaObj = {
+      displayName:
+        meta?.userConfig.displayName ||
+        meta?.userConfig.email.split("@")[0] ||
+        "",
+      uid,
+      email: meta?.userConfig.email || "",
+      photoUrl: meta?.userConfig.photoUrl || "",
+    };
 
     // 팔로우 컬렉션에 추가
     if (isFollow) {
-      remove(ref(db, `followUsers/${currentUid}/${uid}`));
+      const removeRef = ref(db, `followUsers/${currentUid}/${uid}`);
+      remove(removeRef)
+        .then(() => {
+          console.log("데이터 삭제 완료");
+        })
+        .catch((error) => {
+          console.log("데이터 삭제 오류, ", error);
+        });
       setIsFollow(false);
     } else {
-      if (!name && !id && !email && !photoUrl) return;
       setIsFollow(true);
-      setCurrentUserFollow(currentUid, { name, uid, email, photoUrl });
+      setCurrentUserFollow(currentUid, metaObj);
     }
   };
 
