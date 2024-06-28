@@ -85,7 +85,7 @@ export const getCurrentUserData = async (currentUserId?: string) => {
       return docSnap.data();
     } else {
       console.log("사용자 데이터가 존재하지 않습니다.");
-      return;
+      return auth.currentUser;
     }
   } else {
     const user = auth.currentUser;
