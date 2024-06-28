@@ -69,7 +69,7 @@ export const setUserInfoFromSession = (userInfo: IUserInfo) => {
 
 export const updateUserInfoFromSession = async () => {
   const userInfo: IUserInfo = getUserInfoFromSession();
-  const newUserInfo = (await getCurrentUserData(userInfo.uid)) as IGuestBooks;
+  const newUserInfo = (await getCurrentUserData(userInfo.uid)) as IUserInfo;
   if (newUserInfo) {
     const updatedUserInfo = setUserInfoFromSession(newUserInfo);
     return updatedUserInfo;
