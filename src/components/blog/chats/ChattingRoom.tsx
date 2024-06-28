@@ -77,7 +77,7 @@ export default function ChattingRoom({
     if (chatMessageRef && chatMessageRef.current) {
       chatMessageRef.current.scrollTop = chatMessageRef.current.scrollHeight;
     }
-  }, [message]);
+  }, [chatMeta?.chatRoomId, message]);
 
   useEffect(() => {
     const userInfo = getUserInfoFromSession();
