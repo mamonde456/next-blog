@@ -47,8 +47,15 @@ export interface IFirebasePost {
 export interface IChatRoomInfoType {
   title: string;
   lastMessage: string;
-  timestamp: string;
+  timestamp: Timestamp;
   chatRoomId: string;
+  userList?: IUserListType[];
+}
+
+interface IUserListType {
+  displayName: string;
+  photoUrl: string;
+  uid: string;
 }
 
 export interface IChatMessagseType {
