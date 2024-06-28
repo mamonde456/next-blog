@@ -7,6 +7,7 @@ export interface IUserInfo {
   uid: string;
   bio: string | null;
   chatRooms?: IchatRooms[];
+  guestbooks?: IGuestbook[];
 }
 
 export interface IchatRooms {
@@ -15,10 +16,6 @@ export interface IchatRooms {
   timestamp: Timestamp;
   title: string;
   userList: [{ uid: string; photoUrl: string; displayName: string }];
-}
-
-export interface IGuestBooks extends IUserInfo {
-  guestbooks?: IGuestbook[];
 }
 
 export interface IGuestbook {
