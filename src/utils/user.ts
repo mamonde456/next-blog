@@ -69,7 +69,7 @@ export const setUserInfoFromSession = (userInfo: IUserInfo) => {
 
 export const updateUserInfoFromSession = async () => {
   const userInfo: IUserInfo = getUserInfoFromSession();
-  const newUserInfo = (await getCurrentUserData(userInfo.uid)) as IGuestBooks;
+  const newUserInfo = (await getCurrentUserData(userInfo.uid)) as IUserInfo;
   if (newUserInfo) {
     const updatedUserInfo = setUserInfoFromSession(newUserInfo);
     return updatedUserInfo;
@@ -85,7 +85,7 @@ export const getCurrentUserData = async (currentUserId?: string) => {
       return docSnap.data();
     } else {
       console.log("사용자 데이터가 존재하지 않습니다.");
-      return;
+      return auth.currentUser;
     }
   } else {
     const user = auth.currentUser;

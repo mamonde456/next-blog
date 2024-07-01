@@ -3,10 +3,13 @@ import {
   signInWithEmailAndPassword,
 } from "firebase/auth";
 import styled from "styled-components";
-import { auth } from "../../../firebase";
+import { auth, firestore } from "../../../firebase";
 import { useRouter } from "next/router";
 import { getCurrentUserData, setUserData } from "@/utils/user";
 import { IUserInfo } from "@/types/users";
+import PasswordIcon from "../ui/button/auth/PasswordIcon";
+import { useRef } from "react";
+import { doc, setDoc } from "firebase/firestore";
 
 const InputLabel = styled.div`
   /* color: white; */
@@ -52,6 +55,7 @@ const InputBox = styled.div`
 
 export default function IdAndPasswordAuth() {
   const router = useRouter();
+  const passwordRef = useRef<HTMLInputElement>(null);
 
   const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
     // 이메일 링크 로그인 시도 후, 이메일, 비밀번호 로그인 시도.
@@ -101,8 +105,10 @@ export default function IdAndPasswordAuth() {
         uid: user.uid,
         bio: "",
         chatRooms: [],
+        guestbooks: [],
       };
       window.sessionStorage.setItem("userInfo", JSON.stringify(userInfo));
+      await setDoc(doc(firestore, "users", user.uid), userInfo);
       alert("계정 생성 완료");
     } catch (err) {
       console.log("계정 생성 err, ", err);
@@ -142,6 +148,16 @@ export default function IdAndPasswordAuth() {
     }
   };
 
+  const handlePasswordVisibilityChange = (isVisible: boolean) => {
+    if (passwordRef && passwordRef.current) {
+      if (isVisible) {
+        passwordRef.current.type = "password";
+      } else {
+        passwordRef.current.type = "text";
+      }
+    }
+  };
+
   return (
     <form onSubmit={handleLogin}>
       <InputBox>
@@ -149,8 +165,16 @@ export default function IdAndPasswordAuth() {
         <InputLabel>아이디</InputLabel>
       </InputBox>
       <InputBox>
-        <input type="text" name="password" placeholder=" " />
+        <input
+          ref={passwordRef}
+          type="password"
+          name="password"
+          placeholder=" "
+        />
         <InputLabel>비밀번호</InputLabel>
+        <PasswordIcon
+          handlePasswordVisibilityChange={handlePasswordVisibilityChange}
+        />
       </InputBox>
       <button type="submit">send</button>
     </form>

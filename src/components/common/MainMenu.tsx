@@ -76,11 +76,12 @@ export default function MainMenu() {
   }, [router]);
 
   useEffect(() => {
-    const userInfo =
-      window.sessionStorage.getItem("userInfo") &&
-      JSON.parse(window.sessionStorage.getItem("userInfo") || "");
-    const userId = userInfo?.uid;
-    setUserId(userId);
+    const storageUserInfo = window.sessionStorage.getItem("userInfo");
+    if (storageUserInfo && storageUserInfo != "undefined") {
+      const userInfo = JSON.parse(storageUserInfo);
+      const userId = userInfo?.uid;
+      setUserId(userId);
+    }
   }, [isLoggedIn]);
 
   return (

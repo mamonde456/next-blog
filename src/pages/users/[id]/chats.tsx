@@ -119,8 +119,6 @@ const UserName = styled.div``;
 
 export default function Chats() {
   const [users, setUsers] = useState<IUserInfo[]>([]);
-  // const [chatUsers, setChatUsers] = useState<string[]>([]);
-  const [chatUser, setChatUser] = useState<IUserInfo>();
   const [showChatRoom, setShowChatRoom] = useState(false);
   const [chatMeta, setChatMeta] = useState<IChatRoomInfoType>();
 
@@ -158,28 +156,33 @@ export default function Chats() {
     });
     if (existingChatRoom) {
       console.log("이미 동일한 채팅방 존재");
+      const selectedChat = userInfo.chatRooms?.find((chatRoom) => {
+        return chatRoom.userList.find((user) => user.uid === selectedUser.uid);
+      });
+      setChatMeta(selectedChat as IChatRoomInfoType);
+      setShowChatRoom(true);
       return;
     }
     createMetaChats(userInfo, selectedUser);
   };
 
   const createMetaChats = (userInfo: IUserInfo, selectedUser: IUserInfo) => {
-    if (chatUser) {
+    if (selectedUser) {
       const chatRoomId = uuidv4();
 
       const userId = userInfo.uid;
       const userChatRoomsRef = doc(firestore, "users", userId);
-      const selectedUserChatRoomRef = doc(firestore, "users", chatUser.uid);
+      const selectedUserChatRoomRef = doc(firestore, "users", selectedUser.uid);
       const currentMetaData = {
-        title: chatUser.displayName,
+        title: selectedUser.displayName,
         lastMessage: "",
         timestamp: Timestamp.fromDate(new Date()),
         chatRoomId,
         userList: [
           {
-            displayName: chatUser.displayName,
-            uid: chatUser.uid,
-            photoUrl: chatUser.photoUrl,
+            displayName: selectedUser.displayName,
+            uid: selectedUser.uid,
+            photoUrl: selectedUser.photoUrl,
           },
         ],
       };
@@ -191,9 +194,9 @@ export default function Chats() {
         chatRoomId,
         userList: [
           {
-            displayName: chatUser.displayName,
-            uid: chatUser.uid,
-            photoUrl: chatUser.photoUrl,
+            displayName: selectedUser.displayName,
+            uid: selectedUser.uid,
+            photoUrl: selectedUser.photoUrl,
           },
         ],
       };
@@ -219,12 +222,11 @@ export default function Chats() {
   };
 
   const handleSelectedUser = (user: IUserInfo) => {
-    setChatUser(user);
     createChatRoom(user);
   };
 
   const handleSelectedChat = (chat: IChatRoomInfoType) => {
-    setShowChatRoom((prev) => !prev);
+    setShowChatRoom(true);
     setChatMeta(chat);
   };
   return (

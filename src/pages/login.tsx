@@ -2,8 +2,6 @@ import { useEffect, useRef } from "react";
 import styled from "styled-components";
 import LinkToEmailAuth from "@/components/auth/LinkToEmailAuth";
 import IdAndPasswordAuth from "@/components/auth/IdAndPasswordAuth";
-import useAuth from "@/hook/useAuth";
-import { checkAuthentication } from "@/utils/auth";
 import { useRouter } from "next/router";
 import GitHubButton from "@/components/ui/button/social/GitHubButton";
 import GitHubAuth from "@/components/auth/GitHubAuth";
@@ -167,15 +165,10 @@ export default function Login() {
           이메일 링크
         </LoginBox>
         <LoginBox>
-          <SocialBox onClick={GitHubAuth}>
+          <SocialBox onClick={() => alert("오류 수정 중")}>
             <GitHubButton />
-            {/* <GitHubButton /> */}
-            {/* <GitHubButton /> */}
           </SocialBox>
         </LoginBox>
-        {/* <LoginBox data-login-type="github" onClick={clickLoginBtn}>
-          깃헙
-        </LoginBox> */}
       </LoginContainer>
       <LoginFormContainer ref={LoginFormRef}>
         <EmailIdBox ref={emailIdRef}>
