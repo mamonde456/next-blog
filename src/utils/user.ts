@@ -1,4 +1,4 @@
-import { IGuestBooks, IUserInfo } from "@/types/users";
+import { IUserInfo } from "@/types/users";
 import { auth, db, firestore } from "../../firebase";
 import { set, ref, get, child, getDatabase } from "firebase/database";
 import {

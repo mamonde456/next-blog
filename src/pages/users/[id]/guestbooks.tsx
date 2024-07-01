@@ -10,10 +10,9 @@ import {
 import styled from "styled-components";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { IGuestBooks, IGuestbook, IUserInfo } from "@/types/users";
+import { IGuestbook } from "@/types/users";
 import { firestore } from "../../../../firebase";
 import { v4 as uuidv4 } from "uuid";
-import ItemList from "@/components/ui/ItemList";
 import { formatTimestampToDateStr } from "@/utils/common";
 import Image from "next/image";
 
