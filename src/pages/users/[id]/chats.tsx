@@ -94,7 +94,7 @@ const Users = styled.ul`
   gap: 10px;
   padding: 10px;
 `;
-const User = styled.li`
+const Li = styled.li`
   width: 100%;
   display: flex;
   gap: 10px;
@@ -114,8 +114,6 @@ const ProfileImg = styled.div`
   border-radius: 50%;
   border: solid 1px rgba(0, 0, 0, 0.2);
 `;
-
-const UserName = styled.div``;
 
 export default function Chats() {
   const [users, setUsers] = useState<IUserInfo[]>([]);
@@ -194,9 +192,9 @@ export default function Chats() {
         chatRoomId,
         userList: [
           {
-            displayName: selectedUser.displayName,
-            uid: selectedUser.uid,
-            photoUrl: selectedUser.photoUrl,
+            displayName: userInfo.displayName,
+            uid: userInfo.uid,
+            photoUrl: userInfo.photoUrl,
           },
         ],
       };
@@ -239,19 +237,19 @@ export default function Chats() {
         <UserListContainer>
           <Users>
             {users?.map((user) => (
-              <User key={user.uid} onClick={() => handleSelectedUser(user)}>
+              <Li key={user.uid} onClick={() => handleSelectedUser(user)}>
                 <ProfileImg>{user.photoUrl}</ProfileImg>
-                <UserName>{user.displayName}</UserName>
-              </User>
+                <div>{user.displayName}</div>
+              </Li>
             ))}
             {chatRoomInfo?.map((chat) => (
-              <User
+              <Li
                 key={chat.chatRoomId}
                 onClick={() => handleSelectedChat(chat)}
               >
-                <UserName>{chat.title}</UserName>
+                <div>{chat.title}</div>
                 <div>{chat.lastMessage}</div>
-              </User>
+              </Li>
             ))}
           </Users>
         </UserListContainer>
