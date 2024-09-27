@@ -4,7 +4,7 @@ export interface IMeta {
   id: string;
   title: string;
   created_at: Timestamp;
-  slog: string;
+  slog?: string;
   description: string;
   userConfig: Owner;
 }
@@ -31,8 +31,8 @@ export interface IFirebasePost {
   title: string;
   description: string;
   content: string;
-  created_at: Timestamp;
-  update_at: Timestamp;
+  created_at: Timestamp | string;
+  update_at: Timestamp | string;
   userConfig: {
     displayName: string | null;
     email: string;
