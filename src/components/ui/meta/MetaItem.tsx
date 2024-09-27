@@ -46,7 +46,6 @@ export default function MetaItem({ item }: IMeta) {
     onValue(bookmarkRef, (snapshot) => {
       const data = snapshot.val();
       if (data != null) {
-        console.log(data);
         setIsBookmark(true);
       }
     });
@@ -58,7 +57,6 @@ export default function MetaItem({ item }: IMeta) {
       { includeMetadataChanges: true },
       (doc) => {
         const likeCount = doc.data()?.meta?.like || 0;
-        console.log(likeCount);
         setLikeCount(likeCount);
       }
     );
@@ -70,7 +68,6 @@ export default function MetaItem({ item }: IMeta) {
     const userInfo =
       window.sessionStorage.getItem("userInfo") &&
       JSON.parse(window.sessionStorage.getItem("userInfo") || "");
-    console.log(userInfo);
     if (userInfo && isBookmark) {
       setBookmark(userInfo.uid);
     } else {

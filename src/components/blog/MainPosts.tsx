@@ -7,6 +7,8 @@ import { getCurrentUserFollowing } from "@/utils/user";
 import useAuth from "@/hook/useAuth";
 import MetaItem from "../ui/meta/MetaItem";
 import ItemList from "../ui/ItemList";
+import { collection, getDocs, orderBy, query } from "firebase/firestore";
+import { firestore } from "../../../firebase";
 
 const MainBoard = styled.div`
   flex: 4;
@@ -77,29 +79,12 @@ const Tab = styled.div<{ $isLoggedIn: Boolean }>`
   cursor: pointer;
 `;
 
-type PostListType = {
-  getPostList: (posts: IFirebasePost[]) => void;
-};
-
-export default function MainPosts({ getPostList }: PostListType) {
-  const [category, setCategory] = useState<"latest" | "following">("latest");
-  const [postList, setPostList] = useState<IFirebasePost[]>([]);
-  const [displayPosts, setDisplayPosts] = useState<IFirebasePost[]>([]);
+export default function MainPosts({ postList }: { postList: IFirebasePost[] }) {
+  // const [category, setCategory] = useState<"latest" | "following">("latest");
+  // const [displayPosts, setDisplayPosts] = useState<IFirebasePost[]>([]);
   const isLoggedIn = useAuth();
 
-  useEffect(() => {
-    (async () => {
-      const posts = await getAllPostsFromFirebase();
-      if (posts !== null) {
-        posts.reverse();
-        setPostList([...posts]);
-        getPostList([...posts]);
-      } else {
-        console.log("데이터가 없습니다.");
-      }
-    })();
-  }, []);
-
+  /*
   useEffect(() => {
     const userInfo = window.sessionStorage.getItem("userInfo");
     if (userInfo != null) {
@@ -108,18 +93,19 @@ export default function MainPosts({ getPostList }: PostListType) {
         // 팔로우탭
         setCategory("following");
         // updateFollowingPosts(postList);
-        setDisplayPosts(updateFollowingPosts(postList));
+        // setDisplayPosts(updateFollowingPosts(postList));
       } else if (category === "latest") {
         // 최신탭
         setCategory("latest");
-        setDisplayPosts(postList);
+        // setDisplayPosts(postList);
       }
     } else {
       // 최신탭
       setCategory("latest");
-      setDisplayPosts(postList);
+      // setDisplayPosts(postList);
     }
   }, [category]);
+*/
 
   const getFollowingUser = async () => {
     const userInfo = window.sessionStorage.getItem("userInfo");
@@ -133,13 +119,6 @@ export default function MainPosts({ getPostList }: PostListType) {
     if (followingUser) {
       const followingList = Object.keys(followingUser);
       return postList.filter((el) => followingList.includes(el.userConfig.uid));
-      // let tapArr: IFirebasePost[] = [];
-      // postList.forEach((el) => {
-      //   if (followingList.includes(el.userConfig.uid)) {
-      //     tapArr.push(el);
-      //   }
-      // });
-      // setPostList(() => [...tapArr]);
     } else {
       return [];
     }
@@ -148,30 +127,22 @@ export default function MainPosts({ getPostList }: PostListType) {
   return (
     <MainBoard>
       <TabContainer>
-        <Tab $isLoggedIn={isLoggedIn} onClick={() => setCategory("latest")}>
+        <Tab
+          $isLoggedIn={isLoggedIn}
+          // onClick={() => setCategory("latest")}
+        >
           최신탭
         </Tab>
         {isLoggedIn && (
           <Tab
             $isLoggedIn={isLoggedIn}
-            onClick={() => setCategory("following")}
+            // onClick={() => setCategory("following")}
           >
             팔로우탭
           </Tab>
         )}
       </TabContainer>
       <ItemList itemList={postList} />
-      {/* <Posts>
-        {postList.map((post: IFirebasePost) => (
-          <Post key={post.id}>
-            <Link href={"posts/" + post?.id}>
-              <Title>{post?.title}</Title>
-              <Content>{post?.description}</Content>
-            </Link>
-            <MetaItem item={post} />
-          </Post>
-        ))}
-      </Posts> */}
     </MainBoard>
   );
 }

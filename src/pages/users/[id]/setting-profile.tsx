@@ -121,7 +121,6 @@ export default function SettingProfile() {
     canvas.height = completedCrop.height;
 
     if (!image.complete) {
-      console.log(image.complete);
       return;
     }
     // 해당 crop 영역의 이미지를 canvas에 그림
@@ -167,11 +166,6 @@ export default function SettingProfile() {
         console.log("업로드 실패");
       });
   };
-  // const onImageLoaded = useCallback((image) => {
-  //   // imageRef.current = image;
-  //   console.log(image instanceof HTMLImageElement);
-  //   console.log(previewRef.current instanceof HTMLImageElement);
-  // }, []);
 
   const profileSubmitHandler = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -199,18 +193,13 @@ export default function SettingProfile() {
   const imagesUploadHandler = (file: any) => {
     if (!file) return;
     const reader = new FileReader();
-    console.log(file);
     reader.onload = function (e) {
       const dataUrl = e.target?.result;
-      console.log(dataUrl);
     };
     reader.readAsDataURL(file);
     const userId = auth.currentUser?.uid;
     const storeageRef = ref(storage, `profile-image/${userId}`);
-    uploadBytes(storeageRef, file).then((snapshot) => {
-      console.log("uploaded a file");
-      console.log(snapshot);
-    });
+    uploadBytes(storeageRef, file).then((snapshot) => {});
   };
   useEffect(() => {
     return () => {
@@ -221,7 +210,6 @@ export default function SettingProfile() {
   }, [preview]);
 
   const handleImgUpload = (e: React.FormEvent<HTMLInputElement>) => {
-    console.log(e.currentTarget.files);
     if (e.currentTarget.files) {
       const imageFile = e.currentTarget.files[0];
       const fileSize = imageFile.size / 1024 / 1024; // MB 사이즈
@@ -245,7 +233,6 @@ export default function SettingProfile() {
 
       if (imageFile) {
         const objectUrl = URL.createObjectURL(imageFile);
-        console.log(objectUrl);
         setPreview(objectUrl);
         setOpenCrop(true);
       } else {
@@ -255,7 +242,6 @@ export default function SettingProfile() {
   };
   const handleImageAndStatus = (isOpen: boolean, imgUrl: string) => {
     setOpenCrop(isOpen);
-    // console.log(imgUrl);
     setSrc(imgUrl);
   };
 
@@ -266,14 +252,9 @@ export default function SettingProfile() {
   };
 
   const onImgCrop = () => {
-    // getCropImg(completedCrop);
     if (previewCanvasRef.current) {
       const canvas = previewCanvasRef.current;
       const imgUrl = canvas.toDataURL("image/jpeg");
-      console.log(imgUrl);
-      // canvas.toBlob((blob) => {
-      //   imagesUploadHandler(blob);
-      // });
       handleImageAndStatus(false, imgUrl);
     }
   };

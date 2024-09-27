@@ -141,17 +141,13 @@ export default function Guestbooks() {
   const initFirestore = () => {
     try {
       const initRef = doc(firestore, "users", id as string);
-      console.log("firestore is ready");
       setIsLoaded(true);
     } catch (error) {
-      console.log("firestore is not ready");
       setIsLoaded(false);
     }
   };
 
-  useEffect(() => {
-    console.log("test ", guestbooks);
-  }, [guestbooks]);
+  useEffect(() => {}, [guestbooks]);
 
   useEffect(() => {
     if (isLoaded) {
@@ -161,7 +157,6 @@ export default function Guestbooks() {
           includeMetadataChanges: true,
         },
         (doc) => {
-          console.log(doc.data());
           const guestData = doc.data()?.guestbooks;
           setGuestbooks([]);
           setGuestbooks(guestData);

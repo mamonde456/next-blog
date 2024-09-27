@@ -165,7 +165,7 @@ export default function Login() {
           이메일 링크
         </LoginBox>
         <LoginBox>
-          <SocialBox onClick={() => alert("오류 수정 중")}>
+          <SocialBox>
             <GitHubButton />
           </SocialBox>
         </LoginBox>
@@ -177,7 +177,6 @@ export default function Login() {
         <EmailLinkBox ref={emailLinkRef}>
           <LinkToEmailAuth resetLoginBtn={resetLoginBtn} />
         </EmailLinkBox>
-        {/* <SocialBox>소셜 로그인</SocialBox> */}
       </LoginFormContainer>
     </Wrapper>
   );

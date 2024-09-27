@@ -66,7 +66,7 @@ const Button = styled.button`
   }
 `;
 
-type ButtonType = { onClick?: () => void };
+type ButtonType = { onClick: () => void };
 
 export default function EditButton({ onClick }: ButtonType) {
   return (
