@@ -1,7 +1,9 @@
-import { IFirebasePost, IIndexedDB } from "@/types/blog";
+import { IFirebasePost, IIndexedDB, IMeta } from "@/types/blog";
 import {
   Timestamp,
   collection,
+  doc,
+  getDoc,
   getDocs,
   orderBy,
   query,
@@ -114,8 +116,6 @@ export const getAllPostsFromFirebase = async () => {
   if (querySnapshot) {
     const posts: IFirebasePost[] = [];
     querySnapshot.forEach((doc) => {
-      // console.log(doc);
-      console.log(doc.data());
       const title = doc.data().title;
       const content = doc.data().content;
       const decodedText = decodeURIComponent(title);
@@ -124,16 +124,28 @@ export const getAllPostsFromFirebase = async () => {
       doc.data().content = decodedContent;
       posts.push(doc.data() as IFirebasePost);
     });
-    posts.sort((a, b) => {
-      if (a.created_at.seconds === b.created_at.seconds) {
-        return a.created_at.nanoseconds - b.created_at.nanoseconds;
-      } else {
-        return a.created_at.seconds - b.created_at.seconds;
-      }
-    });
-
     return posts;
   } else {
     return null;
+  }
+};
+
+export const getPostById = async (id: string) => {
+  const docRef = doc(firestore, "posts", `${id}`);
+  const docSnap = await getDoc(docRef);
+  if (docSnap.exists()) {
+    console.log("Document data:", docSnap.data());
+    const firebaseData = docSnap.data();
+    const meta: IMeta = {
+      id: firebaseData.id,
+      title: firebaseData.title,
+      description: firebaseData.description,
+      created_at: firebaseData.created_at,
+      userConfig: firebaseData.userConfig,
+    };
+    const decodedText = decodeURIComponent(firebaseData.content);
+    return { meta, content: decodedText };
+  } else {
+    console.log("No such document!");
   }
 };
