@@ -6,6 +6,7 @@ import styled from "styled-components";
 import SignIcon from "../ui/button/auth/SignIcon";
 import useAuth from "@/hook/useAuth";
 import { signOutUser } from "@/utils/auth";
+import { auth } from "../../../firebase";
 
 const Wrapper = styled.div`
   /* width: 200px; */
@@ -29,11 +30,12 @@ const Menu = styled.li`
   font-size: 18px;
   border-radius: 10px;
   display: flex;
-  padding: 20px;
   a {
+    width: 100%;
     display: flex;
     align-items: center;
     gap: 5px;
+    padding: 20px;
   }
   &:hover {
     background-color: #eeeeee;
@@ -67,7 +69,6 @@ export default function MainMenu() {
   const [userId, setUserId] = useState("");
   const router = useRouter();
   const isLoggedIn = useAuth();
-  console.log(isLoggedIn);
 
   useEffect(() => {
     const newId = uuidv4();
@@ -76,12 +77,8 @@ export default function MainMenu() {
   }, [router]);
 
   useEffect(() => {
-    const storageUserInfo = window.sessionStorage.getItem("userInfo");
-    if (storageUserInfo && storageUserInfo != "undefined") {
-      const userInfo = JSON.parse(storageUserInfo);
-      const userId = userInfo?.uid;
-      setUserId(userId);
-    }
+    const userId = auth.currentUser?.uid;
+    setUserId(userId || "");
   }, [isLoggedIn]);
 
   return (
