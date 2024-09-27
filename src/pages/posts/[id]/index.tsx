@@ -20,6 +20,9 @@ import MainMenu from "@/components/common/MainMenu";
 import { IUserInfo } from "@/types/users";
 import { IFirebasePost, IMeta } from "@/types/blog";
 import { formatTimestampToDateStr } from "@/utils/common";
+import { getPostById } from "@/utils/\bblog";
+import { GetStaticPaths, GetStaticProps } from "next";
+import { Params } from "next/dist/shared/lib/router/utils/route-matcher";
 
 const Wrapper = styled.div`
   width: 100%;
@@ -101,22 +104,19 @@ const BtnContainer = styled.div`
   gap: 10px;
 `;
 
-export default function Detail() {
+export default function Detail({
+  post,
+}: {
+  post: { meta: IMeta; content: string };
+}) {
   const [isFollow, setIsFollow] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [meta, setMeta] = useState<IMeta>();
-  const [posts, setPosts] = useState("");
+  const [meta, setMeta] = useState<IMeta>(post?.meta || {});
+  const [posts, setPosts] = useState(post?.content || "");
   const isLoggedIn = useAuth();
   const router = useRouter();
   const { id } = router.query;
   const userInfoRef = useRef<IUserInfo | null>(null);
-
-  useEffect(() => {
-    (async () => {
-      const metaData = await getPostById();
-      checkIfAuthorIsFollowed(metaData);
-    })();
-  }, []);
 
   const checkIfAuthorIsFollowed = async (metaData: IMeta | undefined) => {
     const userSessionInfo = window.sessionStorage.getItem("userInfo") || "";
@@ -139,30 +139,11 @@ export default function Detail() {
       }
     } else return;
   };
-
-  const getPostById = async () => {
-    const docRef = doc(firestore, "posts", `${id}`);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      console.log("Document data:", docSnap.data());
-      const firebaseData = docSnap.data();
-      const meta: IMeta = {
-        id: firebaseData.id,
-        title: firebaseData.title,
-        description: firebaseData.description,
-        created_at: firebaseData.created_at,
-        slog: firebaseData.slog,
-        userConfig: firebaseData.userConfig,
-      };
-      const decodedText = decodeURIComponent(firebaseData.content);
-      setMeta(meta);
-      setPosts(decodedText);
-      return meta;
-    } else {
-      // docSnap.data() will be undefined in this case
-      console.log("No such document!");
+  useEffect(() => {
+    if (post) {
+      checkIfAuthorIsFollowed(post?.meta);
     }
-  };
+  }, []);
 
   const handleFollowButtonClick = () => {
     // 현재 로그인한 유저
@@ -216,22 +197,31 @@ export default function Detail() {
     }
     alert("문서가 삭제되었습니다.");
   };
+
+  const handleEdit = () => {
+    if (id) {
+      router.push({
+        pathname: `/write/${id}`,
+        query: { action: "edit" },
+      });
+    }
+  };
   return (
     <Wrapper>
       <MainMenu />
       <NotebookWrap>
-        <Title>{meta?.title || ""}</Title>
+        <Title>{post?.meta?.title || ""}</Title>
 
         <MetaData>
           <UserInfo>
-            <UserImg src={meta?.userConfig.photoUrl || ""}></UserImg>
+            <UserImg src={post?.meta?.userConfig?.photoUrl || ""}></UserImg>
             <span>
-              {meta?.userConfig?.displayName ||
-                meta?.userConfig?.email.split("@")[0]}
+              {post?.meta?.userConfig?.displayName ||
+                post?.meta?.userConfig?.email.split("@")[0]}
             </span>
-            {meta?.userConfig.email !== userInfoRef.current?.email && (
+            {post?.meta?.userConfig?.email !== auth?.currentUser?.uid && (
               <>
-                {isLoggedIn && (
+                {post?.meta?.userConfig.uid !== auth.currentUser?.uid && (
                   <button onClick={handleFollowButtonClick}>
                     {isFollow ? "following" : "follow"}
                   </button>
@@ -240,24 +230,15 @@ export default function Detail() {
             )}
           </UserInfo>
           <PostsInfo>
-            {meta?.userConfig?.uid === userInfoRef.current?.uid && (
+            {post?.meta?.userConfig?.uid === auth?.currentUser?.uid && (
               <BtnContainer>
-                {isLoggedIn && (
-                  <>
-                    <EditButton
-                      onClick={() =>
-                        router.push({
-                          pathname: `/write/${meta?.id}`,
-                          query: { action: "edit" },
-                        })
-                      }
-                    />
-                    <DeleteButton onClick={onRemovePost} />
-                  </>
-                )}
+                <EditButton onClick={handleEdit} />
+                <DeleteButton onClick={onRemovePost} />
               </BtnContainer>
             )}
-            <div>{formatTimestampToDateStr(meta?.created_at || null)}</div>
+            <div>
+              {formatTimestampToDateStr(post?.meta?.created_at || null)}
+            </div>
           </PostsInfo>
         </MetaData>
         <Content style={{ whiteSpace: "pre-line" }}>
@@ -272,14 +253,15 @@ export default function Detail() {
 }
 
 export const getStaticPaths = async () => {
-  const file = await fs.readdir(path.join("__post"));
-  const paths = file.map((el) => ({
-    params: { id: el.replace(/\.md$/, "") },
-  }));
-  return { paths, fallback: "blocking" };
+  // const file = await fs.readdir(path.join("__post"));
+  // const paths = file.map((el) => ({
+  //   params: { id: el.replace(/\.md$/, "") },
+  // }));
+
+  return { paths: [], fallback: "blocking" };
 };
 
-export const getStaticProps = async ({ params }: any) => {
+export const getStaticProps: GetStaticProps = async ({ params }) => {
   // const markdownWithMetadata = await fs.readFile(
   //   path.join(`__post/${params.id}.md`),
   //   "utf-8"
@@ -293,5 +275,17 @@ export const getStaticProps = async ({ params }: any) => {
   //   },
   // };
   // }
-  return { props: {} };
+  const { id } = params as Params;
+  const post = await getPostById(id);
+  const sanitizedMeta = {
+    ...post?.meta,
+    created_at: post?.meta.created_at
+      ? formatTimestampToDateStr(post?.meta.created_at)
+      : null,
+  };
+  const sanitizedPost = {
+    ...post,
+    meta: sanitizedMeta,
+  };
+  return { props: { post: sanitizedPost } };
 };

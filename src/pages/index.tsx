@@ -7,12 +7,10 @@ import styled from "styled-components";
 import MainMenu from "@/components/common/MainMenu";
 import MainPosts from "@/components/blog/MainPosts";
 import { IFirebasePost, IMeta } from "@/types/blog";
+import { getAllPostsFromFirebase } from "@/utils/\bblog";
+import { formatTimestampToDateStr } from "@/utils/common";
 
 const Wrapper = styled.div`
-  /* display: flex;
-  height: 100%;
-  justify-content: center;
-  align-items: center; */
   min-height: 100vh;
   width: 100%;
   height: 100%;
@@ -25,7 +23,6 @@ const SideMenuList = styled.div`
   flex: 2;
   width: 300px;
   height: 100%;
-  /* background: yellow; */
 `;
 
 const Search = styled.div`
@@ -71,52 +68,9 @@ const Input = styled.input`
   }
 `;
 
-const BookMarkTitle = styled.div`
-  display: flex;
-  gap: 10px;
-  /* justify-content: center; */
-  align-items: center;
-  padding-bottom: 10px;
-  border-bottom: solid 1px rgba(0, 0, 0, 0.2);
-  svg {
-    width: 20px;
-    height: 20px;
-  }
-`;
-
-const Bookmark = styled.div`
-  width: 100%;
-  height: 70%;
-  padding: 10px;
-  li {
-    height: 40px;
-    display: flex;
-    flex-direction: column;
-    padding: 5px;
-    overflow: hidden;
-    /* border-bottom: solid 1px rgba(0, 0, 0, 0.2); */
-    &:hover {
-      -webkit-transition: 0.2s ease;
-      height: 200px;
-    }
-    /* div {
-      width: 100%;
-      height: 90px;
-      background-color: #e6e6e6;
-    } */
-  }
-`;
-const BookListTitle = styled.div`
-  width: 100%;
-  height: 40px;
-  background: red;
-  margin-bottom: 20px;
-`;
-
 const SearchList = styled.ul`
   width: 95%;
-  height: 100px;
-  bottom: -85px;
+  min-height: 100px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -126,6 +80,7 @@ const SearchList = styled.ul`
   border-radius: 10px;
   box-shadow: 0 0 5px 4px rgba(0, 0, 0, 0.1);
   position: absolute;
+  top: 85px;
 `;
 const SearchItem = styled.li`
   padding: 10px;
@@ -134,21 +89,14 @@ const SearchItem = styled.li`
   }
 `;
 
-export default function Home() {
+export default function Home({ postList }: { postList: IFirebasePost[] }) {
   const [keyword, setKeyword] = useState("");
   const [searchResult, setSearchResult] = useState<IFirebasePost[]>([]);
-  const [posts, setPosts] = useState<IFirebasePost[]>([]);
-
-  const getPostList = (postList: IFirebasePost[]) => {
-    console.log(postList);
-    setPosts(postList);
-  };
 
   useEffect(() => {
     if (keyword) {
-      const result: IFirebasePost[] = posts.filter((post) => {
+      const result: IFirebasePost[] = postList.filter((post) => {
         const content = encodeURIComponent(post.content);
-        console.log(post.title, keyword);
         if (
           post.title.includes(keyword) ||
           content.includes(keyword) ||
@@ -164,7 +112,7 @@ export default function Home() {
   return (
     <Wrapper>
       <MainMenu />
-      <MainPosts getPostList={getPostList} />
+      <MainPosts postList={postList} />
       <SideMenuList>
         <Search>
           <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -209,18 +157,37 @@ export default function Home() {
 }
 
 export const getStaticProps = async () => {
-  const file = await fs.readdir(path.join("__post"));
+  // const file = await fs.readdir(path.join("__post"));
 
-  const metaArr = [];
-  for (let i = 0; i < file.length; i++) {
-    const readFile = await fs.readFile(path.join(`__post/${file[i]}`));
-    const { data: frontmatter } = matter(readFile);
-    frontmatter.created_at = new Date(frontmatter.created_at).toISOString();
-    metaArr.push(frontmatter);
+  // const metaArr = [];
+  // for (let i = 0; i < file.length; i++) {
+  //   const readFile = await fs.readFile(path.join(`__post/${file[i]}`));
+  //   const { data: frontmatter } = matter(readFile);
+  //   frontmatter.created_at = new Date(frontmatter.created_at).toISOString();
+  //   metaArr.push(frontmatter);
+  // }
+  // const sortFrontmatter = metaArr.sort(
+  //   (a, b) =>
+  //     new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  // );
+  // return { props: { sortFrontmatter } };
+
+  const posts = await getAllPostsFromFirebase();
+  if (posts !== null) {
+    const postList = posts?.map((post) => {
+      if (
+        typeof post.created_at !== "string" &&
+        typeof post.update_at !== "string"
+      ) {
+        return {
+          ...post,
+          created_at: formatTimestampToDateStr(post.created_at),
+          update_at: formatTimestampToDateStr(post.update_at),
+        };
+      }
+      return post;
+    });
+    return { props: { postList } };
   }
-  const sortFrontmatter = metaArr.sort(
-    (a, b) =>
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  );
-  return { props: { sortFrontmatter } };
+  return { props: { postList: null } };
 };

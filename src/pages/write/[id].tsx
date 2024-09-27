@@ -12,14 +12,16 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import useAuth from "@/hook/useAuth";
-import { getKoreanTime } from "@/utils/common";
+import { formatTimestampToDateStr, getKoreanTime } from "@/utils/common";
 import { v4 as uuidv4 } from "uuid";
 import { checkAuthentication } from "@/utils/auth";
-import { IIndexedDB } from "@/types/blog";
+import { IFirebasePost, IIndexedDB, IMeta } from "@/types/blog";
 import BasicButton from "@/components/ui/button/BasicButton";
 import SubmitButton from "@/components/ui/button/SubmitButton";
 import BackButton from "@/components/ui/button/BackButton";
-import { saveDraftToIndexedDB } from "@/utils/\bblog";
+import { getPostById, saveDraftToIndexedDB } from "@/utils/\bblog";
+import { GetStaticPaths, GetStaticProps } from "next";
+import { Params } from "next/dist/shared/lib/router/utils/route-matcher";
 
 const Wrapper = styled.div`
   /* display: flex;
@@ -163,14 +165,15 @@ const BackBtnContainer = styled.div`
   right: 10px;
   bottom: 20px;
 `;
-export default function Write() {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [content, setContent] = useState("");
+
+type WriteType = { post: { meta: IMeta; content: string } };
+export default function Write({ post }: WriteType) {
+  const [title, setTitle] = useState(post?.meta?.title || "");
+  const [description, setDescription] = useState(post?.meta?.description || "");
+  const [content, setContent] = useState(post?.content || "");
   const router = useRouter();
-  const { action, id: params } = router.query;
+  const { action, id } = router.query;
   const isLoggedIn = useAuth();
-  // console.log(isLoggedIn);
 
   useEffect(() => {
     setContent("");
@@ -180,7 +183,7 @@ export default function Write() {
       if (!isUserAuthenticated) {
         // alert("비회원으로 작성된 글은 로컬에 저장되어 유실될 수 있습니다.");
       }
-      checkPostExists(isUserAuthenticated);
+      // checkPostExists(isUserAuthenticated);
       autoSaveDraft(); // 5분마다 임시글 자동 저장
     })();
   }, []);
@@ -191,16 +194,14 @@ export default function Write() {
     } else if (action === "edit") {
       // 기존 글 가져오기
       if (isLoggedIn) {
-        getPostById();
       } else {
-        const response = await fetch(`/api/posts?id=${params}`, {
+        const response = await fetch(`/api/posts?id=${id}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
           },
         });
         const [mata, content] = await response.json();
-        console.log(mata, content);
         setTitle(mata.title);
         setDescription(mata.description);
         setContent(content);
@@ -208,21 +209,6 @@ export default function Write() {
     } else if (action === "draft") {
       // 임시 글 가져오기
       getDraftFromIndexDB();
-    }
-  };
-
-  const getPostById = async () => {
-    const docRef = doc(firestore, "posts", `${params}`);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      console.log("Document data:", docSnap.data());
-      const data = docSnap.data();
-      const decodedText = decodeURIComponent(data.content);
-      setContent(decodedText);
-      setTitle(data.title);
-    } else {
-      // docSnap.data() will be undefined in this case
-      console.log("No such document!");
     }
   };
 
@@ -258,7 +244,7 @@ export default function Write() {
   const autoSaveDraft = () => {
     if (!title && !content) return;
     const config: IIndexedDB = {
-      id: params as string,
+      id: id as string,
       title,
       content,
       description,
@@ -282,8 +268,8 @@ export default function Write() {
         uid: user.uid,
       };
       try {
-        await setDoc(doc(firestore, "posts", `${params}`), {
-          id: params,
+        await setDoc(doc(firestore, "posts", `${id}`), {
+          id,
           title,
           created_at: Timestamp.fromDate(new Date()),
           description,
@@ -293,7 +279,7 @@ export default function Write() {
             like: 0,
           },
         });
-        const docRef = doc(firestore, "posts", `${params}`);
+        const docRef = doc(firestore, "posts", `${id}`);
         await updateDoc(docRef, {
           update_at: serverTimestamp(),
         });
@@ -306,7 +292,6 @@ export default function Write() {
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // const isUserAuthenticated = await checkAuthentication();
     if (isLoggedIn) {
       sendPostToFirebase();
     } else {
@@ -314,15 +299,9 @@ export default function Write() {
     }
   };
   async function createLocalPostFile() {
-    // const user = auth.currentUser;
-    // if (!user) return;
     const userConfig = {
-      // displayName: user.displayName,
-      // email: user.email,
-      // photoUrl: user.photoURL,
       uid: uuidv4(),
     };
-    console.log(userConfig);
 
     const response = await fetch("/api/posts", {
       method: "POST",
@@ -330,7 +309,7 @@ export default function Write() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        id: params,
+        id,
         title,
         description,
         content,
@@ -352,7 +331,7 @@ export default function Write() {
   const handleSave = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     const config: IIndexedDB = {
-      id: params as string,
+      id: id as string,
       title,
       content,
       description,
@@ -413,3 +392,21 @@ export default function Write() {
     </Wrapper>
   );
 }
+export const getStaticPaths: GetStaticPaths = async () => {
+  return { paths: [], fallback: "blocking" };
+};
+
+export const getStaticProps: GetStaticProps = async ({ params }) => {
+  const { id } = params as Params;
+  const post = await getPostById(id);
+  if (!post) return { props: {} };
+  const serializingMeta = {
+    ...post?.meta,
+    created_at: formatTimestampToDateStr(post?.meta?.created_at || null),
+  };
+  const serializingPost = {
+    ...post,
+    meta: serializingMeta,
+  };
+  return { props: { post: serializingPost } };
+};
