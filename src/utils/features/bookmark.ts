@@ -17,12 +17,11 @@ export const removePostFromBookmark = (userId: string, postId: string) => {
   if (Post) {
     remove(ref(db, `bookmarks/${userId}/${postId}`));
   } else {
-    return console.log("해당 포스트를 찾을 수 없습니다.");
+    return alert("해당 포스트를 찾을 수 없습니다.");
   }
 };
 
 const listenToBookmarkChanges = (userId: string) => {
-  console.log(userId);
   let dataArr: IFirebasePost[] = [];
   const bookmarkRef = ref(db, "bookmarks/" + userId);
   onValue(bookmarkRef, (snapshot) => {

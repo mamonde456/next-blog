@@ -61,7 +61,6 @@ export default function ChattingRoom({
   useEffect(() => {
     if (!chatMeta) return;
     const chatRef = ref(db, "messages/" + chatMeta?.chatRoomId);
-    console.log(chatMeta?.chatRoomId);
     const unsubscribe = onValue(chatRef, (snapshot) => {
       const messagesData = snapshot.val();
       const keys = messagesData && Object.keys(messagesData);
@@ -86,8 +85,6 @@ export default function ChattingRoom({
   const handleChildData = (msg: string) => {
     if (!chatMeta) return;
     try {
-      console.log(msg);
-      console.log(chatMeta);
       setMessage(msg);
       const userInfo: IUserInfo = getUserInfoFromSession();
       const newChatRoomKey = push(
@@ -104,7 +101,6 @@ export default function ChattingRoom({
       const updates: { [key: string]: MessageData } = {};
       updates["/messages/" + chatMeta?.chatRoomId + "/" + newChatRoomKey] =
         messageData;
-      console.log(updates);
       return update(ref(db), updates);
     } catch (error) {
       console.log(error);

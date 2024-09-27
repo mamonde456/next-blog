@@ -128,7 +128,7 @@ export default function Chats() {
       if (users && Object.keys(users).length > 0) {
         setUsers(users);
       } else {
-        console.log("사용자를 찾을 수 없습니다.");
+        alert("사용자를 찾을 수 없습니다.");
       }
       const userInfoSession = getUserInfoFromSession();
       const unsub = onSnapshot(
@@ -153,7 +153,6 @@ export default function Chats() {
       );
     });
     if (existingChatRoom) {
-      console.log("이미 동일한 채팅방 존재");
       const selectedChat = userInfo.chatRooms?.find((chatRoom) => {
         return chatRoom.userList.find((user) => user.uid === selectedUser.uid);
       });

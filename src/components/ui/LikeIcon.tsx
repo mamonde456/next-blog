@@ -108,7 +108,6 @@ export default function LikeIcon({ getLikeState, isLoggedIn }: IProps) {
           className="checkbox"
           id="Give-It-An-Id"
           defaultChecked={!isLoggedIn && false}
-          onChange={() => console.log()}
         />
         <div className="svg-container">
           <svg

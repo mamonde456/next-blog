@@ -8,7 +8,6 @@ export default function useAuth() {
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        // console.log(user);
         setIsLoggedIn(true);
         console.log("sign in");
       } else {

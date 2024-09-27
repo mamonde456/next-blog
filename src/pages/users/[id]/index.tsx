@@ -139,10 +139,6 @@ export default function UserProfile() {
   }, []);
 
   useEffect(() => {
-    console.log(userInfo);
-  }, [userInfo]);
-
-  useEffect(() => {
     getProfileImg();
     getQueryPosts();
   }, [id]);
@@ -153,7 +149,6 @@ export default function UserProfile() {
     const querySnapshot = await getDocs(q);
     const posts: IFirebasePost[] = [];
     querySnapshot.forEach((doc) => {
-      console.log(doc.data());
       posts.push(doc.data() as IFirebasePost);
     });
     setPostList([...posts]);
@@ -164,9 +159,7 @@ export default function UserProfile() {
     const userInfo =
       window.sessionStorage.getItem("userInfo") &&
       JSON.parse(window.sessionStorage.getItem("userInfo") || "");
-    console.log(userInfo);
     const imgSrc = `profile-image/${id || userInfo.uid}`;
-    console.log(imgSrc);
     getDownloadURL(ref(storage, imgSrc))
       .then((url) => {
         const xhr = new XMLHttpRequest();
@@ -176,7 +169,6 @@ export default function UserProfile() {
         };
         xhr.open("GET", url);
         xhr.send();
-        console.log(url);
         setUserInfo((prev) => {
           if (!prev) return undefined;
           return {

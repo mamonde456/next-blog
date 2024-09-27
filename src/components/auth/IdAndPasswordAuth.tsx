@@ -69,21 +69,21 @@ export default function IdAndPasswordAuth() {
       password: string
     ) => {
       if (count >= 2) {
-        console.log("로그인 시도가 2회를 초과했습니다.");
+        alert("로그인 시도가 2회를 초과했습니다.");
         return;
       }
       try {
         await signInUser(email, password);
       } catch (err) {
         console.log("로그인 실패, 계정 생성 후 다시 로그인 시도");
+        console.log(err);
         const isCreateAccount = confirm("계정을 생성하시겠습니까?");
         if (isCreateAccount) {
           await createUser(email, password);
-          console.log(err);
           count = count + 1;
           await handleWithEmailAndPassword(email, password);
         } else {
-          return console.log("로그인 실패");
+          return alert("로그인에 실패하셨습니다. 다시 시도해주세요.");
         }
       }
     };
@@ -114,17 +114,6 @@ export default function IdAndPasswordAuth() {
       console.log("계정 생성 err, ", err);
       throw err;
     }
-    // createUserWithEmailAndPassword(auth, email, password)
-    //   .then((userCredential) => {
-    //     const user = userCredential.user;
-    //     window.sessionStorage.setItem("userInfo", JSON.stringify(user));
-    //     alert("계정 생성 완료");
-    //     // 계정 로그인.
-    //     // handleWithEmailAndPassword(email,password, )
-    //   })
-    //   .catch((err) => {
-    //     console.log("계정 생성 err, ", err);
-    //   });
   };
   const signInUser = async (email: string, password: string) => {
     try {
@@ -135,12 +124,10 @@ export default function IdAndPasswordAuth() {
       );
       const user = userCredential.user;
       const userInfo = await getCurrentUserData(user.uid);
-      console.log("userInfouserInfouserInfo, ", userInfo);
       window.sessionStorage.setItem("userInfo", JSON.stringify(userInfo));
 
       router.push("/");
     } catch (err: any) {
-      console.log("email, password login error ", err);
       const errorCode = err.code;
       if (errorCode.includes("invalid-credential")) {
         throw err;

@@ -47,7 +47,6 @@ const getMdFile = async (req: NextApiRequest, res: NextApiResponse) => {
 
 const deleteMdFile = async (req: NextApiRequest, res: NextApiResponse) => {
   const { id } = req.query;
-  console.log(id);
   const files = await fs.readdir(path.join("__post"));
   try {
     for (let i = 0; i < files.length; i++) {
