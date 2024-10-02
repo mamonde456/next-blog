@@ -1,5 +1,11 @@
 import MainMenu from "@/components/common/MainMenu";
 import BasicButton from "@/components/ui/button/BasicButton";
+import { IIndexedDB } from "@/types/blog";
+import {
+  getAllDraftsFromFirebase,
+  getDraftFromIndexDB,
+  setDraftToIndexedDB,
+} from "@/utils/\bblog";
 import { useRouter } from "next/router";
 import { Fragment, useEffect, useState } from "react";
 import styled from "styled-components";
@@ -104,53 +110,21 @@ const Box = styled.div`
     color: white;
   }
 `;
-export default function Saves() {
-  const [postList, setPostList] = useState<{ [key: string]: any }[]>([]);
+export default function Saves({ drafts }: { drafts: IIndexedDB[] }) {
+  const [draftList, setDraftList] = useState<IIndexedDB[]>([]);
   const router = useRouter();
+
   useEffect(() => {
-    // setPostList([]);
-    if (!window) {
-      alert(
-        "Your browser doesn't support a stable version of IndexedDB. Such and such feature will not be available."
-      );
+    const clientDrafts = getDraftFromIndexDB();
+    if (clientDrafts && clientDrafts?.length > 0) {
+      setDraftList(clientDrafts);
     } else {
-      // window.indexedDB = window.indexedDB;
-      // window.IDBTransaction = window.IDBTransaction;
-      // window.IDBKeyRange = window.IDBKeyRange;
-
-      const open = window.indexedDB.open("posts", 1);
-      open.onerror = function (e) {
-        console.log("error ", e);
-      };
-      open.onupgradeneeded = function (e) {
-        const db = open.result;
-        db.createObjectStore("MyObjectStore", { keyPath: "id" });
-      };
-      open.onsuccess = function () {
-        const db = open.result;
-        const tx = db.transaction("MyObjectStore", "readonly");
-        const store = tx.objectStore("MyObjectStore");
-
-        // get the post data
-        const request = store.openCursor();
-        request.onsuccess = function (e: any) {
-          const cursor = e.target.result;
-          if (cursor) {
-            if (
-              postList.some((post) => post.id !== cursor.value.id) ||
-              postList.length <= 0
-            ) {
-              setPostList((prev) => [...prev, cursor.value]);
-            }
-            cursor.continue();
-          } else {
-            db.close();
-          }
-        };
-      };
+      if (drafts && drafts.length > 0) {
+        setDraftList(drafts);
+        setDraftToIndexedDB(drafts);
+      }
     }
-    return () => {};
-  }, []);
+  }, [drafts]);
 
   const handleRemoveSaves = () => {
     const open = window.indexedDB.open("posts", 1);
@@ -170,7 +144,7 @@ export default function Saves() {
 
       clearRequest.onsuccess = function (e) {
         alert("모든 임시글이 삭제되었습니다.");
-        setPostList([]);
+        setDraftList([]);
 
         db.close();
       };
@@ -188,23 +162,27 @@ export default function Saves() {
             </BasicButton>
           </RemoveBtn>
         </HeaderBox>
-        <PostList>
-          {postList?.map((el) => {
-            return (
-              <Box
-                key={el.id}
-                onClick={() =>
-                  router.push({
-                    pathname: `/write/${el.id}`,
-                    query: { action: "draft" },
-                  })
-                }
-              >
-                <span>{el?.title}</span>
-              </Box>
-            );
-          })}
-        </PostList>
+        {draftList.length > 0 ? (
+          <PostList>
+            {draftList?.map((el) => {
+              return (
+                <Box
+                  key={el.id}
+                  onClick={() =>
+                    router.push({
+                      pathname: `/write/${el.id}`,
+                      query: { action: "draft" },
+                    })
+                  }
+                >
+                  <span>{el?.title}</span>
+                </Box>
+              );
+            })}
+          </PostList>
+        ) : (
+          <div>임시글을 찾을 수 없습니다.</div>
+        )}
       </SaveBox>
       <SideMenuList>
         {" "}
@@ -220,3 +198,9 @@ export default function Saves() {
     </Wrapper>
   );
 }
+
+export const getStaticProps = async () => {
+  const drafts = await getAllDraftsFromFirebase();
+
+  return { props: { drafts } };
+};
