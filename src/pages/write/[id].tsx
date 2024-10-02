@@ -271,7 +271,7 @@ export default function Write({ post }: WriteType) {
         await setDoc(doc(firestore, "posts", `${id}`), {
           id,
           title,
-          created_at: Timestamp.fromDate(new Date()),
+          created_at: serverTimestamp(),
           description,
           content: encodedText,
           userConfig,
@@ -330,14 +330,28 @@ export default function Write({ post }: WriteType) {
 
   const handleSave = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    const config: IIndexedDB = {
-      id: id as string,
-      title,
-      content,
-      description,
-    };
-    saveDraftToIndexedDB(config);
-    router.push("/saves");
+    const user = auth.currentUser;
+    if (user && user.uid && user.displayName && user.email && user.photoURL) {
+      const userConfig = {
+        displayName: user.displayName,
+        email: user.email,
+        photoUrl: user.photoURL,
+        uid: user.uid,
+      };
+      const config: IIndexedDB = {
+        id: id as string,
+        title,
+        content,
+        description,
+        createdAt: serverTimestamp(),
+        userConfig,
+      };
+      saveDraftToIndexedDB(config);
+      router.push("/saves");
+    } else {
+      alert("로그인 상태로 시도해주세요.");
+      router.push("/login");
+    }
   };
 
   return (
