@@ -8,10 +8,10 @@ import {
   orderBy,
   query,
 } from "firebase/firestore";
-import { firestore } from "../../firebase";
+import { auth, firestore } from "../../firebase";
 
 // indexedDB에 임시 저장
-export const saveDraftToIndexedDB = (post: IIndexedDB) => {
+export const setDraftToIndexedDB = (post: IIndexedDB[]) => {
   if (!window) {
     alert(
       "Your browser doesn't support a stable version of IndexedDB. Such and such feature will not be available."
@@ -20,7 +20,7 @@ export const saveDraftToIndexedDB = (post: IIndexedDB) => {
     // window.indexedDB = window.indexedDB;
     // window.IDBTransaction = window.IDBTransaction;
     // window.IDBKeyRange = window.IDBKeyRange;
-    const req = window.indexedDB.open("posts", 1);
+    const req = window.indexedDB.open("MyObjectStore", 1);
     req.onerror = function (e) {
       console.log("error ", e);
     };
@@ -29,14 +29,13 @@ export const saveDraftToIndexedDB = (post: IIndexedDB) => {
       // Save the IDBDatabase interface
       const db = req.result;
       // Create an objectStore for this database
-      const store = db.createObjectStore("MyObjectStore", { keyPath: "id" });
-      store.createIndex("postIndex", "post");
+      const store = db.createObjectStore("Drafts", { keyPath: "id" });
+      store.createIndex("DraftIndex", "Draft");
     };
     req.onsuccess = function () {
       const db = req.result;
-      const tx = db.transaction("MyObjectStore", "readwrite");
-      const store = tx.objectStore("MyObjectStore");
-      console.log("save", store);
+      const tx = db.transaction("Drafts", "readwrite");
+      const store = tx.objectStore("Drafts");
 
       // add post data
       store.put(post);
@@ -69,16 +68,16 @@ export const saveDraftToIndexedDB = (post: IIndexedDB) => {
 export const getDraftFromIndexDB = () => {
   if (window) {
     const indexDBValueArr: IIndexedDB[] = [];
-    const open = indexedDB.open("posts", 1);
+    const open = indexedDB.open("MyObjectStore", 1);
     open.onupgradeneeded = function () {
       const db = open.result;
-      db.createObjectStore("MyObjectStore", { keyPath: "id" });
+      db.createObjectStore("Drafts", { keyPath: "id" });
     };
 
     open.onsuccess = function () {
       const db = open.result;
-      const tx = db.transaction("MyObjectStore", "readonly");
-      const store = tx.objectStore("MyObjectStore");
+      const tx = db.transaction("Drafts", "readonly");
+      const store = tx.objectStore("Drafts");
 
       const request = store.openCursor();
       request.onsuccess = function (e: Event) {
@@ -92,6 +91,8 @@ export const getDraftFromIndexDB = () => {
             title: value.title,
             content: value.content,
             description: value.description,
+            createdAt: value.createdAt,
+            userConfig: value.userConfig,
           };
 
           indexDBValueArr.push(indexedDBObject);
@@ -109,6 +110,7 @@ export const getDraftFromIndexDB = () => {
 
 // firebase 함수
 
+// firebase store 에서 모든 게시글 불러오기
 export const getAllPostsFromFirebase = async () => {
   const postsRef = collection(firestore, "posts");
   const q = query(postsRef, orderBy("created_at", "desc"));
@@ -130,6 +132,29 @@ export const getAllPostsFromFirebase = async () => {
   }
 };
 
+// firebase store 에서 모든 임시글 불러오기
+export const getAllDraftsFromFirebase = async () => {
+  const draftsRef = collection(firestore, "drafts");
+  const q = query(draftsRef, orderBy("createdAt", "desc"));
+  const querySnapshot = await getDocs(q);
+  if (querySnapshot) {
+    const drafts: IFirebasePost[] = [];
+    querySnapshot.forEach((doc) => {
+      const title = doc.data().title;
+      const content = doc.data().content;
+      const decodedText = decodeURIComponent(title);
+      const decodedContent = decodeURIComponent(content);
+      doc.data().title = decodedText;
+      doc.data().content = decodedContent;
+      drafts.push(doc.data() as IFirebasePost);
+    });
+    return drafts;
+  } else {
+    return null;
+  }
+};
+
+// Id를 이용해 게시글을 식별하여 가져오기
 export const getPostById = async (id: string) => {
   const docRef = doc(firestore, "posts", `${id}`);
   const docSnap = await getDoc(docRef);
@@ -149,3 +174,37 @@ export const getPostById = async (id: string) => {
     console.log("No such document!");
   }
 };
+
+// const setPostToFirebase = async () => {
+//   const encodedText = encodeURIComponent(content);
+
+//   const user = auth.currentUser;
+//   if (user) {
+//     const userConfig = {
+//       displayName: user.displayName,
+//       email: user.email,
+//       photoUrl: user.photoURL,
+//       uid: user.uid,
+//     };
+//     try {
+//       await setDoc(doc(firestore, "posts", `${id}`), {
+//         id,
+//         title,
+//         created_at: Timestamp.fromDate(new Date()),
+//         description,
+//         content: encodedText,
+//         userConfig,
+//         meta: {
+//           like: 0,
+//         },
+//       });
+//       const docRef = doc(firestore, "posts", `${id}`);
+//       await updateDoc(docRef, {
+//         update_at: serverTimestamp(),
+//       });
+//       router.push("/");
+//     } catch (error) {
+//       console.log(error);
+//     }
+//   }
+// };
