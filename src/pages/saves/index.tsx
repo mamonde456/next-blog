@@ -4,6 +4,7 @@ import { IIndexedDB } from "@/types/blog";
 import {
   getAllDraftsFromFirebase,
   getDraftFromIndexDB,
+  removeAllDraftsFromIndexedDB,
   setDraftToIndexedDB,
 } from "@/utils/\bblog";
 import { useRouter } from "next/router";
@@ -115,40 +116,28 @@ export default function Saves({ drafts }: { drafts: IIndexedDB[] }) {
   const router = useRouter();
 
   useEffect(() => {
-    const clientDrafts = getDraftFromIndexDB();
-    if (clientDrafts && clientDrafts?.length > 0) {
-      setDraftList(clientDrafts);
-    } else {
-      if (drafts && drafts.length > 0) {
-        setDraftList(drafts);
-        setDraftToIndexedDB(drafts);
+    (async () => {
+      const clientDrafts = (await getDraftFromIndexDB()) as IIndexedDB[];
+      if (clientDrafts && clientDrafts?.length > 0) {
+        setDraftList(clientDrafts);
+      } else {
+        if (drafts && drafts.length > 0) {
+          setDraftList(drafts);
+          drafts.map((draft) => setDraftToIndexedDB(draft));
+        }
       }
-    }
+    })();
   }, [drafts]);
 
-  const handleRemoveSaves = () => {
-    const open = window.indexedDB.open("posts", 1);
-    open.onerror = function (e) {
-      console.log("error ", e);
-    };
-    open.onupgradeneeded = function (e) {
-      const db = open.result;
-      db.createObjectStore("MyObjectStore", { keyPath: "id" });
-    };
-    open.onsuccess = function () {
-      const db = open.result;
-      const tx = db.transaction("MyObjectStore", "readwrite");
-      const store = tx.objectStore("MyObjectStore");
-
-      const clearRequest = store.clear();
-
-      clearRequest.onsuccess = function (e) {
-        alert("모든 임시글이 삭제되었습니다.");
-        setDraftList([]);
-
-        db.close();
-      };
-    };
+  const handleRemoveSaves = async () => {
+    if (draftList.length <= 0) return;
+    const res = await removeAllDraftsFromIndexedDB();
+    if (res) {
+      setDraftList([]);
+      alert("모든 임시글이 삭제되었습니다.");
+    } else {
+      alert("임시글 삭제에 실패했습니다. 다시 시도해주세요.");
+    }
   };
   return (
     <Wrapper>
@@ -157,7 +146,7 @@ export default function Saves({ drafts }: { drafts: IIndexedDB[] }) {
         <HeaderBox>
           <Title>임시글 리스트</Title>
           <RemoveBtn>
-            <BasicButton type="button" onClick={() => handleRemoveSaves()}>
+            <BasicButton type="button" onClick={handleRemoveSaves}>
               모든 임시글 삭제
             </BasicButton>
           </RemoveBtn>
@@ -181,7 +170,7 @@ export default function Saves({ drafts }: { drafts: IIndexedDB[] }) {
             })}
           </PostList>
         ) : (
-          <div>임시글을 찾을 수 없습니다.</div>
+          <div style={{ padding: 15 }}>임시글을 찾을 수 없습니다.</div>
         )}
       </SaveBox>
       <SideMenuList>
