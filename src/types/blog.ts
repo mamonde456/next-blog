@@ -22,6 +22,7 @@ export interface IIndexedDB {
   content: string;
   description: string;
   createdAt: Timestamp | FieldValue;
+  updateAt?: Timestamp | FieldValue;
   userConfig: Owner;
 }
 
