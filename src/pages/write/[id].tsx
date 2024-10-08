@@ -19,7 +19,13 @@ import { IFirebasePost, IIndexedDB, IMeta } from "@/types/blog";
 import BasicButton from "@/components/ui/button/BasicButton";
 import SubmitButton from "@/components/ui/button/SubmitButton";
 import BackButton from "@/components/ui/button/BackButton";
-import { getPostById, setDraftToIndexedDB } from "@/utils/\bblog";
+import {
+  getDraftByIdFromIndexDB,
+  getDraftFromIndexDB,
+  getPostById,
+  setDraftToFirebase,
+  setDraftToIndexedDB,
+} from "@/utils/\bblog";
 import { GetStaticPaths, GetStaticProps } from "next";
 import { Params } from "next/dist/shared/lib/router/utils/route-matcher";
 
@@ -183,8 +189,8 @@ export default function Write({ post }: WriteType) {
       if (!isUserAuthenticated) {
         // alert("비회원으로 작성된 글은 로컬에 저장되어 유실될 수 있습니다.");
       }
-      // checkPostExists(isUserAuthenticated);
-      autoSaveDraft(); // 5분마다 임시글 자동 저장
+      checkPostExists(isUserAuthenticated);
+      // autoSaveDraft(); // 5분마다 임시글 자동 저장
     })();
   }, []);
 
@@ -208,36 +214,16 @@ export default function Write({ post }: WriteType) {
       }
     } else if (action === "draft") {
       // 임시 글 가져오기
-      getDraftFromIndexDB();
-    }
-  };
-
-  const getDraftFromIndexDB = () => {
-    if (window) {
-      const open = indexedDB.open("posts", 1);
-      open.onupgradeneeded = function () {
-        const db = open.result;
-        db.createObjectStore("MyObjectStore", { keyPath: "id" });
-      };
-
-      open.onsuccess = function () {
-        const db = open.result;
-        const tx = db.transaction("MyObjectStore", "readonly");
-        const store = tx.objectStore("MyObjectStore");
-
-        const request = store.openCursor();
-        request.onsuccess = function (e: any) {
-          const cursor = e?.target?.result;
-          if (cursor) {
-            if (cursor.key === router.query.id) {
-              setTitle(cursor.value.title);
-              setDescription(cursor.value.description);
-              setContent(cursor.value.content);
-            }
-            cursor.continue();
-          }
-        };
-      };
+      const result = (await getDraftByIdFromIndexDB(
+        id as string
+      )) as IIndexedDB;
+      if (result) {
+        setTitle(result.title);
+        setContent(result.content);
+        setDescription(result.description);
+      } else {
+        alert("임시글을 불러오는 데 실패했습니다. 다시 시도해주세요.");
+      }
     }
   };
 
@@ -339,7 +325,7 @@ export default function Write({ post }: WriteType) {
     return await response.json();
   }
 
-  const handleSave = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleSave = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     const user = auth.currentUser;
     if (user && user.uid && user.displayName && user.email && user.photoURL) {
@@ -357,8 +343,15 @@ export default function Write({ post }: WriteType) {
         createdAt: serverTimestamp(),
         userConfig,
       };
-      setDraftToIndexedDB(config);
-      router.push("/saves");
+      try {
+        const clientResult = await setDraftToIndexedDB(config);
+        const serverResult = await setDraftToFirebase(user.uid, config);
+        if (clientResult && serverResult) {
+          router.push("/saves");
+        }
+      } catch (error) {
+        alert("문서를 저장에 실패하였습니다. 다시 시도해주세요");
+      }
     } else {
       alert("로그인 상태로 시도해주세요.");
       router.push("/login");
