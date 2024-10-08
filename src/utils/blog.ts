@@ -80,7 +80,6 @@ export const getDraftFromIndexDB = () => {
           const request = e?.target as IDBRequest;
           const cursor = request.result as IDBCursorWithValue;
           if (cursor) {
-            // const key = cursor.key as string;
             const value = cursor.value;
             const indexedDBObject: IIndexedDB = {
               id: value.id,
@@ -92,10 +91,6 @@ export const getDraftFromIndexDB = () => {
             };
 
             indexDBValueArr.push(indexedDBObject);
-            // if (cursor.key === router.query.id) {
-            //   setTitle(cursor.value.post.title);
-            //   setContent(cursor.value.post.text);
-            // }
             cursor.continue();
           } else {
             resolve(indexDBValueArr);
@@ -104,7 +99,59 @@ export const getDraftFromIndexDB = () => {
 
         request.onerror = function (e) {
           console.log(e);
-          resolve(false);
+          rejects(false);
+        };
+
+        tx.oncomplete = function () {
+          db.close();
+        };
+      };
+    }
+  });
+};
+
+export const getDraftByIdFromIndexDB = (id: string) => {
+  return new Promise((resolve, rejects) => {
+    if (window) {
+      const indexDBValueArr: IIndexedDB[] = [];
+      const open = indexedDB.open("MyObjectStore", 1);
+      open.onupgradeneeded = function () {
+        const db = open.result;
+        db.createObjectStore("Drafts", { keyPath: "id" });
+      };
+
+      open.onsuccess = function () {
+        const db = open.result;
+        const tx = db.transaction("Drafts", "readonly");
+        const store = tx.objectStore("Drafts");
+
+        const request = store.openCursor();
+
+        request.onsuccess = function (e: Event) {
+          const request = e?.target as IDBRequest;
+          const cursor = request.result as IDBCursorWithValue;
+          if (cursor) {
+            const value = cursor.value;
+            const indexedDBObject: IIndexedDB = {
+              id: value.id,
+              title: value.title,
+              content: value.content,
+              description: value.description,
+              createdAt: value.createdAt,
+              userConfig: value.userConfig,
+            };
+
+            indexDBValueArr.push(indexedDBObject);
+            cursor.continue();
+          } else {
+            const findDraft = indexDBValueArr.find((draft) => draft.id === id);
+            resolve(findDraft);
+          }
+        };
+
+        request.onerror = function (e) {
+          console.log(e);
+          rejects(false);
         };
 
         tx.oncomplete = function () {
@@ -146,13 +193,43 @@ export const removeAllDraftsFromIndexedDB = () => {
   });
 };
 
+// indexedDB에서 특정 임시글 삭제
+export const removeDraftByIdFromIndexedDB = (id: string) => {
+  return new Promise((resolve, rejects) => {
+    const open = window.indexedDB.open("MyObjectStore", 1);
+    open.onerror = function (e) {
+      console.log("error ", e);
+    };
+    open.onupgradeneeded = function (e) {
+      const db = open.result;
+      db.createObjectStore("Drafts", { keyPath: "id" });
+    };
+    open.onsuccess = function () {
+      const db = open.result;
+      const tx = db.transaction("Drafts", "readwrite");
+      const store = tx.objectStore("Drafts");
+
+      const deleteRequest = store.delete(id);
+      deleteRequest.onsuccess = function (e) {
+        db.close();
+        resolve(true);
+      };
+
+      deleteRequest.onerror = function () {
+        db.close();
+        rejects(false);
+      };
+    };
+  });
+};
+
 // firebase store 에서 모든 임시글 불러오기
 export const getAllDraftsFromFirebase = async () => {
   const draftsRef = collection(firestore, "drafts");
   const q = query(draftsRef, orderBy("createdAt", "desc"));
   const querySnapshot = await getDocs(q);
   if (querySnapshot) {
-    const drafts: IFirebasePost[] = [];
+    const drafts: IIndexedDB[] = [];
     querySnapshot.forEach((doc) => {
       const title = doc.data().title;
       const content = doc.data().content;
@@ -160,7 +237,7 @@ export const getAllDraftsFromFirebase = async () => {
       const decodedContent = decodeURIComponent(content);
       doc.data().title = decodedText;
       doc.data().content = decodedContent;
-      drafts.push(doc.data() as IFirebasePost);
+      drafts.push(doc.data() as IIndexedDB);
     });
     return drafts;
   } else {
@@ -170,7 +247,7 @@ export const getAllDraftsFromFirebase = async () => {
 
 // firebase store 저장소에 임시글 저장하기
 
-const setDraftToFirebase = async (id: string, obj) => {
+export const setDraftToFirebase = async (id: string, obj: IIndexedDB) => {
   const user = auth.currentUser;
   if (user) {
     try {
@@ -190,7 +267,7 @@ const setDraftToFirebase = async (id: string, obj) => {
 
 // firebase store 저장소에 임시글 업데이트하기
 
-const updateDraftToFirebase = async (id: string, obj) => {
+export const updateDraftToFirebase = async (id: string, obj) => {
   try {
     const docRef = doc(firestore, "drafts", `${id}`);
     await updateDoc(docRef, {
