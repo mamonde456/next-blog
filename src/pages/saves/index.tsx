@@ -1,12 +1,18 @@
 import MainMenu from "@/components/common/MainMenu";
 import BasicButton from "@/components/ui/button/BasicButton";
+import DeleteButton from "@/components/ui/button/DeleteButton";
 import { IIndexedDB } from "@/types/blog";
 import {
   getAllDraftsFromFirebase,
   getDraftFromIndexDB,
+  removeAllDraftsFromFirebase,
   removeAllDraftsFromIndexedDB,
+  removeDraftByIdFromFirebase,
+  removeDraftByIdFromIndexedDB,
   setDraftToIndexedDB,
 } from "@/utils/\bblog";
+import { formatTimestampToDateStr } from "@/utils/common";
+import { Timestamp } from "firebase/firestore";
 import { useRouter } from "next/router";
 import { Fragment, useEffect, useState } from "react";
 import styled from "styled-components";
@@ -98,7 +104,12 @@ const PostList = styled.div`
   flex-direction: column;
   margin-top: 50px;
 `;
+const BoxList = styled.div`
+  display: flex;
+  align-items: center;
+`;
 const Box = styled.div`
+  flex: 4;
   border-radius: 10px;
   padding: 10px;
   margin: 20px;
@@ -129,14 +140,25 @@ export default function Saves({ drafts }: { drafts: IIndexedDB[] }) {
     })();
   }, [drafts]);
 
-  const handleRemoveSaves = async () => {
+  const handleRemoveAll = async () => {
     if (draftList.length <= 0) return;
-    const res = await removeAllDraftsFromIndexedDB();
-    if (res) {
+    const clientRes = await removeAllDraftsFromIndexedDB();
+    const serverRes = await removeAllDraftsFromFirebase();
+    if (clientRes && serverRes) {
       setDraftList([]);
       alert("모든 임시글이 삭제되었습니다.");
     } else {
       alert("임시글 삭제에 실패했습니다. 다시 시도해주세요.");
+    }
+  };
+
+  const handleRemoveById = async (id: string) => {
+    if (draftList.length <= 0) return;
+    const clientRes = await removeDraftByIdFromIndexedDB(id);
+    if (clientRes) {
+      setDraftList(draftList.filter((draft) => draft.id !== id));
+    } else {
+      alert("삭제에 실패했습니다. 다시 시도해주세요.");
     }
   };
   return (
@@ -146,7 +168,7 @@ export default function Saves({ drafts }: { drafts: IIndexedDB[] }) {
         <HeaderBox>
           <Title>임시글 리스트</Title>
           <RemoveBtn>
-            <BasicButton type="button" onClick={handleRemoveSaves}>
+            <BasicButton type="button" onClick={handleRemoveAll}>
               모든 임시글 삭제
             </BasicButton>
           </RemoveBtn>
@@ -155,17 +177,20 @@ export default function Saves({ drafts }: { drafts: IIndexedDB[] }) {
           <PostList>
             {draftList?.map((el) => {
               return (
-                <Box
-                  key={el.id}
-                  onClick={() =>
-                    router.push({
-                      pathname: `/write/${el.id}`,
-                      query: { action: "draft" },
-                    })
-                  }
-                >
-                  <span>{el?.title}</span>
-                </Box>
+                <BoxList>
+                  <Box
+                    key={el.id}
+                    onClick={() =>
+                      router.push({
+                        pathname: `/write/${el.id}`,
+                        query: { action: "draft" },
+                      })
+                    }
+                  >
+                    <span>{el?.title}</span>
+                  </Box>
+                  <DeleteButton onClick={() => handleRemoveById(el.id)} />
+                </BoxList>
               );
             })}
           </PostList>
@@ -190,6 +215,22 @@ export default function Saves({ drafts }: { drafts: IIndexedDB[] }) {
 
 export const getStaticProps = async () => {
   const drafts = await getAllDraftsFromFirebase();
+  if (!drafts) return { props: {} };
+  const formatDrafts = drafts.map((draft) => {
+    const createdAt =
+      draft.createdAt instanceof Timestamp
+        ? formatTimestampToDateStr(draft.createdAt)
+        : "";
+    const updateAt =
+      draft.updateAt instanceof Timestamp
+        ? formatTimestampToDateStr(draft.updateAt)
+        : "";
 
-  return { props: { drafts } };
+    return {
+      ...draft,
+      createdAt,
+      updateAt,
+    };
+  });
+  return { props: { drafts: formatDrafts } };
 };
