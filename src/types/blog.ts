@@ -1,4 +1,4 @@
-import { Timestamp } from "firebase/firestore";
+import { FieldValue, Timestamp } from "firebase/firestore";
 
 export interface IMeta {
   id: string;
@@ -9,8 +9,6 @@ export interface IMeta {
   userConfig: Owner;
 }
 
-export interface IPost extends IMeta {}
-
 interface Owner {
   displayName: string;
   email: string;
@@ -19,11 +17,12 @@ interface Owner {
 }
 
 export interface IIndexedDB {
-  [index: string]: any;
   id: string;
   title: string;
   content: string;
   description: string;
+  createdAt: Timestamp | FieldValue;
+  userConfig: Owner;
 }
 
 export interface IFirebasePost {
@@ -33,12 +32,7 @@ export interface IFirebasePost {
   content: string;
   created_at: Timestamp | string;
   update_at: Timestamp | string;
-  userConfig: {
-    displayName: string | null;
-    email: string;
-    photoUrl: string | null;
-    uid: string;
-  };
+  userConfig: Owner;
   meta: {
     like: number;
   };

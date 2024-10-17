@@ -19,7 +19,7 @@ import { IFirebasePost, IIndexedDB, IMeta } from "@/types/blog";
 import BasicButton from "@/components/ui/button/BasicButton";
 import SubmitButton from "@/components/ui/button/SubmitButton";
 import BackButton from "@/components/ui/button/BackButton";
-import { getPostById, saveDraftToIndexedDB } from "@/utils/\bblog";
+import { getPostById, setDraftToIndexedDB } from "@/utils/\bblog";
 import { GetStaticPaths, GetStaticProps } from "next";
 import { Params } from "next/dist/shared/lib/router/utils/route-matcher";
 
@@ -243,17 +243,28 @@ export default function Write({ post }: WriteType) {
 
   const autoSaveDraft = () => {
     if (!title && !content) return;
-    const config: IIndexedDB = {
-      id: id as string,
-      title,
-      content,
-      description,
-    };
-    const time = 1000 * 60 * 5; // 5분
-    const timer = setTimeout(() => {
-      saveDraftToIndexedDB(config);
-    }, time);
-    return () => clearTimeout(timer);
+    const user = auth.currentUser;
+    if (user) {
+      const userConfig = {
+        displayName: user.displayName || (user.email?.split("@")[0] as string),
+        email: user.email || "",
+        photoUrl: user.photoURL || "",
+        uid: user.uid || "",
+      };
+      const config: IIndexedDB = {
+        id: id as string,
+        title,
+        content,
+        description,
+        createdAt: serverTimestamp(),
+        userConfig,
+      };
+      const time = 1000 * 60 * 5; // 5분
+      const timer = setTimeout(() => {
+        setDraftToIndexedDB(config);
+      }, time);
+      return () => clearTimeout(timer);
+    }
   };
 
   const sendPostToFirebase = async () => {
@@ -271,7 +282,7 @@ export default function Write({ post }: WriteType) {
         await setDoc(doc(firestore, "posts", `${id}`), {
           id,
           title,
-          created_at: Timestamp.fromDate(new Date()),
+          created_at: serverTimestamp(),
           description,
           content: encodedText,
           userConfig,
@@ -330,14 +341,28 @@ export default function Write({ post }: WriteType) {
 
   const handleSave = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    const config: IIndexedDB = {
-      id: id as string,
-      title,
-      content,
-      description,
-    };
-    saveDraftToIndexedDB(config);
-    router.push("/saves");
+    const user = auth.currentUser;
+    if (user && user.uid && user.displayName && user.email && user.photoURL) {
+      const userConfig = {
+        displayName: user.displayName,
+        email: user.email,
+        photoUrl: user.photoURL,
+        uid: user.uid,
+      };
+      const config: IIndexedDB = {
+        id: id as string,
+        title,
+        content,
+        description,
+        createdAt: serverTimestamp(),
+        userConfig,
+      };
+      setDraftToIndexedDB(config);
+      router.push("/saves");
+    } else {
+      alert("로그인 상태로 시도해주세요.");
+      router.push("/login");
+    }
   };
 
   return (

@@ -20,7 +20,7 @@ import MainMenu from "@/components/common/MainMenu";
 import { IUserInfo } from "@/types/users";
 import { IFirebasePost, IMeta } from "@/types/blog";
 import { formatTimestampToDateStr } from "@/utils/common";
-import { getPostById } from "@/utils/\bblog";
+import { getPostById, removePostByIdFromFirebase } from "@/utils/\bblog";
 import { GetStaticPaths, GetStaticProps } from "next";
 import { Params } from "next/dist/shared/lib/router/utils/route-matcher";
 
@@ -180,22 +180,26 @@ export default function Detail({
     }
   };
 
-  const onRemovePost = async () => {
+  const onRemovePost = async (id: string) => {
     // firebase 문서 삭제
-    // const id = data.id;
-    // await deleteDoc(doc(firestore, "posts", id));
+    const result = await removePostByIdFromFirebase(id);
+    if (result) {
+      alert("문서가 삭제되었습니다.");
+      router.push("/");
+    } else {
+      alert("문서의 삭제에 실패했습니다. 다시 시도해주세요.");
+    }
 
     // 로컬 문서 삭제
-    const response = await fetch(`/api/posts?id=${meta?.id}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    if (response.ok) {
-      router.push("/");
-    }
-    alert("문서가 삭제되었습니다.");
+    // const response = await fetch(`/api/posts?id=${meta?.id}`, {
+    //   method: "DELETE",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //   },
+    // });
+    // if (response.ok) {
+    //   router.push("/");
+    // }
   };
 
   const handleEdit = () => {
@@ -233,7 +237,7 @@ export default function Detail({
             {post?.meta?.userConfig?.uid === auth?.currentUser?.uid && (
               <BtnContainer>
                 <EditButton onClick={handleEdit} />
-                <DeleteButton onClick={onRemovePost} />
+                <DeleteButton onClick={() => onRemovePost(post.meta.id)} />
               </BtnContainer>
             )}
             <div>
