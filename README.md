@@ -10,19 +10,7 @@ firebase와 Next를 사용하여 블로그를 제작해보는 사이드 프로�
 - 배포: vercel
 
 <p align="center">
-<img src="https://github.com/mamonde456/next-blog/assets/81732659/06b8adf6-6049-4c56-8e25-403228c0500c" />
-</p>
-
-### 로그인 화면
-
-<p align="center">
-<img src="https://github.com/mamonde456/next-blog/assets/81732659/37bf99a7-ea92-4dd2-8328-8e081311ed89" />
-</p>
-
-### 글작성 화면
-
-<p align="center">
-<img src="https://github.com/mamonde456/next-blog/assets/81732659/1661ee0d-d675-4b0c-b2b4-ed7a809bfdf4" />
+<img width="1389" alt="화면" src="https://github.com/user-attachments/assets/f9ea577a-c806-49bf-9c02-5cb6f0832bce" />
 </p>
 
 ## 실행
