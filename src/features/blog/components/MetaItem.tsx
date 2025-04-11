@@ -9,9 +9,9 @@ import {
 } from "@/utils/features/bookmark";
 import { decrementLikeCount, incrementLikeCount } from "@/utils/features/like";
 import styled from "styled-components";
-import BookmarkIcon from "../BookmarkIcon";
-import LikeIcon from "../LikeIcon";
-import useAuth from "@/hook/useAuth";
+import BookmarkIcon from "../../../components/ui/BookmarkIcon";
+import LikeIcon from "./LikeIcon";
+import useAuth from "@/features/auth/hook/useAuth";
 
 const MetaContainer = styled.div`
   height: 40px;

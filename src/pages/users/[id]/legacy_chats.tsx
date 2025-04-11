@@ -1,6 +1,4 @@
-import MainMenu from "@/components/common/MainMenu";
-import MessageInput from "@/components/ui/input/MessageInput";
-import { child, push, set, ref, onValue } from "firebase/database";
+import MainMenu from "@/shared/components/MainMenu";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { db, firestore } from "../../../../firebase";

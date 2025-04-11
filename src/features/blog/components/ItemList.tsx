@@ -1,7 +1,7 @@
 import { IFirebasePost } from "@/types/blog";
 import Link from "next/link";
 import styled from "styled-components";
-import MetaItem from "./meta/MetaItem";
+import MetaItem from "./MetaItem";
 
 const Items = styled.ul`
   width: 100%;

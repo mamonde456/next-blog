@@ -1,5 +1,10 @@
+import GitHubButton from "@/features/auth/components/GitHubButton";
+import IdAndPasswordAuth from "@/features/auth/components/IdAndPasswordAuth";
+import LinkToEmailAuth from "@/features/auth/components/LinkToEmailAuth";
+import { useRouter } from "next/router";
 import { useEffect, useRef } from "react";
 import styled from "styled-components";
+<<<<<<< HEAD
 import LinkToEmailAuth from "@/components/auth/LinkToEmailAuth";
 import IdAndPasswordAuth from "@/components/auth/IdAndPasswordAuth";
 import { useRouter } from "next/router";
@@ -7,6 +12,8 @@ import GitHubButton from "@/components/ui/button/social/GitHubButton";
 import GitHubAuth from "@/components/auth/GitHubAuth";
 import { GithubAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "../../firebase";
+=======
+>>>>>>> 41842a5 (fix: 폴더 구조를 기능 단위로 묶어서 변경 및 api 파일로 분리)
 
 const Wrapper = styled.div`
   /* height: 100%; */

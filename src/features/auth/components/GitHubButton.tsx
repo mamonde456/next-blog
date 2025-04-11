@@ -5,7 +5,7 @@ import {
   signInWithRedirect,
 } from "firebase/auth";
 import styled from "styled-components";
-import { auth } from "../../../../../firebase";
+import { auth } from "../../../../firebase";
 import { useRouter } from "next/router";
 
 const Button = styled.button`

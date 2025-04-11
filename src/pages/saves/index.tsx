@@ -1,4 +1,4 @@
-import MainMenu from "@/components/common/MainMenu";
+import MainMenu from "@/shared/components/MainMenu";
 import BasicButton from "@/components/ui/button/BasicButton";
 import DeleteButton from "@/components/ui/button/DeleteButton";
 import { IIndexedDB } from "@/types/blog";

@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { auth } from "../../../firebase";
+import { auth } from "../../../../firebase";
 import {
   isSignInWithEmailLink,
   sendSignInLinkToEmail,
@@ -7,7 +7,7 @@ import {
 } from "firebase/auth";
 import { useEffect } from "react";
 import { useRouter } from "next/router";
-import useAuth from "@/hook/useAuth";
+import useAuth from "@/features/auth/hook/useAuth";
 import { setUserData } from "@/utils/user";
 import { IUserInfo } from "@/types/users";
 

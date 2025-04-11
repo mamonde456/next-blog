@@ -21,7 +21,7 @@ export interface IchatRooms {
 export interface IGuestbook {
   id: string;
   displayName?: string;
-  photoUrl?: string;
+  photoURL?: string;
   author: string;
   message: string;
   timestamp: Timestamp;

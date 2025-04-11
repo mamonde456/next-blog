@@ -1,4 +1,4 @@
-import MainMenu from "@/components/common/MainMenu";
+import MainMenu from "@/shared/components/MainMenu";
 import MessageInput from "@/components/ui/input/MessageInput";
 import {
   Timestamp,
@@ -11,10 +11,11 @@ import styled from "styled-components";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { IGuestbook } from "@/types/users";
-import { firestore } from "../../../../firebase";
+import { auth, firestore } from "../../../../firebase";
 import { v4 as uuidv4 } from "uuid";
 import { formatTimestampToDateStr } from "@/utils/common";
 import Image from "next/image";
+import { listenGuestbook, sendGuestbook } from "@/features/guestbook/api";
 
 const Wrapper = styled.div`
   /* display: flex;
@@ -125,73 +126,41 @@ export default function Guestbooks() {
   const {
     query: { id },
   } = useRouter();
-  const [guestbooks, setGuestbooks] = useState<IGuestbook[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [guestbook, setGuestbook] = useState<IGuestbook[]>([]);
+
   useEffect(() => {
-    // firestore가 초기화 됐는지 확인
-    initFirestore();
-    if (!isLoaded) {
-      const timer = setTimeout(() => {
-        initFirestore();
-      }, 300);
-      return () => clearTimeout(timer);
-    }
+    type ListenGuestbookType = { guestbook: IGuestbook[]; unsub: any };
+    const { guestbook, unsub } = listenGuestbook() as ListenGuestbookType;
+    setGuestbook(guestbook);
+
+    return () => {
+      unsub();
+    };
   }, []);
 
-  const initFirestore = () => {
-    try {
-      const initRef = doc(firestore, "users", id as string);
-      setIsLoaded(true);
-    } catch (error) {
-      setIsLoaded(false);
-    }
+  const userInfoFormatter = (msg: string) => {
+    const user = auth.currentUser;
+    const displayName = user?.displayName
+      ? user?.displayName
+      : user?.email?.split("@")[0];
+    const photoURL = user?.photoURL;
+    const author = user?.uid;
+    const message = msg;
+    return {
+      id: uuidv4(),
+      displayName,
+      photoURL,
+      author,
+      message,
+      timestamp: Timestamp.fromDate(new Date()),
+    };
   };
 
-  useEffect(() => {}, [guestbooks]);
-
-  useEffect(() => {
-    if (isLoaded) {
-      const unsub = onSnapshot(
-        doc(firestore, "users", id as string),
-        {
-          includeMetadataChanges: true,
-        },
-        (doc) => {
-          const guestData = doc.data()?.guestbooks;
-          setGuestbooks([]);
-          setGuestbooks(guestData);
-        }
-      );
-
-      return () => unsub();
-    } else {
-      return console.log("firestore 초기화 중");
-    }
-  }, [isLoaded]);
-
   const handleChildData = async (data: string) => {
-    const userInfo =
-      window.sessionStorage.getItem("userInfo") &&
-      JSON.parse(window.sessionStorage.getItem("userInfo") || "");
-    const userId = userInfo.uid;
-    const guestbooksRef = doc(firestore, `users`, id as string);
-    const displayName = userInfo.displayName
-      ? userInfo.displayName
-      : userInfo.email.split("@")[0];
-    await setDoc(
-      guestbooksRef,
-      {
-        guestbooks: arrayUnion({
-          id: uuidv4(),
-          displayName,
-          photoUrl: userInfo.photoUrl,
-          author: userId,
-          message: data,
-          timestamp: Timestamp.fromDate(new Date()),
-        }),
-      },
-      { merge: true }
-    );
+    const result = await sendGuestbook(userInfoFormatter(data));
+    if (!result) {
+      console.log("방명록 기록 실패");
+    }
   };
 
   return (
@@ -199,10 +168,10 @@ export default function Guestbooks() {
       <MainMenu />
       <MainContent>
         <MessageContent>
-          {guestbooks?.map((item) => (
+          {guestbook?.map((item) => (
             <GuestContainer key={item.id}>
               <Image
-                src={item.photoUrl || "/blank-profile.svg"}
+                src={item.photoURL || "/blank-profile.svg"}
                 width={60}
                 height={60}
                 alt="사용자의 프로필 이미지"

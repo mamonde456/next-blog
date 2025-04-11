@@ -4,11 +4,11 @@ import { getAllPostsFromFirebase } from "@/utils/\bblog";
 import { IFirebasePost } from "@/types/blog";
 import Link from "next/link";
 import { getCurrentUserFollowing } from "@/utils/user";
-import useAuth from "@/hook/useAuth";
-import MetaItem from "../ui/meta/MetaItem";
-import ItemList from "../ui/ItemList";
+import useAuth from "@/features/auth/hook/useAuth";
+import MetaItem from "./MetaItem";
+import ItemList from "./ItemList";
 import { collection, getDocs, orderBy, query } from "firebase/firestore";
-import { firestore } from "../../../firebase";
+import { firestore } from "../../../../firebase";
 
 const MainBoard = styled.div`
   flex: 4;
@@ -127,7 +127,7 @@ export default function MainPosts({ postList }: { postList: IFirebasePost[] }) {
   return (
     <MainBoard>
       <TabContainer>
-        <Tab
+        {/* <Tab
           $isLoggedIn={isLoggedIn}
           // onClick={() => setCategory("latest")}
         >
@@ -140,7 +140,7 @@ export default function MainPosts({ postList }: { postList: IFirebasePost[] }) {
           >
             팔로우탭
           </Tab>
-        )}
+        )} */}
       </TabContainer>
       <ItemList itemList={postList} />
     </MainBoard>

@@ -11,7 +11,7 @@ import {
   setDoc,
   updateDoc,
 } from "firebase/firestore";
-import useAuth from "@/hook/useAuth";
+import useAuth from "@/features/auth/hook/useAuth";
 import { formatTimestampToDateStr, getKoreanTime } from "@/utils/common";
 import { v4 as uuidv4 } from "uuid";
 import { checkAuthentication } from "@/utils/auth";

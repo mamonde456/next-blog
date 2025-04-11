@@ -3,13 +3,13 @@ import {
   signInWithEmailAndPassword,
 } from "firebase/auth";
 import styled from "styled-components";
-import { auth, firestore } from "../../../firebase";
+import { auth, firestore } from "../../../../firebase";
 import { useRouter } from "next/router";
-import { getCurrentUserData, setUserData } from "@/utils/user";
+import { getCurrentUserData } from "@/utils/user";
 import { IUserInfo } from "@/types/users";
-import PasswordIcon from "../ui/button/auth/PasswordIcon";
 import { useRef } from "react";
 import { doc, setDoc } from "firebase/firestore";
+import PasswordIcon from "./PasswordIcon";
 
 const InputLabel = styled.div`
   /* color: white; */
