@@ -6,6 +6,7 @@ import { useEffect, useRef } from "react";
 import styled from "styled-components";
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import LinkToEmailAuth from "@/components/auth/LinkToEmailAuth";
 import IdAndPasswordAuth from "@/components/auth/IdAndPasswordAuth";
 import { useRouter } from "next/router";
@@ -17,6 +18,8 @@ import { auth } from "../../firebase";
 >>>>>>> 41842a5 (fix: 폴더 구조를 기능 단위로 묶어서 변경 및 api 파일로 분리)
 =======
 >>>>>>> 41842a5 (fix: 폴더 구조를 기능 단위로 묶어서 변경 및 api 파일로 분리)
+=======
+>>>>>>> 08d97da (fix: 폴더 구조를 기능 단위로 묶어서 변경 및 api 파일로 분리)
 
 const Wrapper = styled.div`
   /* height: 100%; */

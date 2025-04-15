@@ -249,6 +249,7 @@ export const getAllDraftsFromFirebase = async () => {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 export const setDraftToFirebase = async (id: string, obj: IIndexedDB) => {
 =======
 const setDraftToFirebase = async (id: string, obj: any) => {
@@ -256,6 +257,9 @@ const setDraftToFirebase = async (id: string, obj: any) => {
 =======
 const setDraftToFirebase = async (id: string, obj: any) => {
 >>>>>>> 41842a5 (fix: 폴더 구조를 기능 단위로 묶어서 변경 및 api 파일로 분리)
+=======
+const setDraftToFirebase = async (id: string, obj: any) => {
+>>>>>>> 08d97da (fix: 폴더 구조를 기능 단위로 묶어서 변경 및 api 파일로 분리)
   const user = auth.currentUser;
   if (user) {
     try {
@@ -277,6 +281,7 @@ const setDraftToFirebase = async (id: string, obj: any) => {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 export const updateDraftToFirebase = async (id: string, obj) => {
 =======
 const updateDraftToFirebase = async (id: string, obj: any) => {
@@ -284,6 +289,9 @@ const updateDraftToFirebase = async (id: string, obj: any) => {
 =======
 const updateDraftToFirebase = async (id: string, obj: any) => {
 >>>>>>> 41842a5 (fix: 폴더 구조를 기능 단위로 묶어서 변경 및 api 파일로 분리)
+=======
+const updateDraftToFirebase = async (id: string, obj: any) => {
+>>>>>>> 08d97da (fix: 폴더 구조를 기능 단위로 묶어서 변경 및 api 파일로 분리)
   try {
     const docRef = doc(firestore, "drafts", `${id}`);
     await updateDoc(docRef, {
