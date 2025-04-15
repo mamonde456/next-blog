@@ -1,14 +1,12 @@
 import Link from "next/link";
-import fs from "fs-extra";
-import path from "path";
-import matter from "gray-matter";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
-import MainMenu from "@/components/common/MainMenu";
-import MainPosts from "@/components/blog/MainPosts";
-import { IFirebasePost, IMeta } from "@/types/blog";
+import MainMenu from "@/shared/components/MainMenu";
+import MainPosts from "@/features/blog/components/MainPosts";
+import { IFirebasePost } from "@/types/blog";
 import { getAllPostsFromFirebase } from "@/utils/\bblog";
 import { formatTimestampToDateStr } from "@/utils/common";
+import { getUploadDatabaseQuery } from "@/features/blog/api/notion";
 
 const Wrapper = styled.div`
   min-height: 100vh;
@@ -108,6 +106,13 @@ export default function Home({ postList }: { postList: IFirebasePost[] }) {
       setSearchResult(result);
     }
   }, [keyword]);
+  useEffect(() => {
+    (async () => {
+      console.log("Test");
+      const result = await getUploadDatabaseQuery();
+      console.log(result);
+    })();
+  }, []);
 
   return (
     <Wrapper>
