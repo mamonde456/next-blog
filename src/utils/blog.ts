@@ -13,8 +13,6 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { auth, firestore } from "../../firebase";
-import { resolve } from "path";
-import { rejects } from "assert";
 
 // 임시글 관련 함수
 
@@ -247,19 +245,7 @@ export const getAllDraftsFromFirebase = async () => {
 
 // firebase store 저장소에 임시글 저장하기
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-export const setDraftToFirebase = async (id: string, obj: IIndexedDB) => {
-=======
 const setDraftToFirebase = async (id: string, obj: any) => {
->>>>>>> 41842a5 (fix: 폴더 구조를 기능 단위로 묶어서 변경 및 api 파일로 분리)
-=======
-const setDraftToFirebase = async (id: string, obj: any) => {
->>>>>>> 41842a5 (fix: 폴더 구조를 기능 단위로 묶어서 변경 및 api 파일로 분리)
-=======
-const setDraftToFirebase = async (id: string, obj: any) => {
->>>>>>> 08d97da (fix: 폴더 구조를 기능 단위로 묶어서 변경 및 api 파일로 분리)
   const user = auth.currentUser;
   if (user) {
     try {
@@ -279,19 +265,7 @@ const setDraftToFirebase = async (id: string, obj: any) => {
 
 // firebase store 저장소에 임시글 업데이트하기
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-export const updateDraftToFirebase = async (id: string, obj) => {
-=======
 const updateDraftToFirebase = async (id: string, obj: any) => {
->>>>>>> 41842a5 (fix: 폴더 구조를 기능 단위로 묶어서 변경 및 api 파일로 분리)
-=======
-const updateDraftToFirebase = async (id: string, obj: any) => {
->>>>>>> 41842a5 (fix: 폴더 구조를 기능 단위로 묶어서 변경 및 api 파일로 분리)
-=======
-const updateDraftToFirebase = async (id: string, obj: any) => {
->>>>>>> 08d97da (fix: 폴더 구조를 기능 단위로 묶어서 변경 및 api 파일로 분리)
   try {
     const docRef = doc(firestore, "drafts", `${id}`);
     await updateDoc(docRef, {
