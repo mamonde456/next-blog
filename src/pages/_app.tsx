@@ -1,8 +1,17 @@
-import Header from "@/components/common/Header";
+import PageLoader from "@/components/ui/loader/PageLoader";
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
+
+// // core styles shared by all of react-notion-x (required)
+// import "react-notion-x/src/styles.css";
+
+// // used for code syntax highlighting (optional)
+// import "prismjs/themes/prism-tomorrow.css";
+
+// // used for rendering equations (optional)
+// import "katex/dist/katex.min.css";
 
 const AllWarpper = styled.div<{ $window: { width: number; height: number } }>`
   width: ${($props) =>
@@ -27,6 +36,7 @@ export default function App({ Component, pageProps }: AppProps) {
   }, []);
   return (
     <AllWarpper $window={{ width: resize.width, height: resize.height }}>
+      <PageLoader />
       {/* <Header></Header> */}
       <Component {...pageProps} />
     </AllWarpper>
