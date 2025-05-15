@@ -165,6 +165,14 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   // const x = await getMarkdownFormNotionBlocks(results);
   if (!id) return { notFound: true };
 
+  const mdxFile = getCacheData(`/public/mdx/${id}.mdx`);
+  if (mdxFile) {
+    return {
+      props: { source: mdxFile },
+      revalidate: 60,
+    };
+  }
+
   const mdString = await getMarkdownFromNotionPage(id);
   // const a = replaceCodeFormat(mdString, id);
   const mdxResult = await serialize(mdString || "", {
