@@ -1,33 +1,24 @@
-import { useRouter } from "next/router";
 import { FormEvent, useEffect, useRef, useState } from "react";
-import ReactMarkdown from "react-markdown";
 import styled from "styled-components";
-import { auth, firestore } from "../../../firebase";
-import {
-  Timestamp,
-  doc,
-  getDoc,
-  serverTimestamp,
-  setDoc,
-  updateDoc,
-} from "firebase/firestore";
-import useAuth from "@/features/auth/hook/useAuth";
-import { formatTimestampToDateStr, getKoreanTime } from "@/utils/common";
+
+import { doc, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
 import { v4 as uuidv4 } from "uuid";
-import { checkAuthentication } from "@/utils/auth";
-import { IFirebasePost, IIndexedDB, IMeta } from "@/types/blog";
-import BasicButton from "@/components/ui/button/BasicButton";
-import SubmitButton from "@/components/ui/button/SubmitButton";
-import BackButton from "@/components/ui/button/BackButton";
+import { GetStaticPaths, GetStaticProps } from "next";
+import { checkAuthentication } from "@/utils/auth.ts";
+import useAuth from "@/features/auth/hook/useAuth.tsx";
+import { useRouter } from "next/router.js";
+import { IIndexedDB, IMeta } from "@/types/blog.ts";
 import {
   getDraftByIdFromIndexDB,
-  getDraftFromIndexDB,
   getPostById,
-  setDraftToFirebase,
   setDraftToIndexedDB,
-} from "@/utils/\bblog";
-import { GetStaticPaths, GetStaticProps } from "next";
-import { Params } from "next/dist/shared/lib/router/utils/route-matcher";
+} from "@/utils/\bblog.ts";
+import { auth, firestore } from "../../../../firebase.js";
+import BasicButton from "@/components/ui/button/BasicButton.tsx";
+import SubmitButton from "@/components/ui/button/SubmitButton.tsx";
+import BackButton from "@/components/ui/button/BackButton.tsx";
+import { Params } from "next/dist/shared/lib/router/utils/route-matcher.js";
+import { formatTimestampToDateStr } from "@/utils/common.ts";
 
 const Wrapper = styled.div`
   /* display: flex;
@@ -343,18 +334,18 @@ export default function Write({ post }: WriteType) {
         createdAt: serverTimestamp(),
         userConfig,
       };
-      try {
-        const clientResult = await setDraftToIndexedDB(config);
-        const serverResult = await setDraftToFirebase(user.uid, config);
-        if (clientResult && serverResult) {
-          router.push("/saves");
-        }
-      } catch (error) {
-        alert("문서를 저장에 실패하였습니다. 다시 시도해주세요");
-      }
-    } else {
-      alert("로그인 상태로 시도해주세요.");
-      router.push("/login");
+      // try {
+      const clientResult = await setDraftToIndexedDB(config);
+      // const serverResult = await setDraftToFirebase(user.uid, config);
+      //   if (clientResult && serverResult) {
+      //     router.push("/saves");
+      //   }
+      // } catch (error) {
+      //   alert("문서를 저장에 실패하였습니다. 다시 시도해주세요");
+      // }
+      // } else {
+      //   alert("로그인 상태로 시도해주세요.");
+      //   router.push("/login");
     }
   };
 
@@ -401,7 +392,7 @@ export default function Write({ post }: WriteType) {
         <Title>{title}</Title>
         <Description>{description}</Description>
         <TextContents>
-          <ReactMarkdown>{content}</ReactMarkdown>
+          {/* <ReactMarkdown>{content}</ReactMarkdown> */}
         </TextContents>
       </TextPriveiw>
       <BackBtnContainer onClick={() => router.push("/")}>
