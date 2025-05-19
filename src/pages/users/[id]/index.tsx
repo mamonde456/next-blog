@@ -1,26 +1,18 @@
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { auth, firestore, storage } from "../../../../firebase";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { updateProfile } from "firebase/auth";
-import RequireAuth from "@/components/common/RequireAuth";
 import styled from "styled-components";
-import ReactCrop, {
-  centerCrop,
-  makeAspectCrop,
-  type Crop,
-} from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
-import MainMenu from "@/components/common/MainMenu";
-import EditButton from "@/components/ui/button/EditButton";
-import BasicButton from "@/components/ui/button/BasicButton";
+import MainMenu from "@/shared/components/MainMenu";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import MainPosts from "@/components/blog/MainPosts";
 import { collection, where, query, getDocs } from "firebase/firestore";
 import { IFirebasePost } from "@/types/blog";
-import ItemList from "@/components/ui/ItemList";
+import ItemList from "@/features/blog/components/ItemList";
 import { getUserInfoFromSession } from "@/utils/user";
 import { IUserInfo } from "@/types/users";
+import { getAllPostsFromFirebase } from "@/utils/\bblog";
+import { NotionType } from "@/features/blog/api/notion/type";
 
 const Wrapper = styled.div`
   /* display: flex;
@@ -44,8 +36,8 @@ const ProfileContainer = styled.div`
   padding: 10px;
   /* padding-top: 100px; */
   /* margin-top: 100px; */
-  /* position: relative;
-  top: 100px; */
+  position: relative;
+  /* top: 100px;  */
   display: flex;
   gap: 20px;
 `;
@@ -102,85 +94,23 @@ const LinkButton = styled(Link)`
   }
 `;
 
-const Posts = styled.ul`
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  /* background: white; */
-  padding: 10px;
-`;
-const Post = styled.li`
-  width: 100%;
-  /* background: #ececec; */
-  border: solid 1px rgba(0, 0, 0, 0.2);
-  border-radius: 10px;
-  display: flex;
-  flex-direction: column;
-  /* .main_board {
-    height: 200px;
-  } */
-  /* .main_menu {
-    height: 100px;
-  } */
-`;
-
 export default function UserProfile() {
-  const [userInfo, setUserInfo] = useState<IUserInfo>();
-  const [postList, setPostList] = useState<IFirebasePost[]>([]);
+  const user = auth.currentUser;
+  const [postList, setPostList] = useState<NotionType[]>([]);
   const {
     query: { id },
   } = useRouter();
 
-  useEffect(() => {
-    const sessionUserInfo = getUserInfoFromSession();
-    setUserInfo(sessionUserInfo);
-  }, []);
+  // useEffect(() => {
+  //   handleQuery();
+  // }, [id]);
 
-  useEffect(() => {
-    getProfileImg();
-    getQueryPosts();
-  }, [id]);
-
-  const getQueryPosts = async () => {
-    const postsRef = collection(firestore, "posts");
-    const q = query(postsRef, where("userConfig.uid", "==", `${id}`));
-    const querySnapshot = await getDocs(q);
-    const posts: IFirebasePost[] = [];
-    querySnapshot.forEach((doc) => {
-      posts.push(doc.data() as IFirebasePost);
-    });
-    setPostList([...posts]);
-  };
-
-  const getProfileImg = () => {
-    const storage = getStorage();
-    const userInfo =
-      window.sessionStorage.getItem("userInfo") &&
-      JSON.parse(window.sessionStorage.getItem("userInfo") || "");
-    const imgSrc = `profile-image/${id || userInfo.uid}`;
-    getDownloadURL(ref(storage, imgSrc))
-      .then((url) => {
-        const xhr = new XMLHttpRequest();
-        xhr.responseType = "blob";
-        xhr.onload = (event) => {
-          const blob = xhr.response;
-        };
-        xhr.open("GET", url);
-        xhr.send();
-        setUserInfo((prev) => {
-          if (!prev) return undefined;
-          return {
-            ...prev,
-            photoUrl: url,
-          };
-        });
-      })
-      .catch((error) => {
-        console.log("get image error: ", error);
-      });
-  };
+  // const handleQuery = async () => {
+  //   const posts = await getAllPostsFromFirebase();
+  //   if (posts) {
+  //     setPostList([...posts]);
+  //   }
+  // };
 
   return (
     <Wrapper>
@@ -188,11 +118,10 @@ export default function UserProfile() {
       <ContentContainer>
         <ProfileContainer>
           <LinkButton href={`${id}/setting-profile`}>정보 수정</LinkButton>
-          <ProfileImg src={userInfo?.photoUrl || ""}></ProfileImg>
+          <ProfileImg src={user?.photoURL || ""}></ProfileImg>
           <ProfileContent>
-            <span>{userInfo?.displayName}</span>
-            <span>@{userInfo?.email?.split("@")[0]}</span>
-            <span>{userInfo?.bio}</span>
+            <span>{user?.displayName}</span>
+            <span>@{user?.email?.split("@")[0]}</span>
           </ProfileContent>
         </ProfileContainer>
         <ItemList itemList={postList}></ItemList>

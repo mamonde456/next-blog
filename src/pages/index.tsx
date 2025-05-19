@@ -1,14 +1,12 @@
 import Link from "next/link";
-import fs from "fs-extra";
-import path from "path";
-import matter from "gray-matter";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
-import MainMenu from "@/components/common/MainMenu";
-import MainPosts from "@/components/blog/MainPosts";
-import { IFirebasePost, IMeta } from "@/types/blog";
+import MainMenu from "@/shared/components/MainMenu";
+import MainPosts from "@/features/blog/components/MainPosts";
+import { IFirebasePost } from "@/types/blog";
 import { getAllPostsFromFirebase } from "@/utils/\bblog";
 import { formatTimestampToDateStr } from "@/utils/common";
+import { getUploadDatabaseQuery } from "@/features/blog/api/notion";
 
 const Wrapper = styled.div`
   min-height: 100vh;
@@ -89,30 +87,30 @@ const SearchItem = styled.li`
   }
 `;
 
-export default function Home({ postList }: { postList: IFirebasePost[] }) {
+export default function Home({ notionList }: any) {
   const [keyword, setKeyword] = useState("");
   const [searchResult, setSearchResult] = useState<IFirebasePost[]>([]);
 
-  useEffect(() => {
-    if (keyword) {
-      const result: IFirebasePost[] = postList.filter((post) => {
-        const content = encodeURIComponent(post.content);
-        if (
-          post.title.includes(keyword) ||
-          content.includes(keyword) ||
-          post.description.includes(keyword)
-        ) {
-          return post;
-        }
-      });
-      setSearchResult(result);
-    }
-  }, [keyword]);
+  // useEffect(() => {
+  //   if (keyword) {
+  //     const result: IFirebasePost[] = postList.filter((post) => {
+  //       const content = encodeURIComponent(post.content);
+  //       if (
+  //         post.title.includes(keyword) ||
+  //         content.includes(keyword) ||
+  //         post.description.includes(keyword)
+  //       ) {
+  //         return post;
+  //       }
+  //     });
+  //     setSearchResult(result);
+  //   }
+  // }, [keyword]);
 
   return (
     <Wrapper>
       <MainMenu />
-      <MainPosts postList={postList} />
+      <MainPosts postList={notionList} />
       <SideMenuList>
         <Search>
           <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -157,37 +155,25 @@ export default function Home({ postList }: { postList: IFirebasePost[] }) {
 }
 
 export const getStaticProps = async () => {
-  // const file = await fs.readdir(path.join("__post"));
+  const notionData = await getUploadDatabaseQuery();
+  const notionList = notionData?.results;
 
-  // const metaArr = [];
-  // for (let i = 0; i < file.length; i++) {
-  //   const readFile = await fs.readFile(path.join(`__post/${file[i]}`));
-  //   const { data: frontmatter } = matter(readFile);
-  //   frontmatter.created_at = new Date(frontmatter.created_at).toISOString();
-  //   metaArr.push(frontmatter);
+  // const posts = await getAllPostsFromFirebase();
+  // if (posts !== null) {
+  //   const postList = posts?.map((post) => {
+  //     if (
+  //       typeof post.created_at !== "string" &&
+  //       typeof post.update_at !== "string"
+  //     ) {
+  //       return {
+  //         ...post,
+  //         created_at: formatTimestampToDateStr(post.created_at),
+  //         update_at: formatTimestampToDateStr(post.update_at),
+  //       };
+  //     }
+  //     return post;
+  //   });
+  //   return { props: { postList } };
   // }
-  // const sortFrontmatter = metaArr.sort(
-  //   (a, b) =>
-  //     new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  // );
-  // return { props: { sortFrontmatter } };
-
-  const posts = await getAllPostsFromFirebase();
-  if (posts !== null) {
-    const postList = posts?.map((post) => {
-      if (
-        typeof post.created_at !== "string" &&
-        typeof post.update_at !== "string"
-      ) {
-        return {
-          ...post,
-          created_at: formatTimestampToDateStr(post.created_at),
-          update_at: formatTimestampToDateStr(post.update_at),
-        };
-      }
-      return post;
-    });
-    return { props: { postList } };
-  }
-  return { props: { postList: null } };
+  return { props: { notionList } };
 };

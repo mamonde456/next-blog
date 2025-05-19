@@ -1,0 +1,31 @@
+name: Notion to MDX Sync
+on:
+  repository_dispatch:
+    types: [notion-update]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: action/setup-node@v2
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Fetch from Notion and convert to MDX
+        run: node scripts/notion-to-mdx.js
+        env:
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY}}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID}}
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'mamonde456'
+          git config --global user.email 'mamonde456@gmail.com'
+          git add content/
+          git commit -m "Update content from Notion" || echo "No changes to commit"
+          git push

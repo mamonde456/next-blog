@@ -1,13 +1,4 @@
 {
   "presets": ["next/babel"],
-  "plugins": [
-    [
-      "styled-components",
-      {
-        "ssr": true,
-        "displayName": true,
-        "pure": true // 사용되지 않는 속성 제거
-      }
-    ]
-  ]
+  "ignore": ["node_modules/@firebase"]
 }

@@ -1,4 +1,4 @@
-import { Timestamp } from "firebase/firestore";
+import { FieldValue, Timestamp } from "firebase/firestore";
 
 export const getKoreanTime = () => {
   const now = new Date();
@@ -22,6 +22,9 @@ export const formatTimestampToDateStr = (timestamp: TimestampType | null) => {
     const date = timestamp.toDate();
     const dateString = date.toISOString().slice(0, 19).replace("T", " ");
     return dateString;
+  } else if (timestamp instanceof FieldValue) {
+    console.log("지원하는 형식이 아닙니다.");
+    return "";
   } else if (timestamp instanceof Object) {
     if (
       timestamp.hasOwnProperty("nanoseconds") &&

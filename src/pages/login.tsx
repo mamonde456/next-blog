@@ -1,10 +1,11 @@
-import { useEffect, useRef } from "react";
+import { GithubAuthProvider, signInWithPopup } from "firebase/auth";
+import { auth } from "../../firebase";
 import styled from "styled-components";
-import LinkToEmailAuth from "@/components/auth/LinkToEmailAuth";
-import IdAndPasswordAuth from "@/components/auth/IdAndPasswordAuth";
+import { useRef } from "react";
 import { useRouter } from "next/router";
-import GitHubButton from "@/components/ui/button/social/GitHubButton";
-import GitHubAuth from "@/components/auth/GitHubAuth";
+import LinkToEmailAuth from "@/features/auth/components/LinkToEmailAuth";
+import IdAndPasswordAuth from "@/features/auth/components/IdAndPasswordAuth";
+import GitHubButton from "@/features/auth/components/GitHubButton";
 
 const Wrapper = styled.div`
   /* height: 100%; */
@@ -124,6 +125,7 @@ const SocialBox = styled.div`
     display: block;
   } */
 `;
+const provider = new GithubAuthProvider();
 
 export default function Login() {
   const emailIdRef = useRef<HTMLDivElement>(null);
@@ -154,6 +156,16 @@ export default function Login() {
       LoginFormRef.current.classList.add("hidden");
     }
   };
+  const handleGitHubLogin = async () => {
+    try {
+      const userCred = await signInWithPopup(auth, provider);
+      const user = userCred.user;
+      console.log("GitHub Login: ", user);
+      router.push("/");
+    } catch (error) {
+      console.log("🚨 GitHub Login Error: ", error);
+    }
+  };
 
   return (
     <Wrapper>
@@ -165,7 +177,7 @@ export default function Login() {
           이메일 링크
         </LoginBox>
         <LoginBox>
-          <SocialBox>
+          <SocialBox onClick={handleGitHubLogin}>
             <GitHubButton />
           </SocialBox>
         </LoginBox>
