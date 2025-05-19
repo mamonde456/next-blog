@@ -2,6 +2,10 @@ import { IFirebasePost } from "@/types/blog";
 import Link from "next/link";
 import styled from "styled-components";
 import MetaItem from "./MetaItem";
+import { NotionType } from "../api/notion/type";
+import { useEffect } from "react";
+import { getSlugMap } from "../services/notion";
+import { toSlug } from "@/utils/slugify";
 
 const Items = styled.ul`
   width: 100%;
@@ -38,16 +42,19 @@ const Content = styled.div`
   padding: 10px;
 `;
 
-export default function ItemList({ itemList }: { itemList: IFirebasePost[] }) {
+export default function ItemList({ itemList }: { itemList: NotionType[] }) {
   return (
     <Items>
-      {itemList.map((item: IFirebasePost) => (
+      {itemList?.map((item: NotionType) => (
         <Item key={item.id}>
-          <Link href={"posts/" + item?.id}>
-            <Title>{item?.title}</Title>
-            <Content>{item?.description}</Content>
+          <Link
+            href={"/posts/" + toSlug(item.properties.이름.title[0].plain_text)}
+          >
+            <span>{item?.icon.emoji}</span>
+            <span>{item?.properties?.이름.title[0].plain_text}</span>
+            <span>{item.created_time}</span>
+            <span>{item.last_edited_time}</span>
           </Link>
-          <MetaItem item={item} />
         </Item>
       ))}
     </Items>
