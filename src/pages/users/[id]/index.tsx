@@ -12,6 +12,7 @@ import ItemList from "@/features/blog/components/ItemList";
 import { getUserInfoFromSession } from "@/utils/user";
 import { IUserInfo } from "@/types/users";
 import { getAllPostsFromFirebase } from "@/utils/\bblog";
+import { NotionType } from "@/features/blog/api/notion/type";
 
 const Wrapper = styled.div`
   /* display: flex;
@@ -95,21 +96,21 @@ const LinkButton = styled(Link)`
 
 export default function UserProfile() {
   const user = auth.currentUser;
-  const [postList, setPostList] = useState<IFirebasePost[]>([]);
+  const [postList, setPostList] = useState<NotionType[]>([]);
   const {
     query: { id },
   } = useRouter();
 
-  useEffect(() => {
-    handleQuery();
-  }, [id]);
+  // useEffect(() => {
+  //   handleQuery();
+  // }, [id]);
 
-  const handleQuery = async () => {
-    const posts = await getAllPostsFromFirebase();
-    if (posts) {
-      setPostList([...posts]);
-    }
-  };
+  // const handleQuery = async () => {
+  //   const posts = await getAllPostsFromFirebase();
+  //   if (posts) {
+  //     setPostList([...posts]);
+  //   }
+  // };
 
   return (
     <Wrapper>
