@@ -1,14 +1,6 @@
 import styled from "styled-components";
-import { useEffect, useMemo, useState } from "react";
-import { getAllPostsFromFirebase } from "@/utils/\bblog";
-import { IFirebasePost } from "@/types/blog";
-import Link from "next/link";
-import { getCurrentUserFollowing } from "@/utils/user";
-import useAuth from "@/features/auth/hook/useAuth";
-import MetaItem from "./MetaItem";
 import ItemList from "./ItemList";
-import { collection, getDocs, orderBy, query } from "firebase/firestore";
-import { firestore } from "../../../../firebase";
+import { NotionType } from "../api/notion/type";
 
 const MainBoard = styled.div`
   flex: 4;
@@ -79,50 +71,27 @@ const Tab = styled.div<{ $isLoggedIn: Boolean }>`
   cursor: pointer;
 `;
 
-export default function MainPosts({ postList }: { postList: IFirebasePost[] }) {
+export default function MainPosts({ postList }: { postList: NotionType[] }) {
   // const [category, setCategory] = useState<"latest" | "following">("latest");
   // const [displayPosts, setDisplayPosts] = useState<IFirebasePost[]>([]);
-  const isLoggedIn = useAuth();
+  // const isLoggedIn = useAuth();
 
-  /*
-  useEffect(() => {
-    const userInfo = window.sessionStorage.getItem("userInfo");
-    if (userInfo != null) {
-      // 로그인
-      if (category === "following") {
-        // 팔로우탭
-        setCategory("following");
-        // updateFollowingPosts(postList);
-        // setDisplayPosts(updateFollowingPosts(postList));
-      } else if (category === "latest") {
-        // 최신탭
-        setCategory("latest");
-        // setDisplayPosts(postList);
-      }
-    } else {
-      // 최신탭
-      setCategory("latest");
-      // setDisplayPosts(postList);
-    }
-  }, [category]);
-*/
+  // const getFollowingUser = async () => {
+  //   const userInfo = window.sessionStorage.getItem("userInfo");
+  //   const userId = userInfo && JSON.parse(userInfo).uid;
+  //   const followingUser = await getCurrentUserFollowing(userId);
+  //   return followingUser;
+  // };
 
-  const getFollowingUser = async () => {
-    const userInfo = window.sessionStorage.getItem("userInfo");
-    const userId = userInfo && JSON.parse(userInfo).uid;
-    const followingUser = await getCurrentUserFollowing(userId);
-    return followingUser;
-  };
-
-  const updateFollowingPosts = (postList: IFirebasePost[]) => {
-    const followingUser = getFollowingUser();
-    if (followingUser) {
-      const followingList = Object.keys(followingUser);
-      return postList.filter((el) => followingList.includes(el.userConfig.uid));
-    } else {
-      return [];
-    }
-  };
+  // const updateFollowingPosts = (postList: IFirebasePost[]) => {
+  //   const followingUser = getFollowingUser();
+  //   if (followingUser) {
+  //     const followingList = Object.keys(followingUser);
+  //     return postList.filter((el) => followingList.includes(el.userConfig.uid));
+  //   } else {
+  //     return [];
+  //   }
+  // };
 
   return (
     <MainBoard>
