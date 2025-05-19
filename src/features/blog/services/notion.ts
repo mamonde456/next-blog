@@ -1,10 +1,9 @@
-import { toSlug } from "@/utils/slugify";
-import { getUploadDatabaseQuery } from "../api/notion";
-import { NotionType } from "../api/notion/type";
-import { PageObjectResponse } from "@notionhq/client/build/src/api-endpoints";
-import { n2m } from "@/lib/notion/client";
 import path from "path";
 import fs from "fs";
+import { getUploadDatabaseQuery } from "../api/notion/index.ts";
+import { NotionType } from "../api/notion/type.ts";
+import { toSlug } from "@/utils/slugify.ts";
+import { n2m } from "@/lib/notion/client.ts";
 
 export const getSlugMap = async (): Promise<Record<string, string>> => {
   const notionData = await getUploadDatabaseQuery();
@@ -39,7 +38,7 @@ export const getMarkdownFormNotionBlocks = async (results: any) => {
     const { parent } = await n2m.toMarkdownString(x);
     return parent;
   } catch (error) {
-    console.log("getMarkdownFromNotionPage error, ", error);
+    console.log("getMarkdownFormNotionBlocks error, ", error);
     return "";
   }
 };
