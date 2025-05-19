@@ -1,5 +1,5 @@
-import { NOTION_DATABASE_ID, NOTION_TOKEN } from "@/const";
-import { notion } from "@/lib/notion/client";
+import { NOTION_DATABASE_ID } from "../../../../../const.ts";
+import { notion } from "@/lib/notion/client.ts";
 import { Client } from "@notionhq/client";
 
 const databaseId = NOTION_DATABASE_ID;

@@ -2,7 +2,7 @@ import {
   decrementLikeCount,
   incrementLikeCount,
   listenToLikeCountChanges,
-} from "../api/like";
+} from "../api/like.ts";
 
 export const toggleLikePost = async (id: string) => {
   let isLike = false;
