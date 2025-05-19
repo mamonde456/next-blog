@@ -177,9 +177,8 @@ export default function Saves({ drafts }: { drafts: IIndexedDB[] }) {
           <PostList>
             {draftList?.map((el) => {
               return (
-                <BoxList>
+                <BoxList key={el.id}>
                   <Box
-                    key={el.id}
                     onClick={() =>
                       router.push({
                         pathname: `/write/${el.id}`,
