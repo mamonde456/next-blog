@@ -5,8 +5,8 @@ import {
 import styled from "styled-components";
 import { auth, firestore } from "../../../../firebase";
 import { useRouter } from "next/router";
-import { getCurrentUserData } from "@/utils/user";
-import { IUserInfo } from "@/types/users";
+import { getCurrentUserData } from "../../../utils/user";
+import { IUserInfo } from "../../../types/users";
 import { useRef } from "react";
 import { doc, setDoc } from "firebase/firestore";
 import PasswordIcon from "./PasswordIcon";
