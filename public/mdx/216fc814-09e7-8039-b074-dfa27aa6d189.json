@@ -1,0 +1,15 @@
+{
+  "metaData": {
+    "notion": {
+      "created_time": "2025-06-18T05:43:00.000Z",
+      "last_edited_time": "2025-06-24T05:52:00.000Z",
+      "in_trash": false
+    },
+    "update_time": "2025-07-01T02:01:01.020Z"
+  },
+  "mdx": {
+    "compiledSource": "\"use strict\";\nconst {jsxDEV: _jsxDEV} = arguments[0];\nconst {useMDXComponents: _provideComponents} = arguments[0];\nfunction _createMdxContent(props) {\n  const _components = {\n    p: \"p\",\n    ..._provideComponents(),\n    ...props.components\n  };\n  return _jsxDEV(_components.p, {\n    children: \"내용만 변경하면 어떻게 되나요??\"\n  }, undefined, false, {\n    fileName: \"<source.js>\",\n    lineNumber: 2,\n    columnNumber: 1\n  }, this);\n}\nfunction MDXContent(props = {}) {\n  const {wrapper: MDXLayout} = {\n    ..._provideComponents(),\n    ...props.components\n  };\n  return MDXLayout ? _jsxDEV(MDXLayout, {\n    ...props,\n    children: _jsxDEV(_createMdxContent, {\n      ...props\n    }, undefined, false, {\n      fileName: \"<source.js>\"\n    }, this)\n  }, undefined, false, {\n    fileName: \"<source.js>\"\n  }, this) : _createMdxContent(props);\n}\nreturn {\n  default: MDXContent\n};\n",
+    "frontmatter": {},
+    "scope": {}
+  }
+}
