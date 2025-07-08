@@ -7,9 +7,9 @@ import {
 } from "firebase/auth";
 import { useEffect } from "react";
 import { useRouter } from "next/router";
-import useAuth from "@/features/auth/hook/useAuth";
-import { setUserData } from "@/utils/user";
-import { IUserInfo } from "@/types/users";
+import useAuth from "../../../features/auth/hook/useAuth";
+import { setUserData } from "../../../utils/user";
+import { IUserInfo } from "../../../types/users";
 
 const InputLabel = styled.div`
   /* color: white; */

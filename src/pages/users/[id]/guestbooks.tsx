@@ -1,5 +1,5 @@
-import MainMenu from "@/shared/components/MainMenu";
-import MessageInput from "@/components/ui/input/MessageInput";
+import MainMenu from "../../../shared/components/MainMenu";
+import MessageInput from "../../../components/ui/input/MessageInput";
 import {
   Timestamp,
   arrayUnion,
@@ -10,12 +10,15 @@ import {
 import styled from "styled-components";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { IGuestbook } from "@/types/users";
+import { IGuestbook } from "../../../types/users";
 import { auth, firestore } from "../../../../firebase";
 import { v4 as uuidv4 } from "uuid";
-import { formatTimestampToDateStr } from "@/utils/common";
+import { formatTimestampToDateStr } from "../../../utils/common";
 import Image from "next/image";
-import { listenGuestbook, sendGuestbook } from "@/features/guestbook/api";
+import {
+  listenGuestbook,
+  sendGuestbook,
+} from "../../../features/guestbook/api";
 
 const Wrapper = styled.div`
   /* display: flex;

@@ -1,4 +1,4 @@
-import { IFirebasePost, IIndexedDB, IMeta } from "@/types/blog";
+import { IFirebasePost, IIndexedDB, IMeta } from "../types/blog";
 import {
   Timestamp,
   collection,

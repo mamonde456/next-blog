@@ -1,12 +1,10 @@
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import styled from "styled-components";
-import MainMenu from "@/shared/components/MainMenu";
-import MainPosts from "@/features/blog/components/MainPosts";
-import { IFirebasePost } from "@/types/blog";
-import { getAllPostsFromFirebase } from "@/utils/\bblog";
-import { formatTimestampToDateStr } from "@/utils/common";
-import { getUploadDatabaseQuery } from "@/features/blog/api/notion";
+import MainMenu from "../shared/components/MainMenu";
+import MainPosts from "../features/blog/components/MainPosts";
+import { IFirebasePost } from "../types/blog";
+import { getUploadDatabaseQuery } from "../features/blog/api/notion";
 
 const Wrapper = styled.div`
   min-height: 100vh;

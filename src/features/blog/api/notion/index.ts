@@ -1,6 +1,5 @@
 import { NOTION_DATABASE_ID } from "../../../../../const.ts";
-import { notion } from "@/lib/notion/client.ts";
-import { Client } from "@notionhq/client";
+import { notion } from "../../../../lib/notion/client.ts";
 
 const databaseId = NOTION_DATABASE_ID;
 
@@ -20,11 +19,11 @@ export const getNotionData = async () => {
   }
 };
 
-export const getUploadDatabaseQuery = async () => {
-  if (databaseId) {
+export const getUploadDatabaseQuery = async (id?: string | undefined) => {
+  if (databaseId || id) {
     try {
       const response = await notion.databases.query({
-        database_id: databaseId as string,
+        database_id: (databaseId || id) as string,
         filter: {
           property: "upload",
           select: {

@@ -1,5 +1,5 @@
-import PageLoader from "@/components/ui/loader/PageLoader";
-import "@/styles/globals.css";
+import PageLoader from "../components/ui/loader/PageLoader";
+import "../styles/globals.css";
 import type { AppProps } from "next/app";
 import { useEffect, useState } from "react";
 import styled from "styled-components";

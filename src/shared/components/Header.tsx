@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 import { auth } from "../../../firebase";
 import { signOut } from "firebase/auth";
-import useAuth from "@/features/auth/hook/useAuth";
+import useAuth from "../../features/auth/hook/useAuth";
 
 const Wrapper = styled.header`
   width: 1200px;

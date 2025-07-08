@@ -4,21 +4,20 @@ import styled from "styled-components";
 import { doc, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
 import { v4 as uuidv4 } from "uuid";
 import { GetStaticPaths, GetStaticProps } from "next";
-import { checkAuthentication } from "@/utils/auth.ts";
-import useAuth from "@/features/auth/hook/useAuth.tsx";
+import { checkAuthentication } from "../../../utils/auth.ts";
+import useAuth from "../../../features/auth/hook/useAuth.tsx";
 import { useRouter } from "next/router.js";
-import { IIndexedDB, IMeta } from "@/types/blog.ts";
+import { IIndexedDB, IMeta } from "../../../types/blog.ts";
 import {
   getDraftByIdFromIndexDB,
   getPostById,
   setDraftToIndexedDB,
-} from "@/utils/\bblog.ts";
+} from "../../../utils/\bblog.ts";
 import { auth, firestore } from "../../../../firebase.js";
-import BasicButton from "@/components/ui/button/BasicButton.tsx";
-import SubmitButton from "@/components/ui/button/SubmitButton.tsx";
-import BackButton from "@/components/ui/button/BackButton.tsx";
-import { Params } from "next/dist/shared/lib/router/utils/route-matcher.js";
-import { formatTimestampToDateStr } from "@/utils/common.ts";
+import BasicButton from "../../../components/ui/button/BasicButton.tsx";
+import SubmitButton from "../../../components/ui/button/SubmitButton.tsx";
+import BackButton from "../../../components/ui/button/BackButton.tsx";
+import { formatTimestampToDateStr } from "../../../utils/common.ts";
 
 const Wrapper = styled.div`
   /* display: flex;
@@ -406,7 +405,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 };
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
-  const { id } = params as Params;
+  const { id } = params as any;
   const post = await getPostById(id);
   if (!post) return { props: {} };
   const serializingMeta = {

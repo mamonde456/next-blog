@@ -1,4 +1,4 @@
-import MainMenu from "@/shared/components/MainMenu";
+import MainMenu from "../../../shared/components/MainMenu";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { db, firestore } from "../../../../firebase";
@@ -14,10 +14,10 @@ import {
   getAllUserData,
   getUserInfoFromSession,
   updateUserInfoFromSession,
-} from "@/utils/user";
-import { IUserInfo } from "@/types/users";
-import ChattingRoom from "@/components/blog/\bchats/ChattingRoom";
-import { IChatRoomInfoType } from "@/types/blog";
+} from "../../../utils/user";
+import { IUserInfo } from "../../../types/users";
+import ChattingRoom from "../../../components/blog/\bchats/ChattingRoom";
+import { IChatRoomInfoType } from "../../../types/blog";
 
 const Wrapper = styled.div`
   /* display: flex;

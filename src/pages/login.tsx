@@ -3,9 +3,9 @@ import { auth } from "../../firebase";
 import styled from "styled-components";
 import { useRef } from "react";
 import { useRouter } from "next/router";
-import LinkToEmailAuth from "@/features/auth/components/LinkToEmailAuth";
-import IdAndPasswordAuth from "@/features/auth/components/IdAndPasswordAuth";
-import GitHubButton from "@/features/auth/components/GitHubButton";
+import LinkToEmailAuth from "../features/auth/components/LinkToEmailAuth";
+import IdAndPasswordAuth from "../features/auth/components/IdAndPasswordAuth";
+import GitHubButton from "../features/auth/components/GitHubButton";
 
 const Wrapper = styled.div`
   /* height: 100%; */

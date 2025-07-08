@@ -1,7 +1,7 @@
-import MainMenu from "@/shared/components/MainMenu";
-import BasicButton from "@/components/ui/button/BasicButton";
-import DeleteButton from "@/components/ui/button/DeleteButton";
-import { IIndexedDB } from "@/types/blog";
+import MainMenu from "../../shared/components/MainMenu";
+import BasicButton from "../../components/ui/button/BasicButton";
+import DeleteButton from "../../components/ui/button/DeleteButton";
+import { IIndexedDB } from "../../types/blog";
 import {
   getAllDraftsFromFirebase,
   getDraftFromIndexDB,
@@ -10,8 +10,8 @@ import {
   removeDraftByIdFromFirebase,
   removeDraftByIdFromIndexedDB,
   setDraftToIndexedDB,
-} from "@/utils/\bblog";
-import { formatTimestampToDateStr } from "@/utils/common";
+} from "../../utils/\bblog";
+import { formatTimestampToDateStr } from "../../utils/common";
 import { Timestamp } from "firebase/firestore";
 import { useRouter } from "next/router";
 import { Fragment, useEffect, useState } from "react";

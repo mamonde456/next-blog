@@ -3,10 +3,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { v4 as uuidv4 } from "uuid";
 import styled from "styled-components";
-import useAuth from "@/features/auth/hook/useAuth";
-import { signOutUser } from "@/utils/auth";
+import useAuth from "../../features/auth/hook/useAuth";
+import { signOutUser } from "../../utils/auth";
 import { auth } from "../../../firebase";
-import SignIcon from "@/features/auth/components/SignIcon";
+import SignIcon from "../../features/auth/components/SignIcon";
 
 const Wrapper = styled.div`
   /* width: 200px; */

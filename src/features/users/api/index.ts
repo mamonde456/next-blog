@@ -1,6 +1,6 @@
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, firestore } from "../../../../firebase";
-import { IUserInfo } from "@/types/users";
+import { IUserInfo } from "../../../types/users";
 
 export const getUserFromFirebaseById = async (uid: string) => {
   if (!uid)
