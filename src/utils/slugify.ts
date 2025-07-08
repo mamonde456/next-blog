@@ -1,4 +1,5 @@
 export const toSlug = (title: string) => {
+  if (!title) return "제목없음";
   return title
     .toLowerCase()
     .trim()

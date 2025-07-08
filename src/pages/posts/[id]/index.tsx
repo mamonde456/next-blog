@@ -1,33 +1,23 @@
 import styled from "styled-components";
-import MainMenu from "@/shared/components/MainMenu";
-import { Params } from "next/dist/shared/lib/router/utils/route-matcher";
+import MainMenu from "../../../shared/components/MainMenu";
 import {
   getMarkdownFromNotionPage,
   getSlugMap,
-} from "@/features/blog/services/notion";
+  saveFile,
+  getCacheData,
+} from "../../../features/blog/services/notion";
 import { GetStaticProps } from "next";
 import { serialize } from "next-mdx-remote/serialize";
-import { MDXRemote } from "next-mdx-remote";
+import { MDXRemote, type MDXRemoteSerializeResult } from "next-mdx-remote";
 import remarkGfm from "remark-gfm";
-import remarkMath from "remark-math";
-import rehypeHighlight from "rehype-highlight";
 import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
-import rehypeKatex from "rehype-katex";
 import remarkBreaks from "remark-breaks";
-import rehypePrettyCode from "rehype-pretty-code";
-import PageLoader from "@/components/ui/loader/PageLoader";
-import { getNotionPage, getNotionPageBlocks } from "@/features/blog/api/notion";
-import CodeSlot from "@/components/blog/CodeSlot";
-import { useRouter } from "next/router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
-import {
-  getCacheData,
-  replaceCodeFormat,
-  saveJSON,
-} from "@/features/blog/services/notion";
-import { getMdxFile } from "@/features/blog/api/public";
+import rehypePrettyCode from "rehype-pretty-code";
+import { getNotionPage } from "@/features/blog/api/notion";
+import { formatterMDX, updateFormatMDX } from "@/shared/notion/mdx";
 
 const Wrapper = styled.div`
   width: 100%;
@@ -53,36 +43,6 @@ const SideMenuList = styled.div`
   /* background: yellow; */
 `;
 
-const Title = styled.div`
-  padding: 40px;
-  font-size: 42px;
-  color: black;
-  font-weight: 700;
-  text-align: center;
-  margin-bottom: 25px;
-`;
-
-const MetaData = styled.div`
-  display: flex;
-  justify-content: space-between;
-  padding: 0px 30px;
-  margin-bottom: 40px;
-`;
-
-const UserInfo = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  span {
-    font-size: 18px;
-  }
-`;
-const PostsInfo = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: right;
-`;
-
 const getImageUrl = (src: string) => `${src ? src : "/blank-profile.svg"}`;
 const UserImg = styled.div<{ src: string }>`
   width: 60px;
@@ -105,24 +65,30 @@ const Content = styled.div`
   }
 `;
 
-const NotionComponents = styled.div``;
+type MDXContentType = {
+  metaData: Record<string, string>;
+  mdx?: MDXRemoteSerializeResult;
+};
 
-const BtnContainer = styled.div`
-  display: flex;
-  justify-content: right;
-  /* padding: 20px 30px; */
-  padding: 10px 0px;
-  gap: 10px;
-`;
-export default function Detail({ source }: { source: any }) {
+export default function Detail({
+  source,
+}: {
+  source: MDXRemoteSerializeResult;
+}) {
+  const [mdxContent, setMdx] = useState();
   useEffect(() => {
     console.log(source);
   }, []);
+
   return (
     <Wrapper>
       <MainMenu />
       <NotebookWrap>
+        {/* <Markdown>{source}</Markdown> */}
+        {/* <NotionComponents>{source}</NotionComponents> */}
         <Content>
+          {/* <NotionStyleMarkdown>{source}</NotionStyleMarkdown> */}
+
           {source && (
             <MDXRemote
               {...source}
@@ -133,13 +99,10 @@ export default function Detail({ source }: { source: any }) {
                     alt={alt || ""}
                     width={800}
                     height={500}
-                    loading="lazy"
                   />
                 ),
-                CodeSlot,
               }}
             />
-            // <MDXRemote {...source} />
           )}
         </Content>
       </NotebookWrap>
@@ -149,46 +112,49 @@ export default function Detail({ source }: { source: any }) {
 }
 
 export const getStaticPaths = async () => {
-  const slugMap = await getSlugMap();
-
+  const cachePath = getCacheData("/public/cache/slugMap.json");
+  if (Object.keys(cachePath).length > 0) {
+    return {
+      paths: Object.keys(cachePath).map((slug) => ({ params: { id: slug } })),
+      fallback: "blocking",
+    };
+  }
+  const { slugMap } = await getSlugMap();
   return {
     paths: Object.keys(slugMap).map((slug) => ({ params: { id: slug } })),
-    fallback: "blocking",
+    fallback: true,
   };
 };
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
-  const { id: slug } = params as Params;
-  const slugMap = await getSlugMap();
+  const { id: slug } = params as any;
+
+  const cacheSlug = getCacheData("/public/cache/slugMap.json");
+
+  // if (cacheSlug) {
+  //   const id = cacheSlug[slug];
+  //   const mdxFile = getCacheData(`/public/mdx/${id}.json`);
+  //   if (mdxFile) {
+  //     const mdx = mdxFile.mdx;
+  //     return { props: { source: mdx } };
+  //   }
+  // }
+
+  const { slugMap, notionList } = await getSlugMap();
+
   const id = slugMap[slug];
-  // const results = await getNotionPageBlocks(id);
-  // const x = await getMarkdownFormNotionBlocks(results);
+
   if (!id) return { notFound: true };
 
-  const mdxFile = getCacheData(`/public/mdx/${id}.mdx`);
-  if (mdxFile) {
-    return {
-      props: { source: mdxFile },
-      revalidate: 60,
-    };
-  }
+  const mdx = await formatterMDX(id);
+  const notion = notionList.find((item) => item.id === id);
 
-  const mdString = await getMarkdownFromNotionPage(id);
-  // const a = replaceCodeFormat(mdString, id);
-  const mdxResult = await serialize(mdString || "", {
-    mdxOptions: {
-      remarkPlugins: [remarkGfm, remarkBreaks],
-      rehypePlugins: [
-        rehypeSlug,
-        rehypeAutolinkHeadings,
-        [rehypePrettyCode, { theme: "github-light" }],
-      ],
-    },
-  });
-  saveJSON("public/mdx", id + ".mdx", mdxResult);
+  if (!notion) return { notFound: true };
 
+  const content = updateFormatMDX(notion, mdx);
+  saveFile("public/mdx", id + ".json", content);
   return {
-    props: { source: mdxResult },
+    props: { source: mdx },
     revalidate: 60,
   };
 };
