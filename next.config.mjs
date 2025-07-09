@@ -4,6 +4,9 @@ import path from "path";
 import { fileURLToPath } from "url";
 import bundleAnalyzer from "@next/bundle-analyzer";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
 });
@@ -28,9 +31,6 @@ const withMDX = nextMDX({
   },
 });
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
@@ -40,6 +40,10 @@ const nextConfig = {
   compiler: {
     styledComponents: true,
   },
+  env: {
+    NOTION_TOKEN: process.env.NOTION_TOKEN,
+    NOTION_DATABASE_ID: process.env.NOTION_DATABASE_ID,
+  },
   webpack: (config) => {
     config.cache = {
       type: "filesystem",
@@ -47,9 +51,10 @@ const nextConfig = {
     };
     config.experiments = { ...config.experiments, topLevelAwait: true };
     config.resolve.alias = {
-      ...(config.resolve.alias || {}),
+      ...config.resolve.alias,
       "@": path.resolve(__dirname, "src"),
     };
+
     config.resolve.extensionAlias = {
       ".js": [".js", ".ts", ".tsx"],
       ".jsx": [".jsx", ".tsx"],
