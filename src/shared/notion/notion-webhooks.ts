@@ -3,11 +3,11 @@ import {
   getCacheData,
   getSlugMap,
   saveFile,
-} from "@/features/blog/services/notion";
+} from "../../features/blog/services/notion";
 import { formatterMDX } from "./mdx";
-import { getNotionPage } from "@/features/blog/api/notion";
-import { NotionPage } from "@/features/blog/api/notion/type";
-import { findKeyByValue } from "@/utils/webhooks";
+import { getNotionPage } from "../../features/blog/api/notion";
+import { NotionPage } from "../../features/blog/api/notion/type";
+import { findKeyByValue } from "../../utils/webhooks";
 import {
   GITHUB_OWNER,
   GITHUB_REPO,
