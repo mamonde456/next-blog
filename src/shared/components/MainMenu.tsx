@@ -45,17 +45,6 @@ const Menu = styled.li`
     width: 40px;
     height: 40px;
   }
-  &:last-child {
-    position: fixed;
-    bottom: 30px;
-    /* padding: 10px; */
-    &:hover {
-      background: none;
-    }
-    svg {
-      padding: 0px;
-    }
-  }
 `;
 
 const ProfileContainer = styled.div`
@@ -151,7 +140,7 @@ export default function MainMenu() {
             </Menu> */}
           </>
         )}
-        <Menu>
+        {/* <Menu>
           {isLoggedIn ? (
             <SignIcon onClick={() => signOutUser()} signType="signout" />
           ) : (
@@ -159,7 +148,7 @@ export default function MainMenu() {
               <SignIcon signType="signin" />
             </Link>
           )}
-        </Menu>
+        </Menu> */}
       </MenuList>
     </Wrapper>
   );
