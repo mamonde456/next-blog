@@ -4,6 +4,7 @@ import { getUploadDatabaseQuery } from "../api/notion/index.ts";
 import { NotionType } from "../api/notion/type.ts";
 import { toSlug } from "../../../utils/slugify.ts";
 import { n2m } from "../../../lib/notion/client.ts";
+import { VFile } from "rehype-raw/lib/index";
 
 export const getSlugMap = async (
   id?: string | undefined
@@ -61,7 +62,7 @@ export const replaceCodeFormat = (markdown: any, slug: string) => {
   return replaced;
 };
 
-export const saveFile = (src: string, slug: string, json?: any) => {
+export const saveFile = (src: string, slug: string, json: any) => {
   try {
     const outDir = path.join(process.cwd(), src);
     if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
@@ -73,10 +74,29 @@ export const saveFile = (src: string, slug: string, json?: any) => {
   }
 };
 
+export const saveMDXComponent = (
+  compiled: VFile,
+  src: string,
+  slug: string
+) => {
+  try {
+    const outDir = path.join(process.cwd(), src);
+    if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
+
+    fs.writeFileSync(path.join(outDir, slug), compiled.toString());
+    return { message: "success", id: slug };
+  } catch (error) {
+    return { message: "fail: " + error };
+  }
+};
+
 export const getCacheData = (src: string) => {
   const filePath = path.join(process.cwd(), src);
   if (fs.existsSync(filePath)) {
     const fileContent = fs.readFileSync(filePath, "utf-8");
+    if (src.endsWith(".js")) {
+      return fileContent;
+    }
     return JSON.parse(fileContent);
   }
   return null;

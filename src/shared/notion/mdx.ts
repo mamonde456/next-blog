@@ -7,6 +7,32 @@ import rehypeSlug from "rehype-slug";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 import { MDXRemoteSerializeResult } from "next-mdx-remote";
+import { compile } from "@mdx-js/mdx";
+
+export const compileMdx = async (id: string) => {
+  const mdString = await getMarkdownFromNotionPage(id);
+  if (mdString) {
+    const compiled = await compile(mdString, {
+      // 전체 프로그램으로 출력
+      outputFormat: "program",
+      development: false,
+      remarkPlugins: [remarkGfm, remarkBreaks],
+      rehypePlugins: [
+        rehypeSlug,
+        rehypeAutolinkHeadings,
+        [
+          rehypePrettyCode,
+          ,
+          {
+            theme: "github-light",
+          },
+        ],
+      ],
+    });
+    return compiled;
+  }
+  return null;
+};
 
 export const formatterMDX = async (id: string) => {
   const mdString = await getMarkdownFromNotionPage(id);
