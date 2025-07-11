@@ -1,10 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { Octokit } from "@octokit/rest";
-import { GITHUB_OWNER, GITHUB_REPO, GITHUB_TOKEN } from "../../../const.ts";
 import {
   NotionWebhooksPayload,
-  handleNotionEvent,
-  handleNotionWebhook,
   triggerGitHubAction,
 } from "@/shared/notion/notion-webhooks.ts";
 
@@ -12,6 +8,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  if (!req) return;
   console.log("Headers, ", req.headers);
   console.log("Body, ", req.body);
   if (req.method !== "POST")

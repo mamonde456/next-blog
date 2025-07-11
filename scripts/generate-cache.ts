@@ -4,30 +4,20 @@ import dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
 
 import {
-  getCacheData,
-  getSlugMap,
-  saveFile,
-} from "../src/features/blog/services/notion.ts";
-
-import { isExpired } from "../src/shared/cache/ttl.ts";
-import { formatterMDX, updateFormatMDX } from "../src/shared/notion/mdx.ts";
-import { NotionType } from "../src/features/blog/api/notion/type.ts";
-import {
-  NotionWebhooksPayload,
   handleNotionEvent,
   handleNotionWebhook,
-} from "@/shared/notion/notion-webhooks.ts";
+} from "../src/shared/notion/notion-webhooks.ts";
 
 const getWebhookData = () => {
   const webhookDataStr = process.env.WEBHOOK_DATA;
-  if (!webhookDataStr) throw new Error("웹훅 데이터가 없습니다.");
+  if (!webhookDataStr) return console.log("웹훅 데이터가 없습니다.");
   return JSON.parse(webhookDataStr);
 };
 
 async function main() {
   const webhook = getWebhookData();
   const NOTION_DATABASE_ID = process.env.NOTION_DATABASE_ID;
-
+  if (!webhook) return;
   handleNotionWebhook(webhook, handleNotionEvent);
 
   // const { slugMap, notionList } = await getSlugMap(NOTION_DATABASE_ID);
