@@ -1,22 +1,14 @@
 import styled from "styled-components";
 import MainMenu from "../../../shared/components/MainMenu";
 import {
-  getMarkdownFromNotionPage,
   getSlugMap,
   saveFile,
   getCacheData,
 } from "../../../features/blog/services/notion";
 import { GetStaticProps } from "next";
-import { serialize } from "next-mdx-remote/serialize";
 import { MDXRemote, type MDXRemoteSerializeResult } from "next-mdx-remote";
-import remarkGfm from "remark-gfm";
-import rehypeSlug from "rehype-slug";
-import rehypeAutolinkHeadings from "rehype-autolink-headings";
-import remarkBreaks from "remark-breaks";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import rehypePrettyCode from "rehype-pretty-code";
-import { getNotionPage } from "@/features/blog/api/notion";
 import { formatterMDX, updateFormatMDX } from "@/shared/notion/mdx";
 
 const Wrapper = styled.div`
@@ -84,11 +76,7 @@ export default function Detail({
     <Wrapper>
       <MainMenu />
       <NotebookWrap>
-        {/* <Markdown>{source}</Markdown> */}
-        {/* <NotionComponents>{source}</NotionComponents> */}
         <Content>
-          {/* <NotionStyleMarkdown>{source}</NotionStyleMarkdown> */}
-
           {source && (
             <MDXRemote
               {...source}
@@ -122,7 +110,7 @@ export const getStaticPaths = async () => {
   const { slugMap } = await getSlugMap();
   return {
     paths: Object.keys(slugMap).map((slug) => ({ params: { id: slug } })),
-    fallback: true,
+    fallback: "blocking",
   };
 };
 
@@ -131,14 +119,14 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
   const cacheSlug = getCacheData("/public/cache/slugMap.json");
 
-  // if (cacheSlug) {
-  //   const id = cacheSlug[slug];
-  //   const mdxFile = getCacheData(`/public/mdx/${id}.json`);
-  //   if (mdxFile) {
-  //     const mdx = mdxFile.mdx;
-  //     return { props: { source: mdx } };
-  //   }
-  // }
+  if (cacheSlug) {
+    const id = cacheSlug[slug];
+    const mdxFile = getCacheData(`/public/mdx/${id}.json`);
+    if (mdxFile) {
+      const mdx = mdxFile.mdx;
+      return { props: { source: mdx }, revalidate: 3600 };
+    }
+  }
 
   const { slugMap, notionList } = await getSlugMap();
 
@@ -152,7 +140,11 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   if (!notion) return { notFound: true };
 
   const content = updateFormatMDX(notion, mdx);
-  saveFile("public/mdx", id + ".json", content);
+  if (content) {
+    setImmediate(() => {
+      saveFile("public/mdx", id + ".json", content);
+    });
+  }
   return {
     props: { source: mdx },
     revalidate: 60,
