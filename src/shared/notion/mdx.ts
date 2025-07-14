@@ -56,24 +56,3 @@ export const formatterMDX = async (id: string) => {
   });
   return mdxResult;
 };
-
-export const updateFormatMDX = (
-  notion: NotionType,
-  mdx: MDXRemoteSerializeResult
-) => {
-  if (!notion)
-    return new Error("saveFormatMDX: notion 데이터를 찾을 수 없습니다.");
-  const metaData = {
-    notion: {
-      created_time: notion.created_time,
-      last_edited_time: notion.last_edited_time,
-      in_trash: notion.in_trash,
-    },
-    update_time: new Date().toISOString(),
-  };
-  const content = {
-    metaData,
-    mdx,
-  };
-  return content;
-};

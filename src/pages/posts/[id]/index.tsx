@@ -4,12 +4,15 @@ import {
   getSlugMap,
   saveFile,
   getCacheData,
+  getNotionSlugMapData,
+  successFailureLogRecorder,
+  getNotionMetaData,
 } from "../../../features/blog/services/notion";
 import { GetStaticProps } from "next";
 import { MDXRemote, type MDXRemoteSerializeResult } from "next-mdx-remote";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { formatterMDX, updateFormatMDX } from "@/shared/notion/mdx";
+import { formatterMDX } from "@/shared/notion/mdx";
 
 const Wrapper = styled.div`
   width: 100%;
@@ -139,12 +142,15 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
   if (!notion) return { notFound: true };
 
-  const content = updateFormatMDX(notion, mdx);
-  if (content) {
-    setImmediate(() => {
-      saveFile("public/mdx", id + ".json", content);
-    });
-  }
+  const CACHE_TTL_SECONDS = 24 * 60 * 60; // 24시간
+  const newMeta = getNotionMetaData(notion, CACHE_TTL_SECONDS);
+  const newslug = getNotionSlugMapData(notion);
+
+  const saveMeta = saveFile("public/cache", "metaData.json", newMeta);
+  const saveSlug = saveFile("public/cache", "slugMap.json", newslug);
+  const saveMdx = saveFile("public/cache/mdx", id + ".json", mdx);
+  successFailureLogRecorder([saveMeta, saveSlug, saveMdx]);
+
   return {
     props: { source: mdx },
     revalidate: 60,

@@ -110,3 +110,54 @@ export const deletedCacheData = (src: string) => {
   }
   return null;
 };
+
+export const updateNotionMetaFormat = (notion: NotionType, ttl: number) => {
+  if (!notion)
+    return new Error("saveFormatMDX: notion 데이터를 찾을 수 없습니다.");
+  let title = notion.properties.이름.title[0].plain_text;
+  if (!notion.properties.이름.title[0].plain_text) title = "제목없음";
+  const metaData = {
+    [notion.id]: {
+      title,
+      created_time: notion.created_time,
+      last_edited_time: notion.last_edited_time,
+      cache_generated_at: new Date().toISOString(),
+      ttl,
+      in_trash: notion.in_trash,
+    },
+  };
+
+  return metaData;
+};
+
+export const getNotionMetaData = (notion: NotionType, ttl: number) => {
+  const meta = updateNotionMetaFormat(notion, ttl);
+  const cacheMeta = getCacheData("/public/cache/metaData.json");
+  if (!cacheMeta) return null;
+  const newCacheMeta = JSON.parse(JSON.stringify(cacheMeta));
+  newCacheMeta[notion.id] = meta;
+
+  return newCacheMeta;
+};
+
+export const getNotionSlugMapData = (notion: NotionType) => {
+  const cacheSlugMap = getCacheData("/public/cache/slugMap.json");
+  let title = notion.properties.이름.title[0].plain_text;
+  if (!cacheSlugMap) return null;
+  if (!notion.properties.이름.title[0].plain_text) title = "제목없음";
+  const newCacheMeta = JSON.parse(JSON.stringify(cacheSlugMap));
+  newCacheMeta[title] = notion.id;
+
+  return newCacheMeta;
+};
+
+export const successFailureLogRecorder = (results: { message: string }[]) => {
+  for (const result of results) {
+    const msg = result.message;
+    if (msg.startsWith("success")) {
+      continue;
+    } else if (msg.startsWith("fail")) {
+      console.log(msg);
+    }
+  }
+};
