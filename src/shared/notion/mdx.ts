@@ -13,8 +13,7 @@ export const compileMdx = async (id: string) => {
   const mdString = await getMarkdownFromNotionPage(id);
   if (mdString) {
     const compiled = await compile(mdString, {
-      // 전체 프로그램으로 출력
-      outputFormat: "program",
+      outputFormat: "function-body",
       development: false,
       remarkPlugins: [remarkGfm, remarkBreaks],
       rehypePlugins: [
@@ -29,7 +28,7 @@ export const compileMdx = async (id: string) => {
         ],
       ],
     });
-    return compiled;
+    return String(compiled);
   }
   return null;
 };

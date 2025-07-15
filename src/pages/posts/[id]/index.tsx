@@ -7,12 +7,13 @@ import {
   getNotionSlugMapData,
   successFailureLogRecorder,
   getNotionMetaData,
+  saveMDXComponent,
 } from "../../../features/blog/services/notion";
 import { GetStaticProps } from "next";
-import { MDXRemote, type MDXRemoteSerializeResult } from "next-mdx-remote";
-import { useEffect, useState } from "react";
-import Image from "next/image";
-import { formatterMDX } from "@/shared/notion/mdx";
+import { type MDXRemoteSerializeResult } from "next-mdx-remote";
+import { useState } from "react";
+import { compileMdx } from "@/shared/notion/mdx";
+import MDXRenderer from "@/features/blog/components/notion/MDXRenderer";
 
 const Wrapper = styled.div`
   width: 100%;
@@ -65,22 +66,16 @@ type MDXContentType = {
   mdx?: MDXRemoteSerializeResult;
 };
 
-export default function Detail({
-  source,
-}: {
-  source: MDXRemoteSerializeResult;
-}) {
+export default function Detail({ source }: { source: any }) {
   const [mdxContent, setMdx] = useState();
-  useEffect(() => {
-    console.log(source);
-  }, []);
 
   return (
     <Wrapper>
       <MainMenu />
       <NotebookWrap>
         <Content>
-          {source && (
+          <MDXRenderer compiledCode={source} />
+          {/* {source && (
             <MDXRemote
               {...source}
               components={{
@@ -94,7 +89,7 @@ export default function Detail({
                 ),
               }}
             />
-          )}
+          )} */}
         </Content>
       </NotebookWrap>
       <SideMenuList />
@@ -124,10 +119,9 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
   if (cacheSlug) {
     const id = cacheSlug[slug];
-    const mdxFile = getCacheData(`/public/mdx/${id}.json`);
-    if (mdxFile) {
-      const mdx = mdxFile.mdx;
-      return { props: { source: mdx }, revalidate: 3600 };
+    const compiled = getCacheData(`/public/cache/mdx/${id}.js`);
+    if (compiled) {
+      return { props: { source: compiled }, revalidate: 3600 };
     }
   }
 
@@ -137,22 +131,25 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
   if (!id) return { notFound: true };
 
-  const mdx = await formatterMDX(id);
+  const compiled = await compileMdx(id);
   const notion = notionList.find((item) => item.id === id);
+  console.log(compiled);
 
   if (!notion) return { notFound: true };
+  if (!compiled) return { notFound: true };
 
   const CACHE_TTL_SECONDS = 24 * 60 * 60; // 24시간
   const newMeta = getNotionMetaData(notion, CACHE_TTL_SECONDS);
+  console.log(newMeta);
   const newslug = getNotionSlugMapData(notion);
 
   const saveMeta = saveFile("public/cache", "metaData.json", newMeta);
   const saveSlug = saveFile("public/cache", "slugMap.json", newslug);
-  const saveMdx = saveFile("public/cache/mdx", id + ".json", mdx);
+  const saveMdx = saveMDXComponent("public/cache/mdx", id + ".js", compiled);
   successFailureLogRecorder([saveMeta, saveSlug, saveMdx]);
 
   return {
-    props: { source: mdx },
+    props: { source: compiled },
     revalidate: 60,
   };
 };

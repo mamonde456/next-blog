@@ -75,15 +75,15 @@ export const saveFile = (src: string, slug: string, json: any) => {
 };
 
 export const saveMDXComponent = (
-  compiled: VFile,
   src: string,
-  slug: string
+  slug: string,
+  compiled: string
 ) => {
   try {
     const outDir = path.join(process.cwd(), src);
     if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
 
-    fs.writeFileSync(path.join(outDir, slug), compiled.toString());
+    fs.writeFileSync(path.join(outDir, slug), compiled);
     return { message: "success", id: slug };
   } catch (error) {
     return { message: "fail: " + error };
@@ -117,14 +117,12 @@ export const updateNotionMetaFormat = (notion: NotionType, ttl: number) => {
   let title = notion.properties.이름.title[0].plain_text;
   if (!notion.properties.이름.title[0].plain_text) title = "제목없음";
   const metaData = {
-    [notion.id]: {
-      title,
-      created_time: notion.created_time,
-      last_edited_time: notion.last_edited_time,
-      cache_generated_at: new Date().toISOString(),
-      ttl,
-      in_trash: notion.in_trash,
-    },
+    title,
+    created_time: notion.created_time,
+    last_edited_time: notion.last_edited_time,
+    cache_generated_at: new Date().toISOString(),
+    ttl,
+    in_trash: notion.in_trash,
   };
 
   return metaData;
@@ -132,8 +130,8 @@ export const updateNotionMetaFormat = (notion: NotionType, ttl: number) => {
 
 export const getNotionMetaData = (notion: NotionType, ttl: number) => {
   const meta = updateNotionMetaFormat(notion, ttl);
-  const cacheMeta = getCacheData("/public/cache/metaData.json");
-  if (!cacheMeta) return null;
+  let cacheMeta = getCacheData("/public/cache/metaData.json");
+  if (!cacheMeta) return (cacheMeta = {});
   const newCacheMeta = JSON.parse(JSON.stringify(cacheMeta));
   newCacheMeta[notion.id] = meta;
 
