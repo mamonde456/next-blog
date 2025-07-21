@@ -11,15 +11,13 @@ import {
 } from "../../../features/blog/services/notion";
 import { GetStaticProps } from "next";
 import { type MDXRemoteSerializeResult } from "next-mdx-remote";
-import { useState } from "react";
 import { compileMdx } from "@/shared/notion/mdx";
 import MDXRenderer from "@/features/blog/components/notion/MDXRenderer";
+import { isExpired } from "@/shared/cache/ttl";
 
 const Wrapper = styled.div`
   width: 100%;
-  /* height: 100%; */
   display: flex;
-  /* margin-top: 0.8%; */
   background-color: white;
   border-radius: 10px;
 `;
@@ -67,29 +65,12 @@ type MDXContentType = {
 };
 
 export default function Detail({ source }: { source: any }) {
-  const [mdxContent, setMdx] = useState();
-
   return (
     <Wrapper>
       <MainMenu />
       <NotebookWrap>
         <Content>
           <MDXRenderer compiledCode={source} />
-          {/* {source && (
-            <MDXRemote
-              {...source}
-              components={{
-                img: ({ src, alt }) => (
-                  <Image
-                    src={src || ""}
-                    alt={alt || ""}
-                    width={800}
-                    height={500}
-                  />
-                ),
-              }}
-            />
-          )} */}
         </Content>
       </NotebookWrap>
       <SideMenuList />
@@ -116,12 +97,20 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   const { id: slug } = params as any;
 
   const cacheSlug = getCacheData("/public/cache/slugMap.json");
+  const cacheMeta = getCacheData("/public/cache/metaData.json");
 
   if (cacheSlug) {
     const id = cacheSlug[slug];
-    const compiled = getCacheData(`/public/cache/mdx/${id}.js`);
-    if (compiled) {
-      return { props: { source: compiled }, revalidate: 3600 };
+    const currentMeta = cacheMeta[id];
+    const resultTtl = isExpired(
+      currentMeta.cache_generated_at,
+      currentMeta.ttl
+    );
+    if (!resultTtl) {
+      const compiled = getCacheData(`/public/cache/mdx/${id}.js`);
+      if (compiled) {
+        return { props: { source: compiled }, revalidate: 3600 };
+      }
     }
   }
 
@@ -133,14 +122,12 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
   const compiled = await compileMdx(id);
   const notion = notionList.find((item) => item.id === id);
-  console.log(compiled);
 
   if (!notion) return { notFound: true };
   if (!compiled) return { notFound: true };
 
   const CACHE_TTL_SECONDS = 24 * 60 * 60; // 24시간
   const newMeta = getNotionMetaData(notion, CACHE_TTL_SECONDS);
-  console.log(newMeta);
   const newslug = getNotionSlugMapData(notion);
 
   const saveMeta = saveFile("public/cache", "metaData.json", newMeta);
