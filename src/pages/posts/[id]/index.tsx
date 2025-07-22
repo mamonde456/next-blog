@@ -10,7 +10,7 @@ import {
   saveMDXComponent,
 } from "../../../features/blog/services/notion";
 import { GetStaticProps } from "next";
-import { type MDXRemoteSerializeResult } from "next-mdx-remote";
+
 import { compileMdx } from "@/shared/notion/mdx";
 import MDXRenderer from "@/features/blog/components/notion/MDXRenderer";
 import { isExpired } from "@/shared/cache/ttl";
@@ -58,11 +58,6 @@ const Content = styled.div`
     width: 100%;
   }
 `;
-
-type MDXContentType = {
-  metaData: Record<string, string>;
-  mdx?: MDXRemoteSerializeResult;
-};
 
 export default function Detail({ source }: { source: any }) {
   return (

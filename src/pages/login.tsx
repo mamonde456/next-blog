@@ -8,11 +8,9 @@ import IdAndPasswordAuth from "../features/auth/components/IdAndPasswordAuth";
 import GitHubButton from "../features/auth/components/GitHubButton";
 
 const Wrapper = styled.div`
-  /* height: 100%; */
   padding-top: 150px;
   display: flex;
   flex-direction: column-reverse;
-  /* justify-content: center; */
   align-items: center;
 `;
 
@@ -64,8 +62,6 @@ const LoginFormContainer = styled.div`
   }
 `;
 const InputLabel = styled.div`
-  /* color: white; */
-  /* opacity: 0.7; */
   position: absolute;
   top: 10px;
   left: 20px;
@@ -82,7 +78,6 @@ const InputBox = styled.div`
   border-radius: 5px;
   border: solid 1px rgba(0, 0, 0, 0.5);
   margin-bottom: 10px;
-  /* background-color: rgba(255, 255, 255, 0.5); */
   input {
     width: 90%;
     height: 30px;
@@ -120,10 +115,6 @@ const SocialBox = styled.div`
   display: flex;
   gap: 20px;
   justify-content: space-around;
-  /* display: none; */
-  /* &.active {
-    display: block;
-  } */
 `;
 const provider = new GithubAuthProvider();
 

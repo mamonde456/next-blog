@@ -1,7 +1,6 @@
 import {
   deletedCacheData,
   getCacheData,
-  getSlugMap,
   saveFile,
 } from "../../features/blog/services/notion";
 import { formatterMDX } from "./mdx";

@@ -7,21 +7,16 @@ import {
   getDraftFromIndexDB,
   removeAllDraftsFromFirebase,
   removeAllDraftsFromIndexedDB,
-  removeDraftByIdFromFirebase,
   removeDraftByIdFromIndexedDB,
   setDraftToIndexedDB,
 } from "../../utils/\bblog";
 import { formatTimestampToDateStr } from "../../utils/common";
 import { Timestamp } from "firebase/firestore";
 import { useRouter } from "next/router";
-import { Fragment, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 
 const Wrapper = styled.div`
-  /* display: flex;
-  height: 100%;
-  justify-content: center;
-  align-items: center; */
   width: 100%;
   height: 98%;
   display: flex;

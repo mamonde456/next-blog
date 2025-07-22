@@ -1,7 +1,7 @@
 import MainMenu from "../../../shared/components/MainMenu";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
-import { db, firestore } from "../../../../firebase";
+import { firestore } from "../../../../firebase";
 import { v4 as uuidv4 } from "uuid";
 import {
   Timestamp,
@@ -20,10 +20,6 @@ import ChattingRoom from "../../../components/blog/\bchats/ChattingRoom";
 import { IChatRoomInfoType } from "../../../types/blog";
 
 const Wrapper = styled.div`
-  /* display: flex;
-  height: 100%;
-  justify-content: center;
-  align-items: center; */
   width: 100%;
   height: 98%;
   display: flex;

@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import styled from "styled-components";
 
 import { doc, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";

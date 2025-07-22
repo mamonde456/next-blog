@@ -1,4 +1,4 @@
-import { set, ref, get, child, onValue, remove } from "firebase/database";
+import { set, ref, onValue, remove } from "firebase/database";
 import { db } from "../../../firebase";
 import { IFirebasePost } from "../../types/blog";
 

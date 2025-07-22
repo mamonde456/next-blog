@@ -1,4 +1,3 @@
-import { NotionType } from "@/features/blog/api/notion/type";
 import { getMarkdownFromNotionPage } from "../../../src/features/blog/services/notion";
 import { serialize } from "next-mdx-remote/serialize";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
@@ -6,7 +5,6 @@ import rehypePrettyCode from "rehype-pretty-code";
 import rehypeSlug from "rehype-slug";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
-import { MDXRemoteSerializeResult } from "next-mdx-remote";
 import { compile } from "@mdx-js/mdx";
 
 export const compileMdx = async (id: string) => {
