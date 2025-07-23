@@ -4,15 +4,6 @@ import type { AppProps } from "next/app";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 
-// // core styles shared by all of react-notion-x (required)
-// import "react-notion-x/src/styles.css";
-
-// // used for code syntax highlighting (optional)
-// import "prismjs/themes/prism-tomorrow.css";
-
-// // used for rendering equations (optional)
-// import "katex/dist/katex.min.css";
-
 const AllWarpper = styled.div<{ $window: { width: number; height: number } }>`
   width: ${($props) =>
     $props.$window.width >= 1200 ? 1200 + "px" : 100 + "%"};
