@@ -1,9 +1,13 @@
 import {
   deletedCacheData,
   getCacheData,
+  getNotionMetaData,
+  getNotionSlugMapData,
+  getSlugMap,
   saveFile,
+  saveMDXComponent,
+  successFailureLogRecorder,
 } from "../../features/blog/services/notion";
-import { formatterMDX } from "./mdx";
 import { getNotionPage } from "../../features/blog/api/notion";
 import { NotionPage } from "../../features/blog/api/notion/type";
 import { findKeyByValue } from "../../utils/webhooks";
@@ -14,6 +18,7 @@ import {
   NOTION_DATABASE_ID,
 } from "../../../const";
 import { Octokit } from "@octokit/rest";
+import { compileMdx } from "./mdx";
 
 export type NotionWebhooksPayload = {
   id: string;
@@ -84,32 +89,19 @@ export const createdNotionPage = async (
 ) => {
   // 생성된 페이지
   const { id, type } = entity;
-  const mdx = formatterMDX(id);
+  const compiled = await compileMdx(id);
+  if (!compiled) return { notFound: true };
   const notionPage = (await getNotionPage(id)) as NotionPage;
   let slugOk = null;
   if (notionPage) {
     const title = notionPage.properties.이름.title[0].plain_text || "제목없음";
     const slugMap = getCacheData("/public/cache/slugMap.json");
     const newSlugMap = { ...slugMap, [title]: id };
-    slugOk = saveFile("/public/cache", "slugMap.json", newSlugMap);
+    slugOk = saveFile("public/cache", "slugMap.json", newSlugMap);
   }
-  const metaData = {
-    notion: {
-      created_time: timestamp,
-      last_edited_time: timestamp,
-      in_trash: false,
-    },
-    update_time: new Date().toISOString(),
-  };
-  const content = {
-    metaData,
-    mdx,
-  };
-  const result = saveFile("/public/mdx", id, content);
 
-  if (result.message === "success" && slugOk?.message === "success") {
-    console.log("✅ 생성 완료: " + result.id);
-  }
+  const saveMdx = saveMDXComponent("public/cache/mdx", id + ".js", compiled);
+  successFailureLogRecorder([saveMdx]);
 };
 
 export const deletedNotionPage = (entity: IdAndType, timestamp: string) => {
@@ -135,25 +127,22 @@ export const updatedNotionPage = async (
   const { id } = entity;
   // 데이터베이스 항목만 업데이트 지원.
 
-  const mdx = formatterMDX(id);
+  const compiled = await compileMdx(id);
 
-  const metaData = {
-    notion: {
-      created_time: timestamp,
-      last_edited_time: timestamp,
-      in_trash: false,
-    },
-    update_time: new Date().toISOString(),
-  };
-  const content = {
-    metaData,
-    mdx,
-  };
-  const result = saveFile("/public/mdx", id, content);
+  const { notionList } = await getSlugMap();
+  const notion = notionList.find((item) => item.id === id);
 
-  if (result.message === "success") {
-    console.log("✅ 업데이트 완료: " + result.id);
-  }
+  if (!notion) return { notFound: true };
+  if (!compiled) return { notFound: true };
+
+  const CACHE_TTL_SECONDS = 24 * 60 * 60; // 24시간
+  const newMeta = getNotionMetaData(notion, CACHE_TTL_SECONDS);
+  const newslug = getNotionSlugMapData(notion);
+
+  const saveMeta = saveFile("public/cache", "metaData.json", newMeta);
+  const saveSlug = saveFile("public/cache", "slugMap.json", newslug);
+  const saveMdx = saveMDXComponent("public/cache/mdx", id + ".js", compiled);
+  successFailureLogRecorder([saveMeta, saveSlug, saveMdx]);
 };
 
 export const propertiesUpdatedNotionPage = async (
@@ -231,6 +220,7 @@ export const isRelevantPropertyChanged = (webhook: NotionWebhooksPayload) => {
 };
 
 export const triggerGitHubAction = async (webhook: NotionWebhooksPayload) => {
+  console.log("깃헙 트리거 함수 실행");
   const githubActionPayload = {
     event_type: "notion-update",
     client_payload: webhook,
@@ -259,6 +249,7 @@ export const handleNotionWebhook = (
     isParentDatabase(webhook) &&
     isSubscribedDatabase(webhook)
   ) {
+    console.log("test 잘되나요?");
     fn(webhook);
   }
 };
