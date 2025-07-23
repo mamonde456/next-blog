@@ -1,11 +1,5 @@
-import { getCodeBlocksJson } from "@/features/blog/api/public";
-import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import styled from "styled-components";
-import Prism from "prismjs";
-import { getSlugMap } from "@/features/blog/services/notion";
-import { Params } from "next/dist/shared/lib/router/utils/route-matcher";
-import { GetStaticProps } from "next";
 
 const Wrapper = styled.div`
   width: 100%;

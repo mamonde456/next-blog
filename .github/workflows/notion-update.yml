@@ -1,4 +1,4 @@
-name: Notion to MDX Sync
+name: Notion Webhook Handler
 on:
   repository_dispatch:
     types: [notion-update]
@@ -16,16 +16,18 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Fetch from Notion and convert to MDX
-        run: node scripts/notion-to-mdx.js
+      - name: Update specific page cache
+        run: |
+          node scripts/generate-cache.ts \
         env:
           NOTION_API_KEY: ${{ secrets.NOTION_API_KEY}}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID}}
+          WEBHOOK_DATA: ${{toJson(github.event.client_payload.webhook)}}
 
       - name: Commit and push changes
         run: |
           git config --global user.name 'mamonde456'
           git config --global user.email 'mamonde456@gmail.com'
           git add content/
-          git commit -m "Update content from Notion" || echo "No changes to commit"
+          git commit -m "Update content from Notion: page ${{github.event.client_payload.webhook.entity.id}}/ type: ${{github.event.client_payload.webhook.entity.type}} " || echo "No changes to commit"
           git push

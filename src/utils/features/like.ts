@@ -1,11 +1,4 @@
-import {
-  collection,
-  doc,
-  onSnapshot,
-  query,
-  updateDoc,
-  where,
-} from "firebase/firestore";
+import { doc, onSnapshot, updateDoc } from "firebase/firestore";
 import { firestore } from "../../../firebase";
 
 export const incrementLikeCount = async (id: string) => {

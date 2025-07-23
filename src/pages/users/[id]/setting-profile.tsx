@@ -1,21 +1,11 @@
-import {
-  getDownloadURL,
-  ref,
-  uploadBytes,
-  uploadString,
-} from "firebase/storage";
-import { auth, storage } from "../../../../firebase";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { useEffect, useRef, useState } from "react";
 import { updateProfile } from "firebase/auth";
-import RequireAuth from "@/components/common/RequireAuth";
 import styled from "styled-components";
-import ReactCrop, {
-  centerCrop,
-  makeAspectCrop,
-  type Crop,
-} from "react-image-crop";
+import ReactCrop, { type Crop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
-import { useRouter } from "next/router";
+import { useRouter } from "next/router.js";
+import { auth, storage } from "../../../../firebase.js";
 
 const Wrapper = styled.div`
   padding-top: 150px;

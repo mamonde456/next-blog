@@ -1,4 +1,4 @@
-import { IFirebasePost, IMeta } from "@/types/blog.ts";
+import { IFirebasePost, IMeta } from "../../../types/blog.ts";
 import { DocumentData, QuerySnapshot } from "firebase/firestore";
 
 export const decodeFirestorePosts = (

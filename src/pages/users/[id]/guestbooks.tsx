@@ -1,27 +1,20 @@
-import MainMenu from "@/shared/components/MainMenu";
-import MessageInput from "@/components/ui/input/MessageInput";
-import {
-  Timestamp,
-  arrayUnion,
-  doc,
-  onSnapshot,
-  setDoc,
-} from "firebase/firestore";
+import MainMenu from "../../../shared/components/MainMenu";
+import MessageInput from "../../../components/ui/input/MessageInput";
+import { Timestamp } from "firebase/firestore";
 import styled from "styled-components";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { IGuestbook } from "@/types/users";
-import { auth, firestore } from "../../../../firebase";
+import { IGuestbook } from "../../../types/users";
+import { auth } from "../../../../firebase";
 import { v4 as uuidv4 } from "uuid";
-import { formatTimestampToDateStr } from "@/utils/common";
+import { formatTimestampToDateStr } from "../../../utils/common";
 import Image from "next/image";
-import { listenGuestbook, sendGuestbook } from "@/features/guestbook/api";
+import {
+  listenGuestbook,
+  sendGuestbook,
+} from "../../../features/guestbook/api";
 
 const Wrapper = styled.div`
-  /* display: flex;
-  height: 100%;
-  justify-content: center;
-  align-items: center; */
   width: 100%;
   height: 98%;
   display: flex;
@@ -40,7 +33,6 @@ const SearchContainer = styled.div`
   flex: 2;
   width: 300px;
   height: 100%;
-  /* background: yellow; */
 `;
 const Search = styled.div`
   width: 100%;

@@ -1,13 +1,13 @@
-import MessageInput from "@/components/ui/input/MessageInput";
-import { IChatMessagseType, IChatRoomInfoType } from "@/types/blog";
-import { IUserInfo } from "@/types/users";
-import { getUserInfoFromSession } from "@/utils/user";
+import MessageInput from "../../../components/ui/input/MessageInput";
+import { IChatMessagseType, IChatRoomInfoType } from "../../../types/blog";
+import { IUserInfo } from "../../../types/users";
+import { getUserInfoFromSession } from "../../../utils/user";
 import { child, onValue, push, ref, update } from "firebase/database";
 import { Timestamp } from "firebase/firestore";
 import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { db } from "../../../../firebase";
-import { formatTimestampToDateStr } from "@/utils/common";
+import { formatTimestampToDateStr } from "../../../utils/common";
 
 const MainContent = styled.div`
   border-left: solid 1px rgba(0, 0, 0, 0.2);
@@ -70,7 +70,7 @@ export default function ChattingRoom({
     });
 
     return () => unsubscribe();
-  }, [chatMeta?.chatRoomId]);
+  }, [chatMeta]);
 
   useEffect(() => {
     if (chatMessageRef && chatMessageRef.current) {

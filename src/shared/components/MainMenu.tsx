@@ -3,16 +3,11 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { v4 as uuidv4 } from "uuid";
 import styled from "styled-components";
-import useAuth from "@/features/auth/hook/useAuth";
-import { signOutUser } from "@/utils/auth";
+import useAuth from "../../features/auth/hook/useAuth";
 import { auth } from "../../../firebase";
-import SignIcon from "@/features/auth/components/SignIcon";
 
 const Wrapper = styled.div`
-  /* width: 200px; */
   flex: 1;
-  /* min-height: 100vh; */
-  /* height: 100%; */
   border-right: solid 1px rgba(0, 0, 0, 0.2);
 `;
 
@@ -44,17 +39,6 @@ const Menu = styled.li`
     padding: 10px;
     width: 40px;
     height: 40px;
-  }
-  &:last-child {
-    position: fixed;
-    bottom: 30px;
-    /* padding: 10px; */
-    &:hover {
-      background: none;
-    }
-    svg {
-      padding: 0px;
-    }
   }
 `;
 
@@ -151,7 +135,7 @@ export default function MainMenu() {
             </Menu> */}
           </>
         )}
-        <Menu>
+        {/* <Menu>
           {isLoggedIn ? (
             <SignIcon onClick={() => signOutUser()} signType="signout" />
           ) : (
@@ -159,7 +143,7 @@ export default function MainMenu() {
               <SignIcon signType="signin" />
             </Link>
           )}
-        </Menu>
+        </Menu> */}
       </MenuList>
     </Wrapper>
   );

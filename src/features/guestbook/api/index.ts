@@ -9,7 +9,7 @@ import {
   setDoc,
 } from "firebase/firestore";
 import { firestore } from "../../../../firebase";
-import { IGuestbook } from "@/types/users";
+import { IGuestbook } from "../../../types/users";
 
 export const sendGuestbook = async (userInfo: any) => {
   try {

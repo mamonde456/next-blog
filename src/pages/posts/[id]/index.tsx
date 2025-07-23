@@ -1,39 +1,23 @@
 import styled from "styled-components";
-import MainMenu from "@/shared/components/MainMenu";
-import { Params } from "next/dist/shared/lib/router/utils/route-matcher";
+import MainMenu from "../../../shared/components/MainMenu";
 import {
-  getMarkdownFromNotionPage,
   getSlugMap,
-} from "@/features/blog/services/notion";
-import { GetStaticProps } from "next";
-import { serialize } from "next-mdx-remote/serialize";
-import { MDXRemote } from "next-mdx-remote";
-import remarkGfm from "remark-gfm";
-import remarkMath from "remark-math";
-import rehypeHighlight from "rehype-highlight";
-import rehypeSlug from "rehype-slug";
-import rehypeAutolinkHeadings from "rehype-autolink-headings";
-import rehypeKatex from "rehype-katex";
-import remarkBreaks from "remark-breaks";
-import rehypePrettyCode from "rehype-pretty-code";
-import PageLoader from "@/components/ui/loader/PageLoader";
-import { getNotionPage, getNotionPageBlocks } from "@/features/blog/api/notion";
-import CodeSlot from "@/components/blog/CodeSlot";
-import { useRouter } from "next/router";
-import { useEffect } from "react";
-import Image from "next/image";
-import {
+  saveFile,
   getCacheData,
-  replaceCodeFormat,
-  saveJSON,
-} from "@/features/blog/services/notion";
-import { getMdxFile } from "@/features/blog/api/public";
+  getNotionSlugMapData,
+  successFailureLogRecorder,
+  getNotionMetaData,
+  saveMDXComponent,
+} from "../../../features/blog/services/notion";
+import { GetStaticProps } from "next";
+
+import { compileMdx } from "@/shared/notion/mdx";
+import MDXRenderer from "@/features/blog/components/notion/MDXRenderer";
+import { isExpired } from "@/shared/cache/ttl";
 
 const Wrapper = styled.div`
   width: 100%;
-  /* height: 100%; */
   display: flex;
-  /* margin-top: 0.8%; */
   background-color: white;
   border-radius: 10px;
 `;
@@ -51,36 +35,6 @@ const SideMenuList = styled.div`
   width: 300px;
   height: 100%;
   /* background: yellow; */
-`;
-
-const Title = styled.div`
-  padding: 40px;
-  font-size: 42px;
-  color: black;
-  font-weight: 700;
-  text-align: center;
-  margin-bottom: 25px;
-`;
-
-const MetaData = styled.div`
-  display: flex;
-  justify-content: space-between;
-  padding: 0px 30px;
-  margin-bottom: 40px;
-`;
-
-const UserInfo = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  span {
-    font-size: 18px;
-  }
-`;
-const PostsInfo = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: right;
 `;
 
 const getImageUrl = (src: string) => `${src ? src : "/blank-profile.svg"}`;
@@ -105,42 +59,13 @@ const Content = styled.div`
   }
 `;
 
-const NotionComponents = styled.div``;
-
-const BtnContainer = styled.div`
-  display: flex;
-  justify-content: right;
-  /* padding: 20px 30px; */
-  padding: 10px 0px;
-  gap: 10px;
-`;
 export default function Detail({ source }: { source: any }) {
-  useEffect(() => {
-    console.log(source);
-  }, []);
   return (
     <Wrapper>
       <MainMenu />
       <NotebookWrap>
         <Content>
-          {source && (
-            <MDXRemote
-              {...source}
-              components={{
-                img: ({ src, alt }) => (
-                  <Image
-                    src={src || ""}
-                    alt={alt || ""}
-                    width={800}
-                    height={500}
-                    loading="lazy"
-                  />
-                ),
-                CodeSlot,
-              }}
-            />
-            // <MDXRemote {...source} />
-          )}
+          <MDXRenderer compiledCode={source} />
         </Content>
       </NotebookWrap>
       <SideMenuList />
@@ -149,8 +74,14 @@ export default function Detail({ source }: { source: any }) {
 }
 
 export const getStaticPaths = async () => {
-  const slugMap = await getSlugMap();
-
+  const cachePath = getCacheData("/public/cache/slugMap.json");
+  if (Object.keys(cachePath).length > 0) {
+    return {
+      paths: Object.keys(cachePath).map((slug) => ({ params: { id: slug } })),
+      fallback: "blocking",
+    };
+  }
+  const { slugMap } = await getSlugMap();
   return {
     paths: Object.keys(slugMap).map((slug) => ({ params: { id: slug } })),
     fallback: "blocking",
@@ -158,37 +89,49 @@ export const getStaticPaths = async () => {
 };
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
-  const { id: slug } = params as Params;
-  const slugMap = await getSlugMap();
-  const id = slugMap[slug];
-  // const results = await getNotionPageBlocks(id);
-  // const x = await getMarkdownFormNotionBlocks(results);
-  if (!id) return { notFound: true };
+  const { id: slug } = params as any;
 
-  const mdxFile = getCacheData(`/public/mdx/${id}.mdx`);
-  if (mdxFile) {
-    return {
-      props: { source: mdxFile },
-      revalidate: 60,
-    };
+  const cacheSlug = getCacheData("/public/cache/slugMap.json");
+  const cacheMeta = getCacheData("/public/cache/metaData.json");
+
+  if (cacheSlug) {
+    const id = cacheSlug[slug];
+    const currentMeta = cacheMeta[id];
+    const resultTtl = isExpired(
+      currentMeta.cache_generated_at,
+      currentMeta.ttl
+    );
+    if (!resultTtl) {
+      const compiled = getCacheData(`/public/cache/mdx/${id}.js`);
+      if (compiled) {
+        return { props: { source: compiled }, revalidate: 3600 };
+      }
+    }
   }
 
-  const mdString = await getMarkdownFromNotionPage(id);
-  // const a = replaceCodeFormat(mdString, id);
-  const mdxResult = await serialize(mdString || "", {
-    mdxOptions: {
-      remarkPlugins: [remarkGfm, remarkBreaks],
-      rehypePlugins: [
-        rehypeSlug,
-        rehypeAutolinkHeadings,
-        [rehypePrettyCode, { theme: "github-light" }],
-      ],
-    },
-  });
-  saveJSON("public/mdx", id + ".mdx", mdxResult);
+  const { slugMap, notionList } = await getSlugMap();
+
+  const id = slugMap[slug];
+
+  if (!id) return { notFound: true };
+
+  const compiled = await compileMdx(id);
+  const notion = notionList.find((item) => item.id === id);
+
+  if (!notion) return { notFound: true };
+  if (!compiled) return { notFound: true };
+
+  const CACHE_TTL_SECONDS = 24 * 60 * 60; // 24시간
+  const newMeta = getNotionMetaData(notion, CACHE_TTL_SECONDS);
+  const newslug = getNotionSlugMapData(notion);
+
+  const saveMeta = saveFile("public/cache", "metaData.json", newMeta);
+  const saveSlug = saveFile("public/cache", "slugMap.json", newslug);
+  const saveMdx = saveMDXComponent("public/cache/mdx", id + ".js", compiled);
+  successFailureLogRecorder([saveMeta, saveSlug, saveMdx]);
 
   return {
-    props: { source: mdxResult },
+    props: { source: compiled },
     revalidate: 60,
   };
 };

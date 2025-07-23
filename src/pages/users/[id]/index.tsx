@@ -1,24 +1,14 @@
-import { getStorage, ref, getDownloadURL } from "firebase/storage";
-import { auth, firestore, storage } from "../../../../firebase";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { auth } from "../../../../firebase";
+import { useState } from "react";
 import styled from "styled-components";
 import "react-image-crop/dist/ReactCrop.css";
-import MainMenu from "@/shared/components/MainMenu";
+import MainMenu from "../../../shared/components/MainMenu";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { collection, where, query, getDocs } from "firebase/firestore";
-import { IFirebasePost } from "@/types/blog";
-import ItemList from "@/features/blog/components/ItemList";
-import { getUserInfoFromSession } from "@/utils/user";
-import { IUserInfo } from "@/types/users";
-import { getAllPostsFromFirebase } from "@/utils/\bblog";
-import { NotionType } from "@/features/blog/api/notion/type";
+import ItemList from "../../../features/blog/components/ItemList";
+import { NotionType } from "../../../features/blog/api/notion/type";
 
 const Wrapper = styled.div`
-  /* display: flex;
-  height: 100%;
-  justify-content: center;
-  align-items: center; */
   width: 100%;
   height: 98%;
   display: flex;
