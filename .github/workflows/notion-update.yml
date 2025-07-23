@@ -2,14 +2,15 @@ name: Notion Webhook Handler
 on:
   repository_dispatch:
     types: [notion-update]
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4 # 이것도 최신 버전으로 업데이트
 
       - name: Set up Node.js
-        uses: action/setup-node@v2
+        uses: actions/setup-node@v4 # 수정됨
         with:
           node-version: "20"
 
@@ -20,8 +21,8 @@ jobs:
         run: |
           node scripts/generate-cache.ts \
         env:
-          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY}}
-          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID}}
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
           WEBHOOK_DATA: ${{toJson(github.event.client_payload.webhook)}}
 
       - name: Commit and push changes
@@ -29,5 +30,5 @@ jobs:
           git config --global user.name 'mamonde456'
           git config --global user.email 'mamonde456@gmail.com'
           git add content/
-          git commit -m "Update content from Notion: page ${{github.event.client_payload.webhook.entity.id}}/ type: ${{github.event.client_payload.webhook.entity.type}} " || echo "No changes to commit"
+          git commit -m "Update content from Notion: page ${{github.event.client_payload.webhook.entity.id}} type: ${{github.event.client_payload.webhook.entity.type}}" || echo "No changes to commit"
           git push

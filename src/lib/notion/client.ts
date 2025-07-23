@@ -12,7 +12,7 @@ if (
 }
 
 if (!process.env.NOTION_TOKEN) {
-  throw new Error("🚨 NOTION_TOKEN이 설정되어 있지 않습니다.");
+  console.log("🚨 NOTION_TOKEN이 설정되어 있지 않습니다.");
 }
 
 export const notion = new Client({

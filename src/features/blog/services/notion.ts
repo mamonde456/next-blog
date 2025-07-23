@@ -140,7 +140,7 @@ export const getNotionMetaData = (notion: NotionType, ttl: number) => {
 
 export const getNotionSlugMapData = (notion: NotionType) => {
   const cacheSlugMap = getCacheData("/public/cache/slugMap.json");
-  let title = notion.properties.이름.title[0].plain_text;
+  let title = toSlug(notion.properties.이름.title[0].plain_text);
   if (!cacheSlugMap) return null;
   if (!notion.properties.이름.title[0].plain_text) title = "제목없음";
   const newCacheMeta = JSON.parse(JSON.stringify(cacheSlugMap));
