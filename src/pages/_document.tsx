@@ -43,9 +43,7 @@ class MyDocument extends Document {
   render() {
     return (
       <Html lang="en">
-        <Head>
-          <title>bigin.log</title>
-        </Head>
+        <Head />
         <body>
           <Main />
           <NextScript />

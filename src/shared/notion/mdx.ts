@@ -29,26 +29,3 @@ export const compileMdx = async (id: string) => {
   }
   return null;
 };
-
-export const formatterMDX = async (id: string) => {
-  const mdString = await getMarkdownFromNotionPage(id);
-  const mdxResult = await serialize(mdString || "", {
-    mdxOptions: {
-      format: "mdx",
-      remarkPlugins: [remarkGfm, remarkBreaks],
-      rehypePlugins: [
-        rehypeSlug,
-        rehypeAutolinkHeadings,
-        [
-          rehypePrettyCode,
-          ,
-          {
-            theme: "github-light",
-          },
-        ],
-      ],
-    },
-    parseFrontmatter: false,
-  });
-  return mdxResult;
-};
