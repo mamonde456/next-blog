@@ -2,9 +2,9 @@ import Link from "next/link";
 import { useState } from "react";
 import styled from "styled-components";
 import MainMenu from "../shared/components/MainMenu";
-import MainPosts from "../features/blog/components/MainPosts";
 import { IFirebasePost } from "../types/blog";
 import { getUploadDatabaseQuery } from "../features/blog/api/notion";
+import ItemList from "@/features/blog/components/ItemList";
 
 const Wrapper = styled.div`
   min-height: 100vh;
@@ -108,8 +108,10 @@ export default function Home({ notionList }: any) {
   return (
     <Wrapper>
       <MainMenu />
-      <MainPosts postList={notionList} />
-      <SideMenuList>
+
+      <ItemList itemList={notionList} />
+
+      {/* <SideMenuList>
         <Search>
           <svg aria-hidden="true" viewBox="0 0 24 24">
             <g>
@@ -147,7 +149,7 @@ export default function Home({ notionList }: any) {
             </>
           )}
         </Search>
-      </SideMenuList>
+      </SideMenuList> */}
     </Wrapper>
   );
 }
@@ -156,22 +158,5 @@ export const getStaticProps = async () => {
   const notionData = await getUploadDatabaseQuery();
   const notionList = notionData?.results;
 
-  // const posts = await getAllPostsFromFirebase();
-  // if (posts !== null) {
-  //   const postList = posts?.map((post) => {
-  //     if (
-  //       typeof post.created_at !== "string" &&
-  //       typeof post.update_at !== "string"
-  //     ) {
-  //       return {
-  //         ...post,
-  //         created_at: formatTimestampToDateStr(post.created_at),
-  //         update_at: formatTimestampToDateStr(post.update_at),
-  //       };
-  //     }
-  //     return post;
-  //   });
-  //   return { props: { postList } };
-  // }
-  return { props: { notionList } };
+  return { props: { notionList }, revalidate: 60 };
 };
