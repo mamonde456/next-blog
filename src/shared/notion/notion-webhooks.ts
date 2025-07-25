@@ -19,6 +19,7 @@ import {
 } from "../../../const";
 import { Octokit } from "@octokit/rest";
 import { compileMdx } from "./mdx";
+import { isExpired } from "../cache/ttl";
 
 export type NotionWebhooksPayload = {
   id: string;
@@ -122,7 +123,7 @@ export const deletedNotionPage = (entity: IdAndType, timestamp: string) => {
 
 export const updatedNotionPage = async (
   entity: IdAndType,
-  timestamp: string
+  timestamp?: string
 ) => {
   const { id } = entity;
   // 데이터베이스 항목만 업데이트 지원.
@@ -249,7 +250,16 @@ export const handleNotionWebhook = (
     isParentDatabase(webhook) &&
     isSubscribedDatabase(webhook)
   ) {
-    console.log("test 잘되나요?");
     fn(webhook);
   }
+};
+
+export const checkCacheNotionTTL = () => {
+  const cacheMeta = getCacheData("/public/cache/metaData.json");
+  const cacheExpired = [];
+  Object.keys(cacheMeta).forEach((id) => {
+    const generatedAt = cacheMeta[id].cache_generated_at;
+    const expired = isExpired(generatedAt);
+    if (expired) cacheExpired.push(id);
+  });
 };
