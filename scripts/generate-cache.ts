@@ -14,6 +14,16 @@ const getWebhookData = () => {
   return JSON.parse(webhookDataStr);
 };
 
+// 웹훅 알림이 전달됨 -> 깃헙 트리거 발생해서 스크립트 실행
+// 스크립트 실행할 때 웹훅 데이터가 전달되어 와야 함.
+// 그렇다면, 웹훅 알림이 없을 때는?
+// ttl 만료로 다시 갱신해야 할 때는 어떤 걸 트리거 해야할까?
+// updatedNotionPage 함수를 호출하면 됨. id만 넘겨주면 괜찮음.
+// 그렇다면 재갱신은 어디서 이루어져야 할까?
+//앱 실행할 때 이루어져야 함. 즉 빌드 전에.
+// 그렇다면 여기서 실행되어야 함.
+//
+
 async function main() {
   const webhook = getWebhookData();
   const NOTION_DATABASE_ID = process.env.NOTION_DATABASE_ID;
