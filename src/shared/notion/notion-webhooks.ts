@@ -256,10 +256,12 @@ export const handleNotionWebhook = (
 
 export const checkCacheNotionTTL = () => {
   const cacheMeta = getCacheData("/public/cache/metaData.json");
-  const cacheExpired = [];
+  const cacheExpired: string[] = [];
   Object.keys(cacheMeta).forEach((id) => {
     const generatedAt = cacheMeta[id].cache_generated_at;
     const expired = isExpired(generatedAt);
     if (expired) cacheExpired.push(id);
   });
+
+  return cacheExpired;
 };
