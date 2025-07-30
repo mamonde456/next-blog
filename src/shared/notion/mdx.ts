@@ -67,6 +67,28 @@ export const handleCacheMDXTTL = async () => {
   // metaData도 갱신 필요.
   for (const id of mdxsWithImages) {
     const compiled = compileMdx(id);
-    saveFile("/public/cache/mdx", id, compiled);
+    const result = saveFile("/public/cache/mdx", id, compiled);
+    if (result.message === "success") {
+      console.log("mdx 파일 저장 성공: ", id);
+      const cacheMetaData = getCacheData(`/public/cache/metaData.json`);
+      cacheMetaData.cache_generated_at = new Date().toISOString();
+      const result = saveFile("/public/cache/mdx", id, compiled);
+      if (result.message === "success") {
+        console.log("meta data 파일 저장 성공: ", id);
+        continue;
+      } else {
+        console.log("meta data 파일 저장 실패: ", id);
+        continue;
+      }
+    } else {
+      console.log("파일 저장 실패: ", id);
+      continue;
+    }
   }
+};
+
+const hasMetaDataChange = () => {
+  // 캐시데이터와 최신 데이터를 비교하여 타이틀이 변동되었는지,
+  // 그외에 변동된 속성값이 있는지 순차적으로 확인
+  // 페이지 id를 통해 노션 페이지 속성값만 호출
 };
