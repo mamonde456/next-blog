@@ -9,6 +9,9 @@ import rehypeSlug from "rehype-slug";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 import { compile } from "@mdx-js/mdx";
+import { getNotionPage } from "@/features/blog/api/notion";
+import { NotionPage, NotionType } from "@/features/blog/api/notion/type";
+import { toSlug } from "@/utils/slugify";
 
 export const compileMdx = async (id: string) => {
   const mdString = await getMarkdownFromNotionPage(id);
@@ -87,8 +90,27 @@ export const handleCacheMDXTTL = async () => {
   }
 };
 
-const hasMetaDataChange = () => {
+const hasMetaDataChange = async (id: string) => {
   // 캐시데이터와 최신 데이터를 비교하여 타이틀이 변동되었는지,
   // 그외에 변동된 속성값이 있는지 순차적으로 확인
   // 페이지 id를 통해 노션 페이지 속성값만 호출
+  const page = (await getNotionPage(id)) as NotionPage;
+  if (page) {
+    const title = page.properties.이름.title[0].plain_text;
+    const cacheMeta = getCacheData("/public/cache/metaData.json");
+    const cacheTitle = cacheMeta[id].title;
+    if (cacheTitle !== title) {
+      // 데이터 갱신
+      //slugMap 갱신
+      const cacheSlugMap = getCacheData("/public/cache/slugMap.json");
+      const newSlugMap = JSON.parse(JSON.stringify(cacheSlugMap));
+      delete newSlugMap[toSlug(cacheTitle)];
+      newSlugMap[toSlug(title)] = id;
+      saveFile("/public/cache/", "slugMap.json", newSlugMap);
+
+      const newMetaData = JSON.parse(JSON.stringify(cacheMeta));
+      newMetaData[id].title = title;
+      saveFile("/public/cache/", "metaSlug.json", newMetaData);
+    }
+  }
 };
