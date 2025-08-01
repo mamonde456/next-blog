@@ -47,10 +47,7 @@ export const hasImages = (compiledCode: any) => {
   return imagePattern.test(compiledCode.toString());
 };
 
-export const handleCacheMDXTTL = async () => {
-  // mdx 들을 순회하며 이미지가 있는 지 확인
-  // 이미지 있는 mdx의 id 추출
-  // id로 새롭게 페이지를 불러와 캐시 데이터 갱신
+const checkCacheTTL = () => {
   const slugMap = getCacheData("/public/cache/slugMap.json");
   const ids: string[] = Object.values(slugMap);
   const mdxsWithImages: string[] = [];
@@ -64,28 +61,31 @@ export const handleCacheMDXTTL = async () => {
     continue;
   }
 
-  // 캐시 데이터를 최신 데이터로 갱신
-  // mdx 파일 갱신
-  // slugMap 확인 필요 -> 제목 변경 시에...
-  // metaData도 갱신 필요.
-  for (const id of mdxsWithImages) {
-    const compiled = compileMdx(id);
-    const result = saveFile("/public/cache/mdx", id, compiled);
-    if (result.message === "success") {
-      console.log("mdx 파일 저장 성공: ", id);
-      const cacheMetaData = getCacheData(`/public/cache/metaData.json`);
-      cacheMetaData.cache_generated_at = new Date().toISOString();
+  return mdxsWithImages;
+};
+
+export const handleCacheMDXTTL = () => {
+  const mdxsWithImages = checkCacheTTL();
+  if (mdxsWithImages && mdxsWithImages.length > 0) {
+    for (const id of mdxsWithImages) {
+      const compiled = compileMdx(id);
       const result = saveFile("/public/cache/mdx", id, compiled);
       if (result.message === "success") {
-        console.log("meta data 파일 저장 성공: ", id);
-        continue;
+        console.log("mdx 파일 저장 성공: ", id);
+        const cacheMetaData = getCacheData(`/public/cache/metaData.json`);
+        cacheMetaData.cache_generated_at = new Date().toISOString();
+        const result = saveFile("/public/cache/mdx", id, compiled);
+        if (result.message === "success") {
+          console.log("meta data 파일 저장 성공: ", id);
+          continue;
+        } else {
+          console.log("meta data 파일 저장 실패: ", id);
+          continue;
+        }
       } else {
-        console.log("meta data 파일 저장 실패: ", id);
+        console.log("파일 저장 실패: ", id);
         continue;
       }
-    } else {
-      console.log("파일 저장 실패: ", id);
-      continue;
     }
   }
 };
@@ -100,8 +100,6 @@ const hasMetaDataChange = async (id: string) => {
     const cacheMeta = getCacheData("/public/cache/metaData.json");
     const cacheTitle = cacheMeta[id].title;
     if (cacheTitle !== title) {
-      // 데이터 갱신
-      //slugMap 갱신
       const cacheSlugMap = getCacheData("/public/cache/slugMap.json");
       const newSlugMap = JSON.parse(JSON.stringify(cacheSlugMap));
       delete newSlugMap[toSlug(cacheTitle)];
