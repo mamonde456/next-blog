@@ -13,7 +13,6 @@ export const isExpired = (dateTime: string | Date, ttl?: number) => {
   if (dateTime) {
     const createAt = new Date(dateTime);
     const expireAt = new Date(createAt.getTime() + ttlMilliseconds);
-    console.log(createAt, expireAt);
     const now = new Date();
 
     return now >= expireAt;
