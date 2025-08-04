@@ -2,6 +2,7 @@ import {
   getCacheData,
   getMarkdownFromNotionPage,
   saveFile,
+  saveMDXComponent,
 } from "../../../src/features/blog/services/notion";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypePrettyCode from "rehype-pretty-code";
@@ -9,9 +10,10 @@ import rehypeSlug from "rehype-slug";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 import { compile } from "@mdx-js/mdx";
-import { getNotionPage } from "@/features/blog/api/notion";
-import { NotionPage, NotionType } from "@/features/blog/api/notion/type";
-import { toSlug } from "@/utils/slugify";
+import { getNotionPage } from "../../../src/features/blog/api/notion";
+import { NotionPage } from "../../../src/features/blog/api/notion/type";
+import { toSlug } from "../../utils/slugify";
+import { isExpired } from "../cache/ttl";
 
 export const compileMdx = async (id: string) => {
   const mdString = await getMarkdownFromNotionPage(id);
@@ -38,25 +40,28 @@ export const compileMdx = async (id: string) => {
 };
 
 export const hasImages = (compiledCode: any) => {
+  if (!compiledCode) return "";
   const imagePattern = /_jsx\s*\(\s*(_components\.img|"img")/g;
 
   if (typeof compiledCode === "string") {
     return imagePattern.test(compiledCode);
   }
-
   return imagePattern.test(compiledCode.toString());
 };
 
 const checkCacheTTL = () => {
   const slugMap = getCacheData("/public/cache/slugMap.json");
+  const metaData = getCacheData("/public/cache/metaData.json");
   const ids: string[] = Object.values(slugMap);
   const mdxsWithImages: string[] = [];
   for (const id of ids) {
-    const mdx = getCacheData(`/public/cache/mdx/${id}`);
-    const result = hasImages(mdx);
-    if (result) {
-      mdxsWithImages.push(id);
-      continue;
+    if (metaData[id]) {
+      const expired = isExpired(metaData[id].cache_generated_at, 24);
+      if (expired) {
+        mdxsWithImages.push(id);
+      } else {
+        continue;
+      }
     }
     continue;
   }
@@ -64,29 +69,46 @@ const checkCacheTTL = () => {
   return mdxsWithImages;
 };
 
-export const handleCacheMDXTTL = () => {
+export const handleCacheMDXTTL = async () => {
   const mdxsWithImages = checkCacheTTL();
   if (mdxsWithImages && mdxsWithImages.length > 0) {
     for (const id of mdxsWithImages) {
-      const compiled = compileMdx(id);
-      const result = saveFile("/public/cache/mdx", id, compiled);
-      if (result.message === "success") {
+      const compiled = await compileMdx(id);
+      const result = saveFile("/public/cache/mdx", id + ".js", compiled);
+      if (result.message === "success" && compiled) {
         console.log("mdx 파일 저장 성공: ", id);
         const cacheMetaData = getCacheData(`/public/cache/metaData.json`);
-        cacheMetaData.cache_generated_at = new Date().toISOString();
-        const result = saveFile("/public/cache/mdx", id, compiled);
-        if (result.message === "success") {
+        const newMetaData = JSON.parse(JSON.stringify(cacheMetaData));
+        newMetaData[id].cache_generated_at = new Date().toISOString();
+        const savedMetaData = saveFile(
+          "/public/cache/",
+          "metaData.json",
+          newMetaData
+        );
+        const savedMDX = saveMDXComponent(
+          "/public/cache/mdx",
+          id + ".js",
+          compiled
+        );
+        if (
+          savedMetaData.message === "success" &&
+          savedMDX.message === "success"
+        ) {
+          console.log("mdx 파일 저장 성공: ", id);
           console.log("meta data 파일 저장 성공: ", id);
           continue;
         } else {
+          console.log("mdx 파일 저장 실패: ", id);
           console.log("meta data 파일 저장 실패: ", id);
           continue;
         }
       } else {
-        console.log("파일 저장 실패: ", id);
+        console.log("mdx, meta 파일 저장 실패: ", id);
         continue;
       }
     }
+  } else {
+    console.log("TTL 유효함.");
   }
 };
 

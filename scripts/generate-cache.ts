@@ -1,5 +1,3 @@
-import path from "path";
-import fs from "fs";
 import dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
 
@@ -7,7 +5,7 @@ import {
   handleNotionEvent,
   handleNotionWebhook,
 } from "../src/shared/notion/notion-webhooks.ts";
-import { handleCacheMDXTTL } from "@/shared/notion/mdx.ts";
+import { handleCacheMDXTTL } from "../src/shared/notion/mdx.ts";
 
 const getWebhookData = () => {
   const webhookDataStr = process.env.WEBHOOK_DATA;
