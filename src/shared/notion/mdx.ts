@@ -14,6 +14,8 @@ import { getNotionPage } from "../../../src/features/blog/api/notion";
 import { NotionPage } from "../../../src/features/blog/api/notion/type";
 import { toSlug } from "../../utils/slugify";
 import { isExpired } from "../cache/ttl";
+import { updateJSONFile } from "../cache/json";
+import { MetaDataMap } from "@/types/cache";
 
 export const compileMdx = async (id: string) => {
   const mdString = await getMarkdownFromNotionPage(id);
@@ -77,13 +79,12 @@ export const handleCacheMDXTTL = async () => {
       const result = saveFile("/public/cache/mdx", id + ".js", compiled);
       if (result.message === "success" && compiled) {
         console.log("mdx 파일 저장 성공: ", id);
-        const cacheMetaData = getCacheData(`/public/cache/metaData.json`);
-        const newMetaData = JSON.parse(JSON.stringify(cacheMetaData));
-        newMetaData[id].cache_generated_at = new Date().toISOString();
-        const savedMetaData = saveFile(
-          "/public/cache/",
-          "metaData.json",
-          newMetaData
+        const savedMetaData = updateJSONFile<MetaDataMap>(
+          "/public/cache/metaData.json",
+          (data) => {
+            data[id].cache_generated_at = new Date().toISOString();
+            return data;
+          }
         );
         const savedMDX = saveMDXComponent(
           "/public/cache/mdx",
