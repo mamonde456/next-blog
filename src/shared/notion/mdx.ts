@@ -65,6 +65,10 @@ const checkCacheTTL = () => {
       const expired = isExpired(metaData[id].cache_generated_at, 24);
       if (expired) {
         const cacheMDX = getCacheData(`/public/cache/mdx/${id}.js`);
+        if (!cacheMDX) {
+          expiredItems.push(id);
+          continue;
+        }
         const result = hasImages(cacheMDX);
         if (!result) continue;
         expiredItems.push(id);
@@ -84,7 +88,6 @@ export const handleCacheMDXTTL = async () => {
     console.log("유효기간 유효함");
     return;
   }
-
   for (const id of expiredItems) {
     processMDXFile(id);
     updateJSONFile<MetaDataMap>("/public/cache/metaData.json", (data) => {
