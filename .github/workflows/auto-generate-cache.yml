@@ -1,0 +1,74 @@
+name: Auto Generate Cache
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch: # 수동 실행 가능
+
+jobs:
+  generate-and-push:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate cache
+        run: npm run generate-cache
+
+      - name: Get current timestamp
+        id: timestamp
+        run: |
+          # KST 시간으로 포맷팅
+          TIMESTAMP=$(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M:%S KST')
+          echo "timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "Changes detected in static files"
+            git status --short
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "No changes in static files"
+          fi
+
+      - name: Commit and push changes
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          git config user.name "Auto Cache Generator"
+          git config user.email "actions@github.com"
+
+          # 모든 변경사항 추가
+          git add .
+
+          # 커밋 메시지 생성
+          git commit -m "자동 캐시 갱신 - ${{ steps.timestamp.outputs.timestamp }}"
+
+          # 푸시
+          git push origin main
+
+          echo "Successfully pushed cache update"
+
+      - name: Summary
+        run: |
+          if [ "${{ steps.changes.outputs.has_changes }}" = "true" ]; then
+            echo "Cache generated and pushed at ${{ steps.timestamp.outputs.timestamp }}"
+          else
+            echo "Cache generated but no changes detected"
+          fi
