@@ -44,3 +44,12 @@ export const formatTimestampToDateStr = (timestamp: TimestampType | null) => {
     return "";
   }
 };
+
+export const safeClone = <T>(data: T) => {
+  const hasStructuredClone = typeof globalThis.structuredClone === "function";
+  if (hasStructuredClone) {
+    return structuredClone(data);
+  } else {
+    return JSON.parse(JSON.stringify(data));
+  }
+};
