@@ -224,7 +224,11 @@ export const triggerGitHubAction = async (webhook: NotionWebhooksPayload) => {
   console.log("깃헙 트리거 함수 실행");
   const githubActionPayload = {
     event_type: "notion-update",
-    client_payload: webhook,
+    client_payload: {
+      webhook,
+      triggered_by: "notion-webhook",
+      timestamp: new Date().toISOString(),
+    },
   };
   const octokit = new Octokit({ auth: GITHUB_TOKEN });
   if (GITHUB_OWNER && GITHUB_REPO) {
@@ -236,7 +240,11 @@ export const triggerGitHubAction = async (webhook: NotionWebhooksPayload) => {
       });
       return { status: true };
     } catch (error) {
-      return { status: false, error };
+      console.error("GitHub Actions 트리거 실패: ", error);
+      return {
+        status: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
     }
   }
 };
