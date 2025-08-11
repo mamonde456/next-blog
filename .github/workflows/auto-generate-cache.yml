@@ -27,6 +27,8 @@ jobs:
         run: npm ci
 
       - name: Generate cache
+        env:
+          NOTION_TOKEN: ${{secrets.NOTION_TOKEN}}
         run: npm run generate-cache
 
       - name: Get current timestamp
