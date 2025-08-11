@@ -2,33 +2,82 @@ name: Notion Webhook Handler
 on:
   repository_dispatch:
     types: [notion-update]
+  workflow_dispatch: # 수동 실행
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{secrets.GITHUB_TOKEN}}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+          cache: "npm"
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
+
+      - name: Debug webhook payload
+        run: |
+          echo "Webhook event type: ${{github.event.action}}"
+          echo "Client payload: ${{toJson(github.event.client_payload)}}"
 
       - name: Update specific page cache
         run: |
-          node scripts/generate-cache.ts \
+          npm run generate-cache
         env:
           NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
           WEBHOOK_DATA: ${{toJson(github.event.client_payload.webhook)}}
 
+      - name: Get current timestamp
+        id: timestamp
+        run: |
+          TIMESTAMP=$(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M:%S KST')
+          echo "timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "Changes detected"
+            git status --short
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "No changes detected"
+          fi
+
       - name: Commit and push changes
+        if: steps.changes.outputs.has_changes == 'true'
         run: |
           git config --global user.name 'mamonde456'
           git config --global user.email 'mamonde456@gmail.com'
           git add content/
-          git commit -m "Update content from Notion: page ${{github.event.client_payload.webhook.entity.id}} type: ${{github.event.client_payload.webhook.entity.type}}" || echo "No changes to commit"
+
+          PAGE_ID="${{github.event.client_payload.webhook.entity.id}}"
+          PAGE_TYPE="${{github.event.client_payload.webhook.entity.type}}"
+
+          git commit -m "노션 콘텐츠 업데이트: ${{steps.timestamp.outputs.timestamp}} 
+
+          - 페이지 id: ${PAGE_ID}
+          - 업데이트 타입: ${PAGE_TYPE}
+          - 웹훅 트리거로 자동 갱신" || echo "No changes to commit"
+
           git push
+
+      - name: Summary
+        run: |
+          echo "Notion webhook processed"
+          echo "Timestamp: ${{steps.timestamp.outputs.timestamp}}"
+          if [ "${{ steps.changes.outputs.has_changes }}" = "true" ]; then
+          echo "✅ Content updated and pushed"
+          else
+            echo "ℹ️ No content changes"
+          fi
