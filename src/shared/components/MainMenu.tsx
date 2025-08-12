@@ -9,10 +9,10 @@ import { auth } from "../../../firebase";
 const Wrapper = styled.div`
   flex: 1;
   border-right: solid 1px rgba(0, 0, 0, 0.2);
+  padding: 10px;
 `;
 
 const MenuList = styled.ul`
-  width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -25,6 +25,7 @@ const Menu = styled.li`
   font-size: 18px;
   border-radius: 10px;
   display: flex;
+  gap: 10px;
   a {
     width: 100%;
     display: flex;
@@ -36,9 +37,8 @@ const Menu = styled.li`
     background-color: #eeeeee;
   }
   svg {
-    padding: 10px;
-    width: 40px;
-    height: 40px;
+    width: 25px;
+    height: 25px;
   }
 `;
 
