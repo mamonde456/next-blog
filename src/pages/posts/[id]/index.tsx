@@ -14,6 +14,9 @@ import { GetStaticProps } from "next";
 import { compileMdx } from "@/shared/notion/mdx";
 import MDXRenderer from "@/features/blog/components/notion/MDXRenderer";
 import { isExpired } from "@/shared/cache/ttl";
+import { Meta } from "@/features/blog/api/notion/type";
+import { useEffect } from "react";
+import { formatTimestampToDateStr } from "@/utils/common";
 
 const Wrapper = styled.div`
   width: 100%;
@@ -48,7 +51,7 @@ const UserImg = styled.div<{ src: string }>`
   background-position: center;
 `;
 
-const Content = styled.div`
+const Content = styled.section`
   width: 100%;
   height: 100%;
   padding: 30px;
@@ -59,13 +62,39 @@ const Content = styled.div`
   }
 `;
 
-export default function Detail({ source }: { source: any }) {
+const Title = styled.div`
+  font-size: 50px;
+  font-weight: 700;
+`;
+const Date = styled.p`
+  display: flex;
+  gap: 10px;
+
+  font-size: 14px;
+  opacity: 0.5;
+`;
+
+type PropsType = { meta: Meta; compiled: string };
+export default function Detail({ meta, compiled }: PropsType) {
+  useEffect(() => {
+    console.log(compiled);
+  }, []);
   return (
     <Wrapper>
       <MainMenu />
       <NotebookWrap>
         <Content>
-          <MDXRenderer compiledCode={source} />
+          <Title>{meta.title}</Title>
+          <Date>
+            <span>
+              작성 일자: {formatTimestampToDateStr(meta.created_time)}
+            </span>
+            /
+            <span>
+              업데이트 일자: {formatTimestampToDateStr(meta.last_edited_time)}
+            </span>
+          </Date>
+          <MDXRenderer compiledCode={compiled} />
         </Content>
       </NotebookWrap>
       <SideMenuList />
@@ -97,14 +126,16 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   if (cacheSlug) {
     const id = cacheSlug[slug];
     const currentMeta = cacheMeta[id];
-    const resultTtl = isExpired(
-      currentMeta.cache_generated_at,
-      currentMeta.ttl
-    );
-    if (!resultTtl) {
-      const compiled = getCacheData(`/public/cache/mdx/${id}.js`);
-      if (compiled) {
-        return { props: { source: compiled }, revalidate: 3600 };
+    if (currentMeta) {
+      const resultTtl = isExpired(
+        currentMeta.cache_generated_at,
+        currentMeta.ttl
+      );
+      if (!resultTtl) {
+        const compiled = getCacheData(`/public/cache/mdx/${id}.js`);
+        if (compiled) {
+          return { props: { meta: currentMeta, compiled }, revalidate: 3600 };
+        }
       }
     }
   }
@@ -131,7 +162,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   successFailureLogRecorder([saveMeta, saveSlug, saveMdx]);
 
   return {
-    props: { source: compiled },
+    props: { meta: newMeta, compiled },
     revalidate: 60,
   };
 };
