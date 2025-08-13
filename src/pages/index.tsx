@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import styled from "styled-components";
 import MainMenu from "../shared/components/MainMenu";
 import { IFirebasePost } from "../types/blog";
@@ -7,6 +7,7 @@ import { getUploadDatabaseQuery } from "../features/blog/api/notion";
 import ItemList from "@/features/blog/components/ItemList";
 import { NotionType } from "@/features/blog/api/notion/type";
 import MainPosts from "@/features/blog/components/MainPosts";
+import { toSlug } from "@/utils/slugify";
 
 const Wrapper = styled.div`
   min-height: 100vh;
@@ -70,8 +71,7 @@ const Input = styled.input`
 
 const SearchList = styled.ul`
   min-width: 270px;
-  min-height: 50px;
-  height: 100%;
+  padding: 10px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -81,6 +81,17 @@ const SearchList = styled.ul`
   box-shadow: 0 0 5px 4px rgba(0, 0, 0, 0.1);
   position: absolute;
   top: 85px;
+  font-size: 14px;
+  .search-list {
+    border-bottom: dashed 1px rgba(0, 0, 0, 0.1);
+  }
+  .search-list-end {
+    border-bottom: solid 1px rgba(0, 0, 0, 0.1);
+  }
+  .search-title {
+    font-size: 18px;
+    font-weight: 700;
+  }
 `;
 const SearchItem = styled.li`
   padding: 10px;
@@ -108,6 +119,16 @@ export default function Home({ notionList }: { notionList: NotionType[] }) {
       }
     });
   }, [keyword, notionList]);
+
+  const findSlugData = useCallback((id: string) => {
+    const notionItem = notionList.find((item) => item.id === id);
+    const title = notionItem?.properties.이름.title[0].plain_text || null;
+    if (title) {
+      const slug = toSlug(title);
+      return `/posts/${slug}`;
+    }
+    return "/404";
+  }, []);
   return (
     <Wrapper>
       <MainMenu />
@@ -127,23 +148,34 @@ export default function Home({ notionList }: { notionList: NotionType[] }) {
             onInput={(e) => setKeyword(e.currentTarget.value)}
           />
           {keyword && (
-            <>
+            <SearchList>
               {searchResult.length > 0 ? (
-                <SearchList>
+                <>
+                  <SearchItem className="search-title">검색 결과</SearchItem>
                   {searchResult?.map((item) => (
-                    <SearchItem>
-                      <Link href={`/posts/${item.id}`}>
+                    <SearchItem
+                      className={
+                        searchResult.length === 1
+                          ? "search-list-end"
+                          : "search-list"
+                      }
+                    >
+                      <Link href={findSlugData(item.id)}>
                         {item.properties.이름.title[0].plain_text}
                       </Link>
                     </SearchItem>
                   ))}
-                </SearchList>
+                </>
               ) : (
-                <SearchList>
-                  <SearchItem>검색 결과가 없습니다.</SearchItem>
-                </SearchList>
+                <>
+                  {" "}
+                  <SearchItem className="search-title">검색 결과</SearchItem>
+                  <SearchItem className="search-list-end">
+                    검색 결과가 없습니다.
+                  </SearchItem>
+                </>
               )}
-            </>
+            </SearchList>
           )}
         </Search>
       </SideMenuList>
