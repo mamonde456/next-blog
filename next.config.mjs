@@ -36,7 +36,6 @@ const nextConfig = {
   reactStrictMode: false,
   pageExtensions: ["ts", "tsx", "js", "jsx", "md", "mdx"],
   transpilePackages: ["@mdxeditor/editor"],
-  swcMinify: true,
   compiler: {
     styledComponents: true,
   },
