@@ -2,10 +2,7 @@ import styled from "styled-components";
 import MainMenu from "../../../shared/components/MainMenu";
 import {
   getSlugMap,
-  saveFile,
-  getCacheData,
   getNotionSlugMapData,
-  successFailureLogRecorder,
   getNotionMetaData,
   saveMDXComponent,
 } from "../../../features/blog/services/notion";
@@ -14,9 +11,13 @@ import { GetStaticProps } from "next";
 import { compileMdx } from "@/shared/notion/mdx";
 import MDXRenderer from "@/features/blog/components/notion/MDXRenderer";
 import { isExpired } from "@/shared/cache/ttl";
-import { Meta } from "@/features/blog/api/notion/type";
 import { useEffect } from "react";
-import { formatTimestampToDateStr } from "@/utils/common";
+import {
+  formatTimestampToDateStr,
+  successFailureLogRecorder,
+} from "@/utils/common";
+import { Meta } from "@/types/cache";
+import { getCacheData, saveFile } from "@/shared/cache/json";
 
 const Wrapper = styled.div`
   width: 100%;

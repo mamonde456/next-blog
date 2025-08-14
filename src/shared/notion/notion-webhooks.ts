@@ -23,8 +23,8 @@ import {
   updateJSONFile,
 } from "../cache/json";
 import { successFailureLogRecorder } from "../../utils/common";
-import { CacheMeta, CacheSlugMap } from "@/types/cache";
-import { toSlug } from "@/utils/slugify";
+import { CacheMeta, CacheSlugMap } from "../../types/cache";
+import { toSlug } from "../../utils/slugify";
 
 export type NotionWebhooksPayload = {
   id: string;
