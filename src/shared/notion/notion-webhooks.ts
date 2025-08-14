@@ -1,12 +1,8 @@
 import {
-  deletedCacheData,
-  getCacheData,
   getNotionMetaData,
   getNotionSlugMapData,
   getSlugMap,
-  saveFile,
   saveMDXComponent,
-  successFailureLogRecorder,
 } from "../../features/blog/services/notion";
 import { getNotionPage } from "../../features/blog/api/notion";
 import { NotionPage } from "../../features/blog/api/notion/type";
@@ -20,6 +16,15 @@ import {
 import { Octokit } from "@octokit/rest";
 import { compileMdx } from "./mdx";
 import { isExpired } from "../cache/ttl";
+import {
+  deletedCacheData,
+  getCacheData,
+  saveFile,
+  updateJSONFile,
+} from "../cache/json";
+import { successFailureLogRecorder } from "../../utils/common";
+import { CacheMeta, CacheSlugMap } from "../../types/cache";
+import { toSlug } from "../../utils/slugify";
 
 export type NotionWebhooksPayload = {
   id: string;
@@ -90,34 +95,60 @@ export const createdNotionPage = async (
 ) => {
   // 생성된 페이지
   const { id, type } = entity;
-  const compiled = await compileMdx(id);
-  if (!compiled) return { notFound: true };
-  const notionPage = (await getNotionPage(id)) as NotionPage;
-  let slugOk = null;
-  if (notionPage) {
+  try {
+    const compiled = await compileMdx(id);
+    if (!compiled) throw new Error(`createdNotionPage: [${id}]: 컴파일 실패`);
+    const notionPage = (await getNotionPage(id)) as NotionPage;
+    if (!notionPage)
+      throw new Error(`createdNotionPage: [${id}]: 노션 페이지 읽어오기 실패`);
     const title = notionPage.properties.이름.title[0].plain_text || "제목없음";
-    const slugMap = getCacheData("/public/cache/slugMap.json");
-    const newSlugMap = { ...slugMap, [title]: id };
-    slugOk = saveFile("public/cache", "slugMap.json", newSlugMap);
+    updateJSONFile<CacheSlugMap>("/public/cache/slugMap.json", (data) => {
+      const newSlugMap = { ...data, [toSlug(title)]: id };
+      return newSlugMap;
+    });
+    updateJSONFile<CacheMeta>("/public/cache/metaData.json", (data) => {
+      const meta = {
+        title: id,
+        created_time: timestamp,
+        last_edited_time: timestamp,
+        cache_generated_at: new Date().toISOString(),
+        ttl: 84000,
+        in_trash: false,
+      };
+      const newMetaData = { ...data, [id]: meta };
+      return newMetaData;
+    });
+    const saveMdx = saveFile("public/cache/mdx", id + ".js", compiled);
+    successFailureLogRecorder([saveMdx]);
+  } catch (error) {
+    console.error(error);
+    throw new Error(`✅ createdNotionPage: [${id}]: 생성 실패`);
   }
-
-  const saveMdx = saveMDXComponent("public/cache/mdx", id + ".js", compiled);
-  successFailureLogRecorder([saveMdx]);
 };
 
 export const deletedNotionPage = (entity: IdAndType, timestamp: string) => {
   const { id } = entity;
-  const slugMap = getCacheData("/public/cache/slugMap.json");
-  const key = findKeyByValue(slugMap, id);
-  let slugOk = null;
-  if (key) {
-    const newSlugMap = { ...slugMap };
-    delete newSlugMap[key];
-    slugOk = "success";
-  }
-  const result = deletedCacheData(`/public/mdx/${id}.json`);
-  if (result?.message === "success" && slugOk === "success") {
-    console.log("🚨 삭제 완료: ", id);
+  try {
+    const slugMap = getCacheData("/public/cache/slugMap.json");
+    const key = findKeyByValue(slugMap, id);
+    if (!key)
+      throw new Error(`deletedNotionPage [${id}]: key 찾는 것에 실패했습니다.`);
+    updateJSONFile<CacheSlugMap>("/public/cache/slugMap.json", (data) => {
+      const newSlugMap = { ...data };
+      delete newSlugMap[key];
+      return newSlugMap;
+    });
+    updateJSONFile<CacheSlugMap>("/public/cache/metaData.json", (data) => {
+      const newMetaData = { ...data };
+      delete newMetaData[key];
+      return newMetaData;
+    });
+
+    const deleteMDX = deletedCacheData(`/public/cache/mdx/${id}.js`);
+    // successFailureLogRecorder([deleteMDX]);
+  } catch (error) {
+    console.error(error);
+    throw new Error(`✅ deletedNotionPage: [${id}]: 삭제 실패`);
   }
 };
 

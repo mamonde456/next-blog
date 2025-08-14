@@ -1,9 +1,4 @@
-import {
-  getCacheData,
-  getMarkdownFromNotionPage,
-  saveFile,
-  saveMDXComponent,
-} from "../../../src/features/blog/services/notion";
+import { getMarkdownFromNotionPage } from "../../../src/features/blog/services/notion";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypePrettyCode from "rehype-pretty-code";
 import rehypeSlug from "rehype-slug";
@@ -14,8 +9,8 @@ import { getNotionPage } from "../../../src/features/blog/api/notion";
 import { NotionPage } from "../../../src/features/blog/api/notion/type";
 import { toSlug } from "../../utils/slugify";
 import { isExpired } from "../cache/ttl";
-import { updateJSONFile } from "../cache/json";
-import { MetaDataMap } from "@/types/cache";
+import { getCacheData, saveFile, updateJSONFile } from "../cache/json";
+import { CacheMeta } from "../../types/cache";
 
 export const compileMdx = async (id: string) => {
   const mdString = await getMarkdownFromNotionPage(id);
@@ -90,7 +85,7 @@ export const handleCacheMDXTTL = async () => {
   }
   for (const id of expiredItems) {
     processMDXFile(id);
-    updateJSONFile<MetaDataMap>("/public/cache/metaData.json", (data) => {
+    updateJSONFile<CacheMeta>("/public/cache/metaData.json", (data) => {
       data[id].cache_generated_at = new Date().toISOString();
       return data;
     });

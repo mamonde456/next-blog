@@ -4,7 +4,7 @@ import { getUploadDatabaseQuery } from "../api/notion/index.ts";
 import { NotionType } from "../api/notion/type.ts";
 import { toSlug } from "../../../utils/slugify.ts";
 import { n2m } from "../../../lib/notion/client.ts";
-import { VFile } from "rehype-raw/lib/index";
+import { getCacheData, saveFile } from "../../../shared/cache/json.ts";
 
 export const getSlugMap = async (
   id?: string | undefined
@@ -62,23 +62,6 @@ export const replaceCodeFormat = (markdown: any, slug: string) => {
   return replaced;
 };
 
-export const saveFile = (src: string, slug: string, json: any) => {
-  try {
-    const outDir = path.join(process.cwd(), src);
-    if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
-    const extension = slug.split(".").at(-1);
-    if (!extension) return new Error("파일 확장자를 작성하지 않았습니다.");
-    if (extension === "js") {
-      fs.writeFileSync(path.join(outDir, slug), json);
-    } else {
-      fs.writeFileSync(path.join(outDir, slug), JSON.stringify(json, null, 2));
-    }
-    return { message: "success", id: src + slug };
-  } catch (error) {
-    return { message: "fail: " + error };
-  }
-};
-
 export const saveMDXComponent = (
   src: string,
   slug: string,
@@ -93,27 +76,6 @@ export const saveMDXComponent = (
   } catch (error) {
     return { message: "fail: " + error };
   }
-};
-
-export const getCacheData = (src: string) => {
-  const filePath = path.join(process.cwd(), src);
-  if (fs.existsSync(filePath)) {
-    const fileContent = fs.readFileSync(filePath, "utf-8");
-    if (src.endsWith(".js")) {
-      return fileContent;
-    }
-    return JSON.parse(fileContent);
-  }
-  return null;
-};
-
-export const deletedCacheData = (src: string) => {
-  const filePath = path.join(process.cwd(), src);
-  if (fs.existsSync(filePath)) {
-    const fileContent = fs.rmdirSync(filePath);
-    return { message: "success" };
-  }
-  return null;
 };
 
 export const updateNotionMetaFormat = (notion: NotionType, ttl: number) => {
@@ -152,15 +114,4 @@ export const getNotionSlugMapData = (notion: NotionType) => {
   newCacheMeta[title] = notion.id;
 
   return newCacheMeta;
-};
-
-export const successFailureLogRecorder = (results: { message: string }[]) => {
-  for (const result of results) {
-    const msg = result.message;
-    if (msg.startsWith("success")) {
-      continue;
-    } else if (msg.startsWith("fail")) {
-      console.log(msg);
-    }
-  }
 };
