@@ -51,6 +51,7 @@ ul,
 ol {
   padding-left: 1.5rem;
   margin-bottom: 1rem;
+  list-style: none;
 }
 
 li {
@@ -60,7 +61,7 @@ li {
 /* 링크 스타일 */
 a {
   color: #0b6e99;
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 a:hover {
@@ -80,7 +81,6 @@ pre {
 }
 
 code {
-  /* background: #5e5e5e; */
   padding: 2px 4px;
   border-radius: 4px;
   font-family: Menlo, Monaco, Consolas, "Courier New", monospace;

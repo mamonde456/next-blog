@@ -2,6 +2,7 @@ import { run, runSync } from "@mdx-js/mdx";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import * as runtime from "react/jsx-runtime";
+import { NotionPage } from "../../api/notion/type";
 
 const components = {
   img: ({ src, alt, ...props }: any) => (
@@ -18,11 +19,8 @@ const components = {
   ),
 };
 
-export default function MDXRenderer({
-  compiledCode,
-}: {
-  compiledCode: string;
-}) {
+type PropsType = { compiledCode: string };
+export default function MDXRenderer({ compiledCode }: PropsType) {
   const [MDXContent, setMDXContent] = useState<React.ReactElement | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

@@ -15,17 +15,22 @@ interface ObjectTimestampType {
   seconds: number;
 }
 type TimestampType = Timestamp | ObjectTimestampType;
-export const formatTimestampToDateStr = (timestamp: TimestampType | null) => {
+export const formatTimestampToDateStr = (timestamp: TimestampType | string) => {
   if (!timestamp) return;
+  if (typeof timestamp === "string") {
+    return timestamp.slice(0, 10);
+  }
   if (timestamp instanceof Timestamp) {
     // firestore Timestamp 타입 지원
     const date = timestamp.toDate();
     const dateString = date.toISOString().slice(0, 19).replace("T", " ");
     return dateString;
-  } else if (timestamp instanceof FieldValue) {
+  }
+  if (timestamp instanceof FieldValue) {
     console.log("지원하는 형식이 아닙니다.");
     return "";
-  } else if (timestamp instanceof Object) {
+  }
+  if (timestamp instanceof Object) {
     if (
       timestamp.hasOwnProperty("nanoseconds") &&
       timestamp.hasOwnProperty("seconds")
@@ -39,10 +44,9 @@ export const formatTimestampToDateStr = (timestamp: TimestampType | null) => {
       const dateString = date.toISOString().slice(0, 19).replace("T", " ");
       return dateString;
     }
-  } else {
-    console.log("지원하는 형식이 아닙니다.");
-    return "";
   }
+  console.log("지원하는 형식이 아닙니다.");
+  return "";
 };
 
 export const safeClone = <T>(data: T) => {

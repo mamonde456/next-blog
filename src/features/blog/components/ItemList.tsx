@@ -2,40 +2,38 @@ import Link from "next/link";
 import styled from "styled-components";
 import { NotionType } from "../api/notion/type";
 import { toSlug } from "../../../utils/slugify";
+import { formatTimestampToDateStr } from "@/utils/common";
 
 const Items = styled.ul`
   width: 100%;
-  min-height: 400px;
+  min-height: 300px;
   display: flex;
+  flex: 5;
   flex-direction: column;
   gap: 10px;
-  /* background: white; */
   padding: 10px;
 `;
 const Item = styled.li`
   width: 100%;
-  /* background: #ececec; */
   border: solid 1px rgba(0, 0, 0, 0.2);
   border-radius: 10px;
   display: flex;
-  flex-direction: column;
-  /* .main_board {
-    height: 200px;
-  } */
-  /* .main_menu {
-    height: 100px;
-  } */
+  /* flex-direction: column; */
+  padding: 10px;
 `;
 
 const Title = styled.div`
-  height: 60px;
-  padding: 10px;
+  padding: 5px;
   font-size: 20px;
   font-weight: 700;
+  display: flex;
+  gap: 10px;
 `;
-const Content = styled.div`
-  height: 100px;
-  padding: 10px;
+
+const Date = styled.span`
+  font-size: 10px;
+  padding: 5px;
+  opacity: 0.6;
 `;
 
 export default function ItemList({ itemList }: { itemList: NotionType[] }) {
@@ -48,14 +46,15 @@ export default function ItemList({ itemList }: { itemList: NotionType[] }) {
               "/posts/" + toSlug(item?.properties?.이름?.title[0]?.plain_text)
             }
           >
-            <span>{item?.icon?.emoji}</span>
-            <span>
-              {item?.properties?.이름
-                ? item?.properties?.이름?.title[0]?.plain_text
-                : "제목없음"}
-            </span>
-            <span>{item?.created_time}</span>
-            <span>{item?.last_edited_time}</span>
+            <Date>{formatTimestampToDateStr(item?.created_time)}</Date>
+            <Title>
+              <span>{item?.icon?.emoji}</span>
+              <span>
+                {item?.properties?.이름
+                  ? item?.properties?.이름?.title[0]?.plain_text
+                  : "제목없음"}
+              </span>
+            </Title>
           </Link>
         </Item>
       ))}
