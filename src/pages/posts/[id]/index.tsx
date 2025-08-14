@@ -77,9 +77,6 @@ const Date = styled.p`
 
 type PropsType = { meta: Meta; compiled: string };
 export default function Detail({ meta, compiled }: PropsType) {
-  useEffect(() => {
-    console.log(compiled);
-  }, []);
   return (
     <Wrapper>
       <MainMenu />
@@ -163,7 +160,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   successFailureLogRecorder([saveMeta, saveSlug, saveMdx]);
 
   return {
-    props: { meta: newMeta, compiled },
+    props: { meta: newMeta[id], compiled },
     revalidate: 60,
   };
 };
