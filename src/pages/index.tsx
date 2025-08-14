@@ -154,6 +154,7 @@ export default function Home({ notionList }: { notionList: NotionType[] }) {
                   <SearchItem className="search-title">검색 결과</SearchItem>
                   {searchResult?.map((item) => (
                     <SearchItem
+                      key={item.id}
                       className={
                         searchResult.length === 1
                           ? "search-list-end"
