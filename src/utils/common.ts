@@ -57,3 +57,30 @@ export const safeClone = <T>(data: T) => {
     return JSON.parse(JSON.stringify(data));
   }
 };
+
+export const successFailureLogRecorder = (
+  results: { message: string | null }[] | null
+) => {
+  try {
+    if (!results) {
+      throw new Error("데이터를 찾지 못했습니다.");
+    }
+    for (const result of results) {
+      const msg = result.message;
+      if (!msg) {
+        console.log(
+          "error message를 찾지 못했습니다. 지원하지 않는 에러 데이터 구조입니다."
+        );
+        continue;
+      }
+      if (msg.startsWith("success")) {
+        continue;
+      } else if (msg.startsWith("fail")) {
+        console.log(msg);
+      }
+    }
+  } catch (error) {
+    console.error(error);
+    throw new Error("데이터를 찾지 못했습니다.");
+  }
+};
