@@ -6,8 +6,9 @@
 개발 과정에서 렌더링 최적화, 데이터베이스 설계, 성능 개선 등 다양한 기술적 도전을 해결했습니다.
 
 ### 기술 스택
-- Next.js, TypeScript, styled-components, firebase, 
-- Deployment: Vercel/ CI/CD: Vercel 자동배포
+- Next.js, TypeScript, MDX, Firebase, styled-components 
+- Deployment: Vercel
+- CI/CD: Vercel 자동배포
 
 <p align="center">
 <img width="1389" alt="화면" src="https://github.com/user-attachments/assets/f9ea577a-c806-49bf-9c02-5cb6f0832bce" />
@@ -21,10 +22,17 @@
 
 ### 주요 기능
 - 블로그 게시물: 노션 연동을 통한 학습 내용 출력
-- 마크다운 에디터: 실시간 프리뷰 지원
-- 임시 저장: IndexedDB + firebase 기반 지원
-- 실시간 소통: 방명록, 쪽지, 팔로잉 시스템
-- 소셜 로그인: GitHub Authentication 연동
+- ~~마크다운 에디터: 실시간 프리뷰 지원~~
+- ~~임시 저장: IndexedDB + firebase 기반 지원~~
+- ~~실시간 소통: 방명록, 쪽지, 팔로잉 시스템~~
+- ~~소셜 로그인: GitHub Authentication 연동~~
+
+### 향후 추가될 기능
+- 좋아요 (로그인 상관없이)
+- 방문자 수 및 조회수
+- 댓글
+- 블로그 플랫폼 자동 업로드
+
 
 
 ### 프로젝트 구조
