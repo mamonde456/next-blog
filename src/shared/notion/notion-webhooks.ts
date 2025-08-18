@@ -96,8 +96,6 @@ export const createdNotionPage = async (
   // 생성된 페이지
   const { id, type } = entity;
   try {
-    const compiled = await compileMdx(id);
-    if (!compiled) throw new Error(`createdNotionPage: [${id}]: 컴파일 실패`);
     const notionPage = (await getNotionPage(id)) as NotionPage;
     if (!notionPage)
       throw new Error(`createdNotionPage: [${id}]: 노션 페이지 읽어오기 실패`);
@@ -118,8 +116,8 @@ export const createdNotionPage = async (
       const newMetaData = { ...data, [id]: meta };
       return newMetaData;
     });
-    const saveMdx = saveFile("public/cache/mdx", id + ".js", compiled);
-    successFailureLogRecorder([saveMdx]);
+    const createdFilePath = saveFile("public/cache/mdx", id + ".js", null);
+    successFailureLogRecorder([createdFilePath]);
   } catch (error) {
     console.error(error);
     throw new Error(`✅ createdNotionPage: [${id}]: 생성 실패`);
@@ -154,27 +152,38 @@ export const deletedNotionPage = (entity: IdAndType, timestamp: string) => {
 
 export const updatedNotionPage = async (
   entity: IdAndType,
-  timestamp?: string
+  timestamp: string
 ) => {
   const { id } = entity;
-  // 데이터베이스 항목만 업데이트 지원.
-
-  const compiled = await compileMdx(id);
-
-  const { notionList } = await getSlugMap();
-  const notion = notionList.find((item) => item.id === id);
-
-  if (!notion) return { notFound: true };
-  if (!compiled) return { notFound: true };
-
-  const CACHE_TTL_SECONDS = 24 * 60 * 60; // 24시간
-  const newMeta = getNotionMetaData(notion, CACHE_TTL_SECONDS);
-  const newslug = getNotionSlugMapData(notion);
-
-  const saveMeta = saveFile("public/cache", "metaData.json", newMeta);
-  const saveSlug = saveFile("public/cache", "slugMap.json", newslug);
-  const saveMdx = saveMDXComponent("public/cache/mdx", id + ".js", compiled);
-  successFailureLogRecorder([saveMeta, saveSlug, saveMdx]);
+  try {
+    const compiled = await compileMdx(id);
+    if (!compiled) throw new Error(`updatedNotionPage: [${id}]: 컴파일 실패`);
+    const notionPage = (await getNotionPage(id)) as NotionPage;
+    if (!notionPage)
+      throw new Error(`updatedNotionPage: [${id}]: 노션 페이지 읽어오기 실패`);
+    const title = notionPage.properties.이름.title[0].plain_text || "제목없음";
+    updateJSONFile<CacheSlugMap>("/public/cache/slugMap.json", (data) => {
+      const newSlugMap = { ...data, [toSlug(title)]: id };
+      return newSlugMap;
+    });
+    updateJSONFile<CacheMeta>("/public/cache/metaData.json", (data) => {
+      const meta = {
+        title: id,
+        created_time: timestamp,
+        last_edited_time: timestamp,
+        cache_generated_at: new Date().toISOString(),
+        ttl: 84000,
+        in_trash: false,
+      };
+      const newMetaData = { ...data, [id]: meta };
+      return newMetaData;
+    });
+    const saveMdx = saveFile("public/cache/mdx", id + ".js", compiled);
+    successFailureLogRecorder([saveMdx]);
+  } catch (error) {
+    console.error(error);
+    throw new Error(`✅ updatedNotionPage: [${id}]: 생성 실패`);
+  }
 };
 
 export const propertiesUpdatedNotionPage = async (
