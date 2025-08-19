@@ -1,9 +1,3 @@
-import {
-  getNotionMetaData,
-  getNotionSlugMapData,
-  getSlugMap,
-  saveMDXComponent,
-} from "../../features/blog/services/notion";
 import { getNotionPage } from "../../features/blog/api/notion";
 import { NotionPage } from "../../features/blog/api/notion/type";
 import { findKeyByValue } from "../../utils/webhooks";
@@ -99,14 +93,15 @@ export const createdNotionPage = async (
     const notionPage = (await getNotionPage(id)) as NotionPage;
     if (!notionPage)
       throw new Error(`createdNotionPage: [${id}]: 노션 페이지 읽어오기 실패`);
-    const title = notionPage.properties.이름.title[0].plain_text || "제목없음";
+    const titles = notionPage.properties.이름.title;
+    const title = titles[0] ? titles[0].plain_text : "제목없음";
     updateJSONFile<CacheSlugMap>("/public/cache/slugMap.json", (data) => {
       const newSlugMap = { ...data, [toSlug(title)]: id };
       return newSlugMap;
     });
     updateJSONFile<CacheMeta>("/public/cache/metaData.json", (data) => {
       const meta = {
-        title: id,
+        title,
         created_time: timestamp,
         last_edited_time: timestamp,
         cache_generated_at: new Date().toISOString(),
@@ -116,8 +111,6 @@ export const createdNotionPage = async (
       const newMetaData = { ...data, [id]: meta };
       return newMetaData;
     });
-    const createdFilePath = saveFile("public/cache/mdx", id + ".js", null);
-    successFailureLogRecorder([createdFilePath]);
   } catch (error) {
     console.error(error);
     throw new Error(`✅ createdNotionPage: [${id}]: 생성 실패`);
@@ -161,14 +154,15 @@ export const updatedNotionPage = async (
     const notionPage = (await getNotionPage(id)) as NotionPage;
     if (!notionPage)
       throw new Error(`updatedNotionPage: [${id}]: 노션 페이지 읽어오기 실패`);
-    const title = notionPage.properties.이름.title[0].plain_text || "제목없음";
+    const titles = notionPage.properties.이름.title;
+    const title = titles[0] ? titles[0].plain_text : "제목없음";
     updateJSONFile<CacheSlugMap>("/public/cache/slugMap.json", (data) => {
       const newSlugMap = { ...data, [toSlug(title)]: id };
       return newSlugMap;
     });
     updateJSONFile<CacheMeta>("/public/cache/metaData.json", (data) => {
       const meta = {
-        title: id,
+        title,
         created_time: timestamp,
         last_edited_time: timestamp,
         cache_generated_at: new Date().toISOString(),
@@ -261,13 +255,14 @@ export const isRelevantPropertyChanged = (webhook: NotionWebhooksPayload) => {
 };
 
 export const triggerGitHubAction = async (webhook: NotionWebhooksPayload) => {
-  console.log("깃헙 트리거 함수 실행");
   const githubActionPayload = {
     event_type: "notion-update",
     client_payload: {
-      webhook,
-      triggered_by: "notion-webhook",
-      timestamp: new Date().toISOString(),
+      webhook_type: webhook.type,
+      webhook_entity: webhook.entity,
+      webhook_data: webhook.data,
+      webhook_timestamp: webhook.timestamp,
+      parent_id: webhook.data.parent.id,
     },
   };
   const octokit = new Octokit({ auth: GITHUB_TOKEN });
@@ -289,16 +284,15 @@ export const triggerGitHubAction = async (webhook: NotionWebhooksPayload) => {
   }
 };
 
-export const handleNotionWebhook = (
-  webhook: NotionWebhooksPayload,
-  fn: (webhook: NotionWebhooksPayload) => void
-) => {
+export const handleNotionWebhook = (webhook: NotionWebhooksPayload) => {
+  handleNotionEvent(webhook);
   if (
     isPageEvent(webhook) &&
     isParentDatabase(webhook) &&
     isSubscribedDatabase(webhook)
   ) {
-    fn(webhook);
+    // 로직 확인 필요
+    handleNotionEvent(webhook);
   }
 };
 
