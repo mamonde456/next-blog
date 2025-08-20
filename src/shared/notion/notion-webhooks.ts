@@ -78,7 +78,9 @@ export const handleNotionEvent = (event: NotionWebhooksPayload) => {
   if (category === "comment")
     return new Error("handleNotionEvent: comment 지원하지 않는 이벤트입니다.");
   const eventType = types[1] as EventType;
+  console.log(eventType);
   if (EventType[eventType]) {
+    console.log(EventType[eventType]);
     EventType[eventType]({ entity, timestamp, data });
   }
 };
@@ -120,23 +122,22 @@ export const createdNotionPage = async (
 export const deletedNotionPage = (entity: IdAndType, timestamp: string) => {
   const { id } = entity;
   try {
-    const slugMap = getCacheData("/public/cache/slugMap.json");
-    const key = findKeyByValue(slugMap, id);
-    if (!key)
-      throw new Error(`deletedNotionPage [${id}]: key 찾는 것에 실패했습니다.`);
     updateJSONFile<CacheSlugMap>("/public/cache/slugMap.json", (data) => {
       const newSlugMap = { ...data };
+      const key = findKeyByValue(data, id);
+      if (!key || (key && !newSlugMap[key])) return newSlugMap;
       delete newSlugMap[key];
       return newSlugMap;
     });
     updateJSONFile<CacheSlugMap>("/public/cache/metaData.json", (data) => {
       const newMetaData = { ...data };
-      delete newMetaData[key];
+      if (!newMetaData[id]) return newMetaData;
+      delete newMetaData[id];
       return newMetaData;
     });
 
     const deleteMDX = deletedCacheData(`/public/cache/mdx/${id}.js`);
-    // successFailureLogRecorder([deleteMDX]);
+    successFailureLogRecorder([deleteMDX]);
   } catch (error) {
     console.error(error);
     throw new Error(`✅ deletedNotionPage: [${id}]: 삭제 실패`);
@@ -225,11 +226,13 @@ export const undeletedNotionPage = (entity: IdAndType, timestamp: string) => {
 
 export const isPageEvent = (webhook: NotionWebhooksPayload) => {
   // 웹훅 타입이 페이지인지
+  if (!webhook) throw Error("isPageEvent: 웹훅 데이터가 없습니다.");
   const type = webhook.type.split(".");
   if (type && type[0] !== "page") return false;
   return true;
 };
 export const isParentDatabase = (webhook: NotionWebhooksPayload) => {
+  if (!webhook) throw Error("isParentDatabase: 웹훅 데이터가 없습니다.");
   // 변경된 부모가 데이터베이스인지
   if (webhook.data.parent.type && webhook.data.parent.type !== "database")
     return false;
@@ -237,6 +240,7 @@ export const isParentDatabase = (webhook: NotionWebhooksPayload) => {
 };
 
 export const isSubscribedDatabase = (webhook: NotionWebhooksPayload) => {
+  if (!webhook) throw Error("isSubscribedDatabase: 웹훅 데이터가 없습니다.");
   // 변경된 부모의 데이터베이스가 요구하는 데이터 베이스 id인지
   if (webhook.data.parent.id && webhook.data.parent.id !== NOTION_DATABASE_ID)
     return false;
@@ -285,14 +289,17 @@ export const triggerGitHubAction = async (webhook: NotionWebhooksPayload) => {
 };
 
 export const handleNotionWebhook = (webhook: NotionWebhooksPayload) => {
-  handleNotionEvent(webhook);
-  if (
-    isPageEvent(webhook) &&
-    isParentDatabase(webhook) &&
-    isSubscribedDatabase(webhook)
-  ) {
-    // 로직 확인 필요
+  try {
     handleNotionEvent(webhook);
+    // if (
+    //   isPageEvent(webhook) &&
+    //   isParentDatabase(webhook)
+    //   // isSubscribedDatabase(webhook)
+    // ) {
+    // }
+  } catch (error) {
+    console.error("변경된 페이지를 감지하는 것에 실패했습니다.");
+    throw new Error(`handleNotionWebhook: ${error}`);
   }
 };
 
