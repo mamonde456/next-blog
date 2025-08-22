@@ -1,12 +1,6 @@
-import {
-  getNotionMetaData,
-  getNotionSlugMapData,
-  getSlugMap,
-  saveMDXComponent,
-} from "../../features/blog/services/notion";
 import { getNotionPage } from "../../features/blog/api/notion";
 import { NotionPage } from "../../features/blog/api/notion/type";
-import { findKeyByValue } from "../../utils/webhooks";
+import { findKeyByValue, removeHyphens } from "../../utils/webhooks";
 import {
   GITHUB_OWNER,
   GITHUB_REPO,
@@ -84,7 +78,9 @@ export const handleNotionEvent = (event: NotionWebhooksPayload) => {
   if (category === "comment")
     return new Error("handleNotionEvent: comment 지원하지 않는 이벤트입니다.");
   const eventType = types[1] as EventType;
+  console.log(eventType);
   if (EventType[eventType]) {
+    console.log(EventType[eventType]);
     EventType[eventType]({ entity, timestamp, data });
   }
 };
@@ -96,19 +92,78 @@ export const createdNotionPage = async (
   // 생성된 페이지
   const { id, type } = entity;
   try {
-    const compiled = await compileMdx(id);
-    if (!compiled) throw new Error(`createdNotionPage: [${id}]: 컴파일 실패`);
     const notionPage = (await getNotionPage(id)) as NotionPage;
     if (!notionPage)
       throw new Error(`createdNotionPage: [${id}]: 노션 페이지 읽어오기 실패`);
-    const title = notionPage.properties.이름.title[0].plain_text || "제목없음";
+    const titles = notionPage.properties.이름.title;
+    const title = titles[0] ? titles[0].plain_text : "제목없음";
     updateJSONFile<CacheSlugMap>("/public/cache/slugMap.json", (data) => {
       const newSlugMap = { ...data, [toSlug(title)]: id };
       return newSlugMap;
     });
     updateJSONFile<CacheMeta>("/public/cache/metaData.json", (data) => {
       const meta = {
-        title: id,
+        title,
+        created_time: timestamp,
+        last_edited_time: timestamp,
+        cache_generated_at: new Date().toISOString(),
+        ttl: 84000,
+        in_trash: false,
+      };
+      const newMetaData = { ...data, [id]: meta };
+      return newMetaData;
+    });
+  } catch (error) {
+    console.error(error);
+    throw new Error(`✅ createdNotionPage: [${id}]: 생성 실패`);
+  }
+};
+
+export const deletedNotionPage = (entity: IdAndType, timestamp: string) => {
+  const { id } = entity;
+  try {
+    updateJSONFile<CacheSlugMap>("/public/cache/slugMap.json", (data) => {
+      const newSlugMap = { ...data };
+      const key = findKeyByValue(data, id);
+      if (!key || (key && !newSlugMap[key])) return newSlugMap;
+      delete newSlugMap[key];
+      return newSlugMap;
+    });
+    updateJSONFile<CacheSlugMap>("/public/cache/metaData.json", (data) => {
+      const newMetaData = { ...data };
+      if (!newMetaData[id]) return newMetaData;
+      delete newMetaData[id];
+      return newMetaData;
+    });
+
+    const deleteMDX = deletedCacheData(`/public/cache/mdx/${id}.js`);
+    successFailureLogRecorder([deleteMDX]);
+  } catch (error) {
+    console.error(error);
+    throw new Error(`✅ deletedNotionPage: [${id}]: 삭제 실패`);
+  }
+};
+
+export const updatedNotionPage = async (
+  entity: IdAndType,
+  timestamp: string
+) => {
+  const { id } = entity;
+  try {
+    const compiled = await compileMdx(id);
+    if (!compiled) throw new Error(`updatedNotionPage: [${id}]: 컴파일 실패`);
+    const notionPage = (await getNotionPage(id)) as NotionPage;
+    if (!notionPage)
+      throw new Error(`updatedNotionPage: [${id}]: 노션 페이지 읽어오기 실패`);
+    const titles = notionPage.properties.이름.title;
+    const title = titles[0] ? titles[0].plain_text : "제목없음";
+    updateJSONFile<CacheSlugMap>("/public/cache/slugMap.json", (data) => {
+      const newSlugMap = { ...data, [toSlug(title)]: id };
+      return newSlugMap;
+    });
+    updateJSONFile<CacheMeta>("/public/cache/metaData.json", (data) => {
+      const meta = {
+        title,
         created_time: timestamp,
         last_edited_time: timestamp,
         cache_generated_at: new Date().toISOString(),
@@ -122,59 +177,8 @@ export const createdNotionPage = async (
     successFailureLogRecorder([saveMdx]);
   } catch (error) {
     console.error(error);
-    throw new Error(`✅ createdNotionPage: [${id}]: 생성 실패`);
+    throw new Error(`✅ updatedNotionPage: [${id}]: 생성 실패`);
   }
-};
-
-export const deletedNotionPage = (entity: IdAndType, timestamp: string) => {
-  const { id } = entity;
-  try {
-    const slugMap = getCacheData("/public/cache/slugMap.json");
-    const key = findKeyByValue(slugMap, id);
-    if (!key)
-      throw new Error(`deletedNotionPage [${id}]: key 찾는 것에 실패했습니다.`);
-    updateJSONFile<CacheSlugMap>("/public/cache/slugMap.json", (data) => {
-      const newSlugMap = { ...data };
-      delete newSlugMap[key];
-      return newSlugMap;
-    });
-    updateJSONFile<CacheSlugMap>("/public/cache/metaData.json", (data) => {
-      const newMetaData = { ...data };
-      delete newMetaData[key];
-      return newMetaData;
-    });
-
-    const deleteMDX = deletedCacheData(`/public/cache/mdx/${id}.js`);
-    // successFailureLogRecorder([deleteMDX]);
-  } catch (error) {
-    console.error(error);
-    throw new Error(`✅ deletedNotionPage: [${id}]: 삭제 실패`);
-  }
-};
-
-export const updatedNotionPage = async (
-  entity: IdAndType,
-  timestamp?: string
-) => {
-  const { id } = entity;
-  // 데이터베이스 항목만 업데이트 지원.
-
-  const compiled = await compileMdx(id);
-
-  const { notionList } = await getSlugMap();
-  const notion = notionList.find((item) => item.id === id);
-
-  if (!notion) return { notFound: true };
-  if (!compiled) return { notFound: true };
-
-  const CACHE_TTL_SECONDS = 24 * 60 * 60; // 24시간
-  const newMeta = getNotionMetaData(notion, CACHE_TTL_SECONDS);
-  const newslug = getNotionSlugMapData(notion);
-
-  const saveMeta = saveFile("public/cache", "metaData.json", newMeta);
-  const saveSlug = saveFile("public/cache", "slugMap.json", newslug);
-  const saveMdx = saveMDXComponent("public/cache/mdx", id + ".js", compiled);
-  successFailureLogRecorder([saveMeta, saveSlug, saveMdx]);
 };
 
 export const propertiesUpdatedNotionPage = async (
@@ -218,27 +222,28 @@ export const undeletedNotionPage = (entity: IdAndType, timestamp: string) => {
   createdNotionPage(entity, timestamp);
 };
 
-// 웹훅 알림이 오면, 캐시파일을 재갱신. < 깃헙 액션 실행
-
 export const isPageEvent = (webhook: NotionWebhooksPayload) => {
   // 웹훅 타입이 페이지인지
+  if (!webhook) throw Error("isPageEvent: 웹훅 데이터가 없습니다.");
   const type = webhook.type.split(".");
   if (type && type[0] !== "page") return false;
   return true;
 };
 export const isParentDatabase = (webhook: NotionWebhooksPayload) => {
+  if (!webhook) throw Error("isParentDatabase: 웹훅 데이터가 없습니다.");
   // 변경된 부모가 데이터베이스인지
-  if (webhook.data.parent.type && webhook.data.parent.type !== "database")
-    return false;
+  if (webhook.data.parent.type !== "database") return false;
   return true;
 };
 
 export const isSubscribedDatabase = (webhook: NotionWebhooksPayload) => {
+  if (!webhook) throw Error("isSubscribedDatabase: 웹훅 데이터가 없습니다.");
   // 변경된 부모의 데이터베이스가 요구하는 데이터 베이스 id인지
-  if (webhook.data.parent.id && webhook.data.parent.id !== NOTION_DATABASE_ID)
+  if (removeHyphens(webhook.data.parent.id) !== NOTION_DATABASE_ID)
     return false;
   return true;
 };
+
 export const isRelevantPropertyChanged = (webhook: NotionWebhooksPayload) => {
   // 변경한 것이 제목/업로드 태그 변경/내용인지 확인
   const UPLOAD = "%7D%3CnI";
@@ -252,13 +257,10 @@ export const isRelevantPropertyChanged = (webhook: NotionWebhooksPayload) => {
 };
 
 export const triggerGitHubAction = async (webhook: NotionWebhooksPayload) => {
-  console.log("깃헙 트리거 함수 실행");
   const githubActionPayload = {
     event_type: "notion-update",
     client_payload: {
       webhook,
-      triggered_by: "notion-webhook",
-      timestamp: new Date().toISOString(),
     },
   };
   const octokit = new Octokit({ auth: GITHUB_TOKEN });
@@ -280,16 +282,18 @@ export const triggerGitHubAction = async (webhook: NotionWebhooksPayload) => {
   }
 };
 
-export const handleNotionWebhook = (
-  webhook: NotionWebhooksPayload,
-  fn: (webhook: NotionWebhooksPayload) => void
-) => {
-  if (
-    isPageEvent(webhook) &&
-    isParentDatabase(webhook) &&
-    isSubscribedDatabase(webhook)
-  ) {
-    fn(webhook);
+export const handleNotionWebhook = (webhook: NotionWebhooksPayload) => {
+  try {
+    if (
+      isPageEvent(webhook) &&
+      isParentDatabase(webhook) &&
+      isSubscribedDatabase(webhook)
+    ) {
+      handleNotionEvent(webhook);
+    }
+  } catch (error) {
+    console.error("변경된 페이지를 감지하는 것에 실패했습니다.");
+    throw new Error(`handleNotionWebhook: ${error}`);
   }
 };
 

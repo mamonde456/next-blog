@@ -32,12 +32,28 @@ export const getCacheData = (src: string) => {
 };
 
 export const deletedCacheData = (src: string) => {
-  const filePath = path.join(process.cwd(), src);
-  if (fs.existsSync(filePath)) {
-    const fileContent = fs.rmdirSync(filePath);
-    return { message: "success" };
+  try {
+    const extension = src.split(".").at(-1);
+    if (!extension) return new Error("파일 확장자를 작성하지 않았습니다.");
+    const filePath = path.join(process.cwd(), src);
+    if (fs.existsSync(filePath)) {
+      const stat = fs.statSync(filePath);
+
+      if (stat) {
+        fs.unlinkSync(filePath);
+        console.log("파일 삭제 성공");
+        return { message: "success", id: src };
+      } else {
+        fs.rmdirSync(filePath);
+        console.log("디렉토리 삭제 성공");
+        return { message: "success", id: src };
+      }
+    }
+    return { message: "파일이 존재하지 않습니다.", id: src };
+  } catch (error) {
+    console.error("deletedCacheData: 파일을 삭제하는 데 실패했습니다.");
+    throw new Error(`${error}`);
   }
-  return null;
 };
 
 export const updateJSONFile = <T>(
