@@ -1,6 +1,6 @@
 import { getNotionPage } from "../../features/blog/api/notion";
 import { NotionPage } from "../../features/blog/api/notion/type";
-import { findKeyByValue } from "../../utils/webhooks";
+import { findKeyByValue, removeHyphens } from "../../utils/webhooks";
 import {
   GITHUB_OWNER,
   GITHUB_REPO,
@@ -222,8 +222,6 @@ export const undeletedNotionPage = (entity: IdAndType, timestamp: string) => {
   createdNotionPage(entity, timestamp);
 };
 
-// 웹훅 알림이 오면, 캐시파일을 재갱신. < 깃헙 액션 실행
-
 export const isPageEvent = (webhook: NotionWebhooksPayload) => {
   // 웹훅 타입이 페이지인지
   if (!webhook) throw Error("isPageEvent: 웹훅 데이터가 없습니다.");
@@ -234,18 +232,18 @@ export const isPageEvent = (webhook: NotionWebhooksPayload) => {
 export const isParentDatabase = (webhook: NotionWebhooksPayload) => {
   if (!webhook) throw Error("isParentDatabase: 웹훅 데이터가 없습니다.");
   // 변경된 부모가 데이터베이스인지
-  if (webhook.data.parent.type && webhook.data.parent.type !== "database")
-    return false;
+  if (webhook.data.parent.type !== "database") return false;
   return true;
 };
 
 export const isSubscribedDatabase = (webhook: NotionWebhooksPayload) => {
   if (!webhook) throw Error("isSubscribedDatabase: 웹훅 데이터가 없습니다.");
   // 변경된 부모의 데이터베이스가 요구하는 데이터 베이스 id인지
-  if (webhook.data.parent.id && webhook.data.parent.id !== NOTION_DATABASE_ID)
+  if (removeHyphens(webhook.data.parent.id) !== NOTION_DATABASE_ID)
     return false;
   return true;
 };
+
 export const isRelevantPropertyChanged = (webhook: NotionWebhooksPayload) => {
   // 변경한 것이 제목/업로드 태그 변경/내용인지 확인
   const UPLOAD = "%7D%3CnI";
@@ -262,11 +260,7 @@ export const triggerGitHubAction = async (webhook: NotionWebhooksPayload) => {
   const githubActionPayload = {
     event_type: "notion-update",
     client_payload: {
-      webhook_type: webhook.type,
-      webhook_entity: webhook.entity,
-      webhook_data: webhook.data,
-      webhook_timestamp: webhook.timestamp,
-      parent_id: webhook.data.parent.id,
+      webhook,
     },
   };
   const octokit = new Octokit({ auth: GITHUB_TOKEN });
@@ -290,13 +284,13 @@ export const triggerGitHubAction = async (webhook: NotionWebhooksPayload) => {
 
 export const handleNotionWebhook = (webhook: NotionWebhooksPayload) => {
   try {
-    handleNotionEvent(webhook);
-    // if (
-    //   isPageEvent(webhook) &&
-    //   isParentDatabase(webhook)
-    //   // isSubscribedDatabase(webhook)
-    // ) {
-    // }
+    if (
+      isPageEvent(webhook) &&
+      isParentDatabase(webhook) &&
+      isSubscribedDatabase(webhook)
+    ) {
+      handleNotionEvent(webhook);
+    }
   } catch (error) {
     console.error("변경된 페이지를 감지하는 것에 실패했습니다.");
     throw new Error(`handleNotionWebhook: ${error}`);
