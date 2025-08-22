@@ -37,8 +37,17 @@ export const deletedCacheData = (src: string) => {
     if (!extension) return new Error("파일 확장자를 작성하지 않았습니다.");
     const filePath = path.join(process.cwd(), src);
     if (fs.existsSync(filePath)) {
-      fs.rmdirSync(filePath);
-      return { message: "success", id: src };
+      const stat = fs.statSync(filePath);
+
+      if (stat) {
+        fs.unlinkSync(filePath);
+        console.log("파일 삭제 성공");
+        return { message: "success", id: src };
+      } else {
+        fs.rmdirSync(filePath);
+        console.log("디렉토리 삭제 성공");
+        return { message: "success", id: src };
+      }
     }
     return { message: "파일이 존재하지 않습니다.", id: src };
   } catch (error) {
