@@ -39,7 +39,7 @@ jobs:
         env:
           NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
-          WEBHOOK: ${{ github.event.client_payload.webhook }}
+          WEBHOOK: ${{ toJson(github.event.client_payload.webhook) }}
 
       - name: Get current timestamp
         id: timestamp
