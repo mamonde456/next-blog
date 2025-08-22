@@ -6,7 +6,7 @@ import {
   handleNotionWebhook,
 } from "../src/shared/notion/notion-webhooks.ts";
 import { handleCacheMDXTTL } from "../src/shared/notion/mdx.ts";
-import { parseEnvJson } from "@/utils/webhooks.ts";
+import { parseEnvJson } from "../src/utils/webhooks.ts";
 
 const getWebhookData = () => {
   const webhookRes = process.env.WEBHOOK;
