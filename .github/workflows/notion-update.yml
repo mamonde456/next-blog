@@ -66,11 +66,15 @@ jobs:
           git config --global user.name 'mamonde456'
           git config --global user.email 'mamonde456@gmail.com'
 
-          git pull origin main --rebase
           git add public/cache/
+          git stash
+          git pull origin main --rebase
 
           PAGE_ID="${{ github.event.client_payload.webhook.entity.id }}"
           PAGE_TYPE="${{ github.event.client_payload.webhook.entity.type }}"
+
+          git stash pop
+          git add public/cache/
 
           git commit -m "노션 콘텐츠 업데이트: ${{ steps.timestamp.outputs.timestamp }} 
 
