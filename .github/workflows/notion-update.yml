@@ -70,6 +70,9 @@ jobs:
           PAGE_ID="${{ github.event.client_payload.webhook.entity.id }}"
           PAGE_TYPE="${{ github.event.client_payload.webhook.entity.type }}"
 
+          git fetch origin main
+          git rebase origin/main
+
           git commit -m "노션 콘텐츠 업데이트: ${{ steps.timestamp.outputs.timestamp }} 
 
           - 페이지 id: ${PAGE_ID}
