@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  generate-and-push:
+  refresh-and-push:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
 
@@ -29,10 +29,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Generate cache
+      - name: Refresh cache
         env:
           NOTION_TOKEN: ${{secrets.NOTION_TOKEN}}
-        run: npm run generate-cache
+        run: npm run refresh-cache
 
       - name: Get current timestamp
         id: timestamp
