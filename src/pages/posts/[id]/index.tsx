@@ -11,13 +11,13 @@ import { GetStaticProps } from "next";
 import { compileMdx } from "@/shared/notion/mdx";
 import MDXRenderer from "@/features/blog/components/notion/MDXRenderer";
 import { isExpired } from "@/shared/cache/ttl";
-import { useEffect } from "react";
 import {
   formatTimestampToDateStr,
   successFailureLogRecorder,
 } from "@/utils/common";
 import { Meta } from "@/types/cache";
 import { getCacheData, saveFile } from "@/shared/cache/json";
+import { usePageViewTracker } from "@/features/blog/hooks/notion/usePageViewTracker";
 
 const Wrapper = styled.div`
   width: 100%;
@@ -77,6 +77,8 @@ const Date = styled.p`
 
 type PropsType = { meta: Meta; compiled: string };
 export default function Detail({ meta, compiled }: PropsType) {
+  usePageViewTracker({ pageId: meta.id });
+
   return (
     <Wrapper>
       <MainMenu />
@@ -92,6 +94,7 @@ export default function Detail({ meta, compiled }: PropsType) {
               업데이트 일자: {formatTimestampToDateStr(meta.last_edited_time)}
             </span>
           </Date>
+          <p>{meta.properties.views.number || 0}</p>
           <MDXRenderer compiledCode={compiled} />
         </Content>
       </NotebookWrap>
@@ -121,7 +124,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   const cacheSlug = getCacheData("/public/cache/slugMap.json");
   const cacheMeta = getCacheData("/public/cache/metaData.json");
 
-  if (cacheSlug) {
+  if (cacheSlug && cacheMeta) {
     const id = cacheSlug[slug];
     const currentMeta = cacheMeta[id];
     if (currentMeta) {
