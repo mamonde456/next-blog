@@ -5,11 +5,10 @@
 
 import { useEffect, useRef } from "react";
 import {
-  getNotionPage,
   retrievePagePropertyItem,
   updatePageProperties,
 } from "../../api/notion";
-import { NotionPage, NotionProperties } from "../../api/notion/type";
+import { PropertiesResults } from "../../api/notion/type";
 
 type Props = {
   pageId: string;
@@ -21,27 +20,32 @@ export function usePageViewTracker({ pageId }: Props) {
   useEffect(() => {
     const trackView = async () => {
       try {
-        if (!pageId || !hasTracked.current.has(pageId)) return;
+        if (!pageId || hasTracked.current.has(pageId)) return;
         const sessionKey = `viewed_${pageId}`;
         const sessionItem = window.sessionStorage.getItem(sessionKey);
         if (!sessionItem) {
           // 조회수 1 증가
-          const page = (await getNotionPage(pageId)) as NotionPage;
+          const page = await (
+            await fetch(`/api/notion/${pageId}/getPage`)
+          ).json();
+          // const page = (await getNotionPage(pageId)) as NotionPage;
           const propertiesId = page.properties["views"].id;
+
           if (propertiesId) {
-            const results = (await retrievePagePropertyItem(
+            // api 프록시로 우회 필요
+            const property = (await retrievePagePropertyItem(
               pageId,
               propertiesId
-            )) as NotionProperties;
-            if (results && "results" in results) {
-              // response가 올바른 형태일 때만 처리
-              const item = results.results.find(
-                (item) => item.id === propertiesId
-              );
+            )) as PropertiesResults;
+
+            const views = property.number;
+            console.log(views);
+            if (!views) {
+              await updatePageProperties(pageId, { views: 1 });
+            } else {
+              await updatePageProperties(pageId, { views: views + 1 });
             }
           }
-          await updatePageProperties(pageId, { viewd: 1 });
-
           window.sessionStorage.setItem(sessionKey, "true");
           hasTracked.current.add(pageId);
 
@@ -57,4 +61,6 @@ export function usePageViewTracker({ pageId }: Props) {
 
     return () => clearTimeout(timer);
   }, [pageId]);
+
+  return null;
 }
