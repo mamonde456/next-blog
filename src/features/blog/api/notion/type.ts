@@ -12,7 +12,7 @@ export interface NotionType {
     };
   } | null;
   icon: { type: string; emoji: string };
-  properties: { 이름: { title: titleType[] } };
+  properties: { [index: string]: any };
   in_trash: boolean;
 }
 
@@ -99,25 +99,10 @@ export interface NotionProperties {
   property_item?: any;
 }
 
-interface PropertiesResults {
+export interface PropertiesResults {
   object: string;
-  id: string;
   type: string;
-  rich_text: {
-    type: string;
-    text: {
-      content: string;
-      link: null;
-    };
-  };
-  annotations: {
-    bold: boolean;
-    italic: boolean;
-    strikethrough: boolean;
-    underline: boolean;
-    code: boolean;
-    color: string;
-  };
-  plain_text: string;
-  href: null;
+  id: string;
+  number: any;
+  request_id: string;
 }
