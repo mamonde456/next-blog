@@ -82,9 +82,16 @@ export const updateNotionMetaFormat = (notion: NotionType, ttl: number) => {
   if (!notion)
     return new Error("saveFormatMDX: notion 데이터를 찾을 수 없습니다.");
   let title = notion.properties.이름.title[0].plain_text;
+  const properties = { ...notion.properties };
+  delete properties["업로드한 날짜"];
+  delete properties["upload"];
+  delete properties["날짜"];
   if (!notion.properties.이름.title[0].plain_text) title = "제목없음";
   const metaData = {
+    id: notion.id,
+    icon: notion.icon,
     title,
+    properties: properties,
     created_time: notion.created_time,
     last_edited_time: notion.last_edited_time,
     cache_generated_at: new Date().toISOString(),
