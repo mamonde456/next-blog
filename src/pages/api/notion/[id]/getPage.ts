@@ -1,18 +1,22 @@
-import { getNotionPage } from "../../../../features/blog/api/notion/index";
 import { Client } from "@notionhq/client";
+import { NOTION_TOKEN } from "const";
 import { NextApiRequest, NextApiResponse } from "next";
 
-const notion = new Client({ auth: process.env.NEXT_PUBLIC_NOTION_TOKEN });
-const databaseId = process.env.NEXT_PUBLIC_NOTION_DATABASE_ID;
+const notion = new Client({ auth: NOTION_TOKEN });
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse,
-  { params }: { params: { pageId: string } }
+  res: NextApiResponse
 ) {
   try {
-    const response = await getNotionPage(params.pageId);
-    res.status(200).json(response);
+    const { id } = req.query;
+    if (id && typeof id === "string") {
+      const response = await notion.pages.retrieve({ page_id: id });
+      res.status(200).json(response);
+    }
+    res
+      .status(500)
+      .json({ error: "getPage handler: page id가 없습니다. id: " + id });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Failed to fetch Notion data" });
