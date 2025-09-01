@@ -20,7 +20,9 @@ export default async function handler(
     }
     res
       .status(500)
-      .json({ error: "getPage handler: page id가 없습니다. id: " + id });
+      .json({
+        error: "retrieve property handler: page id가 없습니다. id: " + id,
+      });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Failed to fetch Notion data" });
