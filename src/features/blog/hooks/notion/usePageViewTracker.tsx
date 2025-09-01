@@ -28,22 +28,37 @@ export function usePageViewTracker({ pageId }: Props) {
           const page = await (
             await fetch(`/api/notion/${pageId}/getPage`)
           ).json();
-          // const page = (await getNotionPage(pageId)) as NotionPage;
           const propertiesId = page.properties["views"].id;
 
           if (propertiesId) {
             // api 프록시로 우회 필요
-            const property = (await retrievePagePropertyItem(
-              pageId,
-              propertiesId
-            )) as PropertiesResults;
+
+            const property = (await (
+              await fetch(`/api/notion/${pageId}/updateProperties`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ propertiesId }),
+              })
+            ).json()) as PropertiesResults;
 
             const views = property.number;
             console.log(views);
             if (!views) {
-              await updatePageProperties(pageId, { views: 1 });
+              const page = await (
+                await fetch(`/api/notion/${pageId}/updateProperties`, {
+                  headers: { "Content-Type": "application/json" },
+                  method: "POST",
+                  body: JSON.stringify({ views: 1 }),
+                })
+              ).json();
             } else {
-              await updatePageProperties(pageId, { views: views + 1 });
+              const page = await (
+                await fetch(`/api/notion/${pageId}/updateProperties`, {
+                  headers: { "Content-Type": "application/json" },
+                  method: "POST",
+                  body: JSON.stringify({ views: views + 1 }),
+                })
+              ).json();
             }
           }
           window.sessionStorage.setItem(sessionKey, "true");
