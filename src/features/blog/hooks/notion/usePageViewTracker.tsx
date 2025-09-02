@@ -1,13 +1,4 @@
-// page id를 받고 페이지 프로퍼티 가져오기
-// 페이지 캐시 meta data에 값이 있다면 캐시 데이터를 우선으로 가져오기
-// 5초마다 요청 필요
-//
-
-import { useEffect, useRef } from "react";
-import {
-  retrievePagePropertyItem,
-  updatePageProperties,
-} from "../../api/notion";
+import { useEffect, useRef, useState } from "react";
 import { PropertiesResults } from "../../api/notion/type";
 
 type Props = {
@@ -15,6 +6,7 @@ type Props = {
 };
 
 export function usePageViewTracker({ pageId }: Props) {
+  const [views, setViews] = useState(0);
   const hasTracked = useRef(new Set());
 
   useEffect(() => {
@@ -23,16 +15,13 @@ export function usePageViewTracker({ pageId }: Props) {
         if (!pageId || hasTracked.current.has(pageId)) return;
         const sessionKey = `viewed_${pageId}`;
         const sessionItem = window.sessionStorage.getItem(sessionKey);
+        const page = await (
+          await fetch(`/api/notion/${pageId}/getPage`)
+        ).json();
         if (!sessionItem) {
-          // 조회수 1 증가
-          const page = await (
-            await fetch(`/api/notion/${pageId}/getPage`)
-          ).json();
           const propertiesId = page.properties["views"].id;
 
           if (propertiesId) {
-            // api 프록시로 우회 필요
-
             const property = (await (
               await fetch(`/api/notion/${pageId}/updateProperties`, {
                 method: "POST",
@@ -42,29 +31,40 @@ export function usePageViewTracker({ pageId }: Props) {
             ).json()) as PropertiesResults;
 
             const views = property.number;
-            console.log(views);
+
             if (!views) {
-              const page = await (
+              const response = await (
                 await fetch(`/api/notion/${pageId}/updateProperties`, {
                   headers: { "Content-Type": "application/json" },
                   method: "POST",
                   body: JSON.stringify({ views: 1 }),
                 })
               ).json();
+              const viewsRes = response.properties["views"].number;
+              setViews(viewsRes);
+              console.log(`trackView: [${pageId}] 조회수 ${viewsRes}`);
             } else {
-              const page = await (
+              const response = await (
                 await fetch(`/api/notion/${pageId}/updateProperties`, {
                   headers: { "Content-Type": "application/json" },
                   method: "POST",
                   body: JSON.stringify({ views: views + 1 }),
                 })
               ).json();
+              const viewsRes = response.properties["views"].number;
+              setViews(viewsRes);
+              console.log(`trackView: [${pageId}] 조회수 ${viewsRes}`);
             }
           }
           window.sessionStorage.setItem(sessionKey, "true");
           hasTracked.current.add(pageId);
 
           console.log(`📊 View tracked for: ${pageId}`);
+        } else {
+          const views = page.properties["views"].number;
+          if (views) {
+            setViews(views);
+          }
         }
       } catch (error) {
         console.error("Failed to track view:", error);
@@ -72,10 +72,10 @@ export function usePageViewTracker({ pageId }: Props) {
       }
     };
 
-    const timer = setTimeout(trackView, 1000);
+    const timer = setTimeout(trackView, 300);
 
     return () => clearTimeout(timer);
   }, [pageId]);
 
-  return null;
+  return { views };
 }
