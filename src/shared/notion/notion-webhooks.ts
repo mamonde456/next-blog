@@ -17,7 +17,7 @@ import {
   updateJSONFile,
 } from "../cache/json";
 import { successFailureLogRecorder } from "../../utils/common";
-import { CacheMeta, CacheSlugMap } from "../../types/cache";
+import { CacheSlugMap, Meta } from "../../types/cache";
 import { toSlug } from "../../utils/slugify";
 
 export type NotionWebhooksPayload = {
@@ -101,7 +101,7 @@ export const createdNotionPage = async (
       const newSlugMap = { ...data, [toSlug(title)]: id };
       return newSlugMap;
     });
-    updateJSONFile<CacheMeta>("/public/cache/metaData.json", (data) => {
+    updateJSONFile<Meta>("/public/cache/metaData.json", (data) => {
       const meta = {
         title,
         created_time: timestamp,
