@@ -12,10 +12,10 @@ export const getNotionData = async () => {
       });
       return response;
     } catch (error) {
-      console.log("🚨 get database error: ", error);
+      console.error("🚨 get database error: ", error);
     }
   } else {
-    console.log("database id를 찾을 수 없습니다.");
+    console.error("database id를 찾을 수 없습니다.");
   }
 };
 
@@ -33,10 +33,10 @@ export const getUploadDatabaseQuery = async (id?: string | undefined) => {
       });
       return response;
     } catch (error) {
-      console.log("🚨 get upload database query error: ", error);
+      console.error("🚨 get upload database query error: ", error);
     }
   } else {
-    console.log("database id를 찾을 수 없습니다.");
+    console.error("database id를 찾을 수 없습니다.");
   }
 };
 
@@ -49,7 +49,7 @@ export const getNotionPageBlocks = async (pageId: string) => {
     });
     return results;
   } catch (error) {
-    console.log("🚨 get Notion Page error: ", error);
+    console.error("🚨 get Notion Page error: ", error);
   }
 };
 
@@ -59,7 +59,7 @@ export const getNotionPage = async (pageId: string) => {
     const response = await notion.pages.retrieve({ page_id: pageId });
     return response;
   } catch (error) {
-    console.log("🚨 get Notion Page error: ", error);
+    console.error("🚨 get Notion Page error: ", error);
   }
 };
 
@@ -78,21 +78,56 @@ export const updateUploadProperties = async (isUpload: boolean) => {
       const data = response.json();
       return data;
     } catch (error) {
-      console.log("🚨 update database properties error: ", error);
+      console.error("🚨 update database properties error: ", error);
     }
   } else {
-    console.log("database id를 찾을 수 없습니다.");
+    console.error("database id를 찾을 수 없습니다.");
   }
 };
 
 export const getPageBlock = async (blockId: string) => {
-  if (!blockId) console.log("block id  not found");
+  if (!blockId) console.error("block id  not found");
   try {
     const response = await notion.blocks.children.list({
       block_id: blockId,
     });
     return response;
   } catch (error) {
-    console.log("🚨 getPageBlock error: ", error);
+    console.error("🚨 getPageBlock error: ", error);
+  }
+};
+
+export const retrievePagePropertyItem = async (
+  pageId: string,
+  propertyId: string
+) => {
+  try {
+    const response = await notion.pages.properties.retrieve({
+      page_id: pageId,
+      property_id: propertyId,
+    });
+    if (!response)
+      throw new Error("retrievePagePropertyItem: 데이터가 없습니다.");
+    return response;
+  } catch (error) {
+    console.error("🚨 retrievePagePropertyItem error: ", error);
+  }
+};
+
+export const updatePageProperties = async (
+  pageId: string,
+  newObj: { [index: string]: any }
+) => {
+  try {
+    const response = await notion.pages.update({
+      page_id: pageId,
+      properties: {
+        ...newObj,
+      },
+    });
+
+    return response;
+  } catch (error) {
+    console.error("🚨 updatePageProperties error: ", error);
   }
 };

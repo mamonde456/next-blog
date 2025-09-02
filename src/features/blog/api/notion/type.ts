@@ -1,3 +1,5 @@
+import { PropertyItemObjectResponse } from "@notionhq/client/build/src/api-endpoints";
+
 export interface NotionType {
   object: string;
   id: string;
@@ -10,7 +12,7 @@ export interface NotionType {
     };
   } | null;
   icon: { type: string; emoji: string };
-  properties: { 이름: { title: titleType[] } };
+  properties: { [index: string]: any };
   in_trash: boolean;
 }
 
@@ -43,6 +45,7 @@ export interface NotionPage {
   archived: true;
   in_trash: true;
   properties: {
+    [index: string]: any;
     "Due date": {
       id: string;
       type: string;
@@ -85,4 +88,21 @@ export interface NotionPage {
       ];
     };
   };
+}
+
+export interface NotionProperties {
+  object: string;
+  results: PropertyItemObjectResponse[];
+  next_cursor?: string;
+  has_more: boolean;
+  next_url?: string;
+  property_item?: any;
+}
+
+export interface PropertiesResults {
+  object: string;
+  type: string;
+  id: string;
+  number: any;
+  request_id: string;
 }
