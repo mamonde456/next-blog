@@ -18,6 +18,7 @@ import {
 import { Meta } from "@/types/cache";
 import { getCacheData, saveFile } from "@/shared/cache/json";
 import { usePageViewTracker } from "@/features/blog/hooks/notion/usePageViewTracker";
+import { useEffect } from "react";
 
 const Wrapper = styled.div`
   width: 100%;
@@ -77,7 +78,7 @@ const Date = styled.p`
 
 type PropsType = { meta: Meta; compiled: string };
 export default function Detail({ meta, compiled }: PropsType) {
-  usePageViewTracker({ pageId: meta.id });
+  const { views } = usePageViewTracker({ pageId: meta.id });
 
   return (
     <Wrapper>
@@ -94,7 +95,7 @@ export default function Detail({ meta, compiled }: PropsType) {
               업데이트 일자: {formatTimestampToDateStr(meta.last_edited_time)}
             </span>
           </Date>
-          <p>{meta.properties.views.number || 0}</p>
+          <Date>조회수: {views || 0}</Date>
           <MDXRenderer compiledCode={compiled} />
         </Content>
       </NotebookWrap>
