@@ -11,6 +11,7 @@ import { toSlug } from "../../utils/slugify";
 import { isExpired } from "../cache/ttl";
 import { getCacheData, saveFile, updateJSONFile } from "../cache/json";
 import { CacheMeta } from "../../types/cache";
+import { safeClone } from "../../utils/common";
 
 export const compileMdx = async (id: string) => {
   const mdString = await getMarkdownFromNotionPage(id);
@@ -86,8 +87,9 @@ export const handleCacheMDXTTL = async () => {
   for (const id of expiredItems) {
     processMDXFile(id);
     updateJSONFile<CacheMeta>("/public/cache/metaData.json", (data) => {
-      data[id].cache_generated_at = new Date().toISOString();
-      return data;
+      const newData = safeClone(data);
+      newData[id].cache_generated_at = new Date().toISOString();
+      return newData;
     });
   }
 };

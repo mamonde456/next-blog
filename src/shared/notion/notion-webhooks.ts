@@ -16,9 +16,10 @@ import {
   saveFile,
   updateJSONFile,
 } from "../cache/json";
-import { successFailureLogRecorder } from "../../utils/common";
-import { CacheSlugMap, Meta } from "../../types/cache";
+import { safeClone, successFailureLogRecorder } from "../../utils/common";
+import { CacheSlugMap, CacheMeta } from "../../types/cache";
 import { toSlug } from "../../utils/slugify";
+import { updateNotionMetaFormat } from "../../features/blog/services/notion";
 
 export type NotionWebhooksPayload = {
   id: string;
@@ -101,16 +102,11 @@ export const createdNotionPage = async (
       const newSlugMap = { ...data, [toSlug(title)]: id };
       return newSlugMap;
     });
-    updateJSONFile<Meta>("/public/cache/metaData.json", (data) => {
-      const meta = {
-        title,
-        created_time: timestamp,
-        last_edited_time: timestamp,
-        cache_generated_at: new Date().toISOString(),
-        ttl: 84000,
-        in_trash: false,
-      };
-      const newMetaData = { ...data, [id]: meta };
+    updateJSONFile<CacheMeta>("/public/cache/metaData.json", (data) => {
+      const meta = updateNotionMetaFormat(notionPage, 84000);
+
+      const newMetaData = safeClone(data);
+      newMetaData[id] = meta;
       return newMetaData;
     });
   } catch (error) {
@@ -162,15 +158,10 @@ export const updatedNotionPage = async (
       return newSlugMap;
     });
     updateJSONFile<CacheMeta>("/public/cache/metaData.json", (data) => {
-      const meta = {
-        title,
-        created_time: timestamp,
-        last_edited_time: timestamp,
-        cache_generated_at: new Date().toISOString(),
-        ttl: 84000,
-        in_trash: false,
-      };
-      const newMetaData = { ...data, [id]: meta };
+      const meta = updateNotionMetaFormat(notionPage, 84000);
+
+      const newMetaData = safeClone(data);
+      newMetaData[id] = meta;
       return newMetaData;
     });
     const saveMdx = saveFile("public/cache/mdx", id + ".js", compiled);
