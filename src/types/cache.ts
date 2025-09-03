@@ -1,5 +1,8 @@
 import { NotionType } from "@/features/blog/api/notion/type";
 
+export interface CacheMeta {
+  [index: string]: Meta;
+}
 export interface Meta {
   id: string;
   icon: string;
