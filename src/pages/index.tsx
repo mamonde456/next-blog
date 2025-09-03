@@ -1,12 +1,10 @@
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import styled from "styled-components";
 import MainMenu from "../shared/components/MainMenu";
-import { IFirebasePost } from "../types/blog";
 import { getUploadDatabaseQuery } from "../features/blog/api/notion";
 import ItemList from "@/features/blog/components/ItemList";
 import { NotionType } from "@/features/blog/api/notion/type";
-import MainPosts from "@/features/blog/components/MainPosts";
 import { toSlug } from "@/utils/slugify";
 
 const Wrapper = styled.div`
@@ -188,5 +186,5 @@ export const getStaticProps = async () => {
   const notionData = await getUploadDatabaseQuery();
   const notionList = notionData?.results;
 
-  return { props: { notionList }, revalidate: 60 };
+  return { props: { notionList }, revalidate: 1000 };
 };
