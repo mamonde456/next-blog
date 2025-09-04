@@ -18,7 +18,7 @@ import {
 import { Meta } from "@/types/cache";
 import { getCacheData, saveFile } from "@/shared/cache/json";
 import { usePageViewTracker } from "@/features/blog/hooks/notion/usePageViewTracker";
-import { useEffect } from "react";
+import { upsertDataFromFirestore } from "@/features/blog/api/firebase";
 
 const Wrapper = styled.div`
   width: 100%;
@@ -127,7 +127,9 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
   if (cacheSlug && cacheMeta) {
     const id = cacheSlug[slug];
+    const { views } = await upsertDataFromFirestore(id, "properties");
     const currentMeta = cacheMeta[id];
+    currentMeta.properties.views = views;
     if (currentMeta) {
       const resultTtl = isExpired(
         currentMeta.cache_generated_at,
@@ -155,7 +157,9 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   if (!compiled) return { notFound: true };
 
   const CACHE_TTL_SECONDS = 24 * 60 * 60; // 24시간
+  const { views } = await upsertDataFromFirestore(id, "properties");
   const newMeta = getNotionMetaData(notion, CACHE_TTL_SECONDS);
+  newMeta[id].properties.views = views;
   const newslug = getNotionSlugMapData(notion);
 
   const saveMeta = saveFile("public/cache", "metaData.json", newMeta);
