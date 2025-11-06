@@ -6,6 +6,8 @@ import { getUploadDatabaseQuery } from "../features/blog/api/notion";
 import ItemList from "@/features/blog/components/ItemList";
 import { NotionType } from "@/features/blog/api/notion/type";
 import { toSlug } from "@/utils/slugify";
+import Header from "@/shared/components/Header";
+import { CategoryId } from "@/shared/components/types/header";
 
 const Wrapper = styled.div`
   min-height: 100vh;
@@ -14,6 +16,12 @@ const Wrapper = styled.div`
   display: flex;
   background: white;
   border-radius: 10px;
+`;
+
+const Content = styled.div`
+  display: flex;
+  flex-direction: column;
+  flex: 4;
 `;
 
 const SideMenuList = styled.div`
@@ -98,6 +106,7 @@ const SearchItem = styled.li`
 
 export default function Home({ notionList }: { notionList: NotionType[] }) {
   const [keyword, setKeyword] = useState("");
+  const [selected, setSelected] = useState<CategoryId>("all");
 
   const searchResult = useMemo(() => {
     return notionList.filter((item) => {
@@ -127,10 +136,21 @@ export default function Home({ notionList }: { notionList: NotionType[] }) {
     }
     return "/404";
   }, []);
+
+  const filterList = useMemo(() => {
+    return notionList.filter((item) => {
+      if (selected === "all") return item;
+      const category = item.properties["카테고리"].rich_text[0].plain_text;
+      return category === selected;
+    });
+  }, [selected]);
   return (
     <Wrapper>
       <MainMenu />
-      <ItemList itemList={notionList} />
+      <Content>
+        <Header selected={selected} setSelected={setSelected} />
+        <ItemList itemList={filterList} />
+      </Content>
 
       <SideMenuList>
         <Search>
