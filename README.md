@@ -2,6 +2,9 @@
 
 <p align="center">
   <img width="1524" height="814" alt="메인 화면" src="https://github.com/user-attachments/assets/0c53b0f7-57c9-4431-92a5-ad1313fb7857" />
+ <img width="1524" height="814" alt="검색 화면" src="https://github.com/user-attachments/assets/4a3f9600-f7b9-4ab7-8e05-bec5ce839b0b" />
+<img width="1524" height="814" alt="게시글 상세 화면" src="https://github.com/user-attachments/assets/1e2bc0de-58f8-4968-9f0d-b8b63be46303" />
+
 </p>
 <p align="center">
   <a href="https://next-blog-six-amber.vercel.app/">🔗 Live Demo</a>
