@@ -26,3 +26,26 @@ export const decodeFirestorePost = (firebaseData: DocumentData) => {
   const decodedText = decodeURIComponent(firebaseData.content);
   return { meta, content: decodedText };
 };
+
+export const calculateReadingTime = (content: any) => {
+  // 코드 블럭 제거
+  const withoutCodeBlocks = content.replace(/```[\s\S]*?```/g, "");
+  // 인라인 코드 제거
+  const withoutInlineCode = withoutCodeBlocks.replace(/`[^`]+`/g, "");
+  // 마크다운 문법 제거 & 이미지 제거
+  const withoutMarkdown = withoutInlineCode
+    .replace(/[#*_~`\[\]()]/g, "")
+    .replace(/!\[.*?\]\(.*?\)/g, "");
+
+  const koreanChars = (withoutMarkdown.match(/[가-힣]/g) || []).length;
+  const englishWords = (withoutMarkdown.match(/[a-zA-Z]+/g) || []).length;
+
+  // 한국어: 분당 350자
+  // 영어: 분당 225단어
+  const koreanMinutes = koreanChars / 350;
+  const englishMinutes = englishWords / 225;
+
+  const totalMinutes = Math.ceil(koreanMinutes + englishMinutes);
+
+  return Math.max(1, totalMinutes);
+};

@@ -13,6 +13,7 @@ export interface Meta {
   cache_generated_at: string;
   ttl: number;
   in_trash: boolean;
+  reading_time: number;
 }
 
 export interface CacheSlugMap {
