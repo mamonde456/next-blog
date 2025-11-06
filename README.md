@@ -31,7 +31,8 @@ Notion API를 활용한 개인 기술 블로그 플랫폼입니다.
 
 **Backend & Database**
 - Notion API (콘텐츠 관리)
-- Firebase Realtime Database (조회수)
+- ~~Firebase Realtime Database ()~~
+- Cloud Firestore (사용자/게시글/조회수)
 
 **Development & Deployment**
 - Vercel (자동 배포)
