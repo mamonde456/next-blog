@@ -5,6 +5,7 @@ import {
   getNotionSlugMapData,
   getNotionMetaData,
   saveMDXComponent,
+  getMarkdownFromNotionPage,
 } from "../../../features/blog/services/notion";
 import { GetStaticProps } from "next";
 
@@ -13,12 +14,14 @@ import MDXRenderer from "@/features/blog/components/notion/MDXRenderer";
 import { isExpired } from "@/shared/cache/ttl";
 import {
   formatTimestampToDateStr,
+  safeClone,
   successFailureLogRecorder,
 } from "@/utils/common";
-import { Meta } from "@/types/cache";
-import { getCacheData, saveFile } from "@/shared/cache/json";
+import { CacheMeta, Meta } from "@/types/cache";
+import { getCacheData, saveFile, updateJSONFile } from "@/shared/cache/json";
 import { usePageViewTracker } from "@/features/blog/hooks/notion/usePageViewTracker";
-import { useEffect } from "react";
+import { upsertDataFromFirestore } from "@/features/blog/api/firebase";
+import { calculateReadingTime } from "@/features/blog/services";
 
 const Wrapper = styled.div`
   width: 100%;
@@ -95,7 +98,8 @@ export default function Detail({ meta, compiled }: PropsType) {
               업데이트 일자: {formatTimestampToDateStr(meta.last_edited_time)}
             </span>
           </Date>
-          <Date>조회수: {views || 0}</Date>
+          <Date>읽기 시간: {meta.reading_time || 1}분</Date>
+          <Date>조회수: {meta.properties.views || 0}</Date>
           <MDXRenderer compiledCode={compiled} />
         </Content>
       </NotebookWrap>
@@ -127,7 +131,10 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
   if (cacheSlug && cacheMeta) {
     const id = cacheSlug[slug];
+    const { views } = await upsertDataFromFirestore(id, "properties");
+
     const currentMeta = cacheMeta[id];
+    currentMeta.properties.views = views;
     if (currentMeta) {
       const resultTtl = isExpired(
         currentMeta.cache_generated_at,
@@ -136,7 +143,10 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
       if (!resultTtl) {
         const compiled = getCacheData(`/public/cache/mdx/${id}.js`);
         if (compiled) {
-          return { props: { meta: currentMeta, compiled }, revalidate: 3600 };
+          return {
+            props: { meta: currentMeta, compiled },
+            revalidate: 3600,
+          };
         }
       }
     }
@@ -148,23 +158,32 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
   if (!id) return { notFound: true };
 
-  const compiled = await compileMdx(id);
+  const { compiled } = await compileMdx(id);
   const notion = notionList.find((item) => item.id === id);
 
   if (!notion) return { notFound: true };
   if (!compiled) return { notFound: true };
 
   const CACHE_TTL_SECONDS = 24 * 60 * 60; // 24시간
+  const { views } = await upsertDataFromFirestore(id, "properties");
   const newMeta = getNotionMetaData(notion, CACHE_TTL_SECONDS);
+  newMeta[id].properties.views = views;
   const newslug = getNotionSlugMapData(notion);
 
   const saveMeta = saveFile("public/cache", "metaData.json", newMeta);
   const saveSlug = saveFile("public/cache", "slugMap.json", newslug);
   const saveMdx = saveMDXComponent("public/cache/mdx", id + ".js", compiled);
   successFailureLogRecorder([saveMeta, saveSlug, saveMdx]);
+  const notionPage = await getMarkdownFromNotionPage(notion.id);
 
+  const readingTime = calculateReadingTime(notionPage);
+  updateJSONFile<CacheMeta>("/public/cache/metaData.json", (data) => {
+    const newData = safeClone(data);
+    newData[id].reading_time = readingTime;
+    return newData;
+  });
   return {
-    props: { meta: newMeta[id], compiled },
+    props: { meta: { ...newMeta[id], reading_time: readingTime }, compiled },
     revalidate: 60,
   };
 };

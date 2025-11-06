@@ -5,7 +5,7 @@ import { toSlug } from "../../../utils/slugify";
 import { formatTimestampToDateStr } from "@/utils/common";
 
 const Items = styled.ul`
-  width: 100%;
+  /* width: 100%; */
   min-height: 300px;
   display: flex;
   flex: 5;
@@ -18,8 +18,9 @@ const Item = styled.li`
   border: solid 1px rgba(0, 0, 0, 0.2);
   border-radius: 10px;
   display: flex;
-  /* flex-direction: column; */
+  flex-direction: column;
   padding: 10px;
+  box-sizing: border-box;
 `;
 
 const Title = styled.div`

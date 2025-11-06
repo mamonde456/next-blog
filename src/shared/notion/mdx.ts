@@ -15,7 +15,7 @@ import { safeClone } from "../../utils/common";
 
 export const compileMdx = async (id: string) => {
   const mdString = await getMarkdownFromNotionPage(id);
-  if (!mdString) return null;
+  if (!mdString) return { markdown: null, compiled: null };
   try {
     const compiled = await compile(mdString, {
       outputFormat: "function-body",
@@ -34,10 +34,10 @@ export const compileMdx = async (id: string) => {
       ],
     });
     if (!compiled) throw new Error(`MDX 컴파일 실패: ${id}`);
-    return String(compiled);
+    return { markdown: mdString, compiled: String(compiled) };
   } catch (error) {
     console.error(error);
-    return null;
+    return { markdown: null, compiled: null };
   }
 };
 

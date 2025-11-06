@@ -1,25 +1,67 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import styled from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 import { auth } from "../../../firebase";
 import { signOut } from "firebase/auth";
 import useAuth from "../../features/auth/hook/useAuth";
+import { Category, CategoryId } from "./types/header";
 
 const Wrapper = styled.header`
-  width: 1200px;
   height: 80px;
-  border-bottom: solid 1px rgba(0, 0, 0, 0.3);
-  margin-bottom: 30px;
-  position: fixed;
-  nav {
+  border-bottom: solid 1px rgba(55, 53, 47, 0.3);
+  flex-direction: column;
+  */ nav {
     height: 100%;
-    padding: 10px 30px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
   }
+`;
+
+const List = styled.div`
+  top: 30px;
+  position: relative;
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  border-radius: 0.5rem 0.5rem 0 0;
+  background-color: #eee;
+  box-sizing: border-box;
+  box-shadow: 0 0 0px 1px rgba(0, 0, 0, 0.06);
+  padding: 0.25rem;
+  font-size: 14px;
+  .radio {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+
+  .radio input {
+    display: none;
+  }
+
+  .radio .name {
+    display: flex;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    border: none;
+    padding: 0.5rem 0;
+    color: rgba(51, 65, 85, 1);
+    transition: all 0.15s ease-in-out;
+  }
+
+  .radio input:checked + .name {
+    background-color: #fff;
+    font-weight: 600;
+  }
+`;
+const Li = styled.li`
+  height: 100%;
+  padding: 10px;
+  margin: 0;
+  display: flex;
+  align-items: end;
+  box-sizing: border-box;
 `;
 
 const ProfileBox = styled.div`
@@ -38,7 +80,19 @@ const ProfileIcon = styled.div`
   align-items: center;
 `;
 
-export default function Header() {
+const CATEGORIES: Category[] = [
+  { id: "all", label: "전체", emoji: "🔖" },
+  { id: "tech", label: "기술 공부", emoji: "💻" },
+  { id: "retrospect", label: "회고", emoji: "📝" },
+  { id: "daily", label: "일상", emoji: "☕" },
+];
+
+type Props = {
+  selected: CategoryId;
+  setSelected: Dispatch<SetStateAction<CategoryId>>;
+};
+
+export default function Header({ selected, setSelected }: Props) {
   const isLoggedIn = useAuth();
 
   const router = useRouter();
@@ -53,72 +107,22 @@ export default function Header() {
   return (
     <Wrapper>
       <nav>
-        <h1>
-          <Link href={"/"}>BEGIN.log</Link>
-        </h1>
-        <ProfileBox>
-          {router.pathname !== "/write" && (
-            <Link href={{ pathname: `/write/${id}`, query: { action: "new" } }}>
-              글 작성
-            </Link>
-          )}
-          {isLoggedIn ? (
-            <>
-              <ProfileIcon onClick={() => setprofileDropBox((prev) => !prev)}>
-                <svg height="1em" viewBox="0 0 448 512">
-                  <path d="M304 128a80 80 0 1 0 -160 0 80 80 0 1 0 160 0zM96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM49.3 464H398.7c-8.9-63.3-63.3-112-129-112H178.3c-65.7 0-120.1 48.7-129 112zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3z" />
-                </svg>
-              </ProfileIcon>
-              <ProfileDropdown isOpen={profileDropBox} />
-            </>
-          ) : (
-            <Link href="/login">login</Link>
-          )}
-        </ProfileBox>
+        <List>
+          {CATEGORIES.map((item) => (
+            <label className="radio" key={item.id}>
+              <input
+                type="radio"
+                name="category"
+                checked={selected === item.id}
+                onChange={() => {
+                  setSelected(item.id as CategoryId);
+                }}
+              />
+              <span className="name">{item.label}</span>
+            </label>
+          ))}
+        </List>
       </nav>
     </Wrapper>
-  );
-}
-
-const ProfileList = styled.ul`
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 10px;
-  align-items: center;
-  justify-content: center;
-  background-color: #fff;
-  border-radius: 20px;
-  position: absolute;
-  top: 70px;
-  border: solid 1px rgba(0, 0, 0, 0.5);
-  li:hover,
-  a:hover {
-    color: blue;
-    cursor: pointer;
-  }
-`;
-type ProfileProps = {
-  isOpen: boolean;
-};
-function ProfileDropdown({ isOpen = false }: ProfileProps) {
-  const logoutHandler = () => {
-    signOut(auth)
-      .then(() => {
-        console.log("sign Out");
-      })
-      .catch((err) => {
-        console.log("로그아웃 실패, ", err);
-      });
-  };
-  return (
-    <>
-      {isOpen && (
-        <ProfileList>
-          <Link href="/users/setting-profile">계정 정보</Link>
-          <li onClick={logoutHandler}>로그아웃</li>
-        </ProfileList>
-      )}
-    </>
   );
 }
