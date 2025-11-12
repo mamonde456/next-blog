@@ -96,7 +96,7 @@ export const handleCacheMDXTTL = async () => {
 
 export const processMDXFile = async (id: string) => {
   try {
-    const compiled = await compileMdx(id);
+    const { compiled } = await compileMdx(id);
     const result = saveFile("/public/cache/mdx", id + ".js", compiled);
 
     if (result.message !== "success") {
