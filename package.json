@@ -29,7 +29,7 @@
     "eslint": "8.47.0",
     "eslint-config-next": "13.4.19",
     "firebase": "^10.7.1",
-    "next": "^15.3.2",
+    "next": "^15.3.6",
     "notion-to-md": "^3.1.8",
     "react": "18.2.0",
     "react-dom": "18.2.0",
