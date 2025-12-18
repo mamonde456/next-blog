@@ -17,6 +17,18 @@ const components = {
       {...props}
     />
   ),
+  Image: ({ src, alt, ...props }: any) => (
+    <Image
+      src={src}
+      alt={alt || ""}
+      width={800}
+      height={400}
+      sizes="(max-width: 768px) 100vw, 80vw"
+      style={{ width: "100%", height: "auto" }}
+      loading="lazy"
+      {...props}
+    />
+  ),
 };
 
 type PropsType = { compiledCode: string };
