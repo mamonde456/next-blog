@@ -131,22 +131,24 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
   if (cacheSlug && cacheMeta) {
     const id = cacheSlug[slug];
-    const { views } = await upsertDataFromFirestore(id, "properties");
+    if (id) {
+      const { views } = await upsertDataFromFirestore(id, "properties");
 
-    const currentMeta = cacheMeta[id];
-    currentMeta.properties.views = views;
-    if (currentMeta) {
-      const resultTtl = isExpired(
-        currentMeta.cache_generated_at,
-        currentMeta.ttl
-      );
-      if (!resultTtl) {
-        const compiled = getCacheData(`/public/cache/mdx/${id}.js`);
-        if (compiled) {
-          return {
-            props: { meta: currentMeta, compiled },
-            revalidate: 3600,
-          };
+      const currentMeta = cacheMeta[id];
+      currentMeta.properties.views = views;
+      if (currentMeta) {
+        const resultTtl = isExpired(
+          currentMeta.cache_generated_at,
+          currentMeta.ttl
+        );
+        if (!resultTtl) {
+          const compiled = getCacheData(`/public/cache/mdx/${id}.js`);
+          if (compiled) {
+            return {
+              props: { meta: currentMeta, compiled },
+              revalidate: 3600,
+            };
+          }
         }
       }
     }
