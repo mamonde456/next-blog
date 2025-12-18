@@ -26,13 +26,13 @@ jobs:
 
       - name: Debug webhook payload
         run: |
-          echo "Event type: ${{ github.event.action }}"
+          echo "Event name: ${{ github.event_name }}"
           echo "Full payload:"
           cat << 'EOF'
-          ${{ toJson(github.event.client_payload) }}
+          echo '${{ toJson(github.event.client_payload) }}'
           EOF
-          echo "Page ID: ${{ github.event.client_payload.page_id }}"
-          echo "Webhook type: ${{ github.event.client_payload.webhook_type }}"
+          echo "Page ID: ${{ github.event.client_payload.webhook.entity.id }}"
+          echo "Webhook type: ${{ github.event.client_payload.webhook.type}}"
 
       - name: Update specific page cache
         run: npm run generate-cache
