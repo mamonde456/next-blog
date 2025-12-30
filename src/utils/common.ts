@@ -85,9 +85,9 @@ export const successFailureLogRecorder = (
   }
 };
 
-export const findKeyByValue = (type: string, data: Record<string, any>) => {
+export const findKeyByValue = (id: string, data: Record<string, any>) => {
   for (const [key, value] of Object.entries(data)) {
-    if (value === type) return key;
+    if (value === id) return key;
   }
   return null;
 };
