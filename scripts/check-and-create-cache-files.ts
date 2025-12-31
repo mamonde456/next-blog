@@ -19,13 +19,12 @@ import { successFailureLogRecorder } from "../src/utils/common";
 
 import fs from "fs";
 import { findKeyByValue } from "../src/utils/common";
-import { toSlug } from "../src/utils/slugify";
 
 const databaseId = process.env.NOTION_DATABASE_ID;
 
 async function main() {
-  const cacheMeta = getCacheData("/public/cache/metaData.json");
-  const cacheSlugMap = getCacheData("/public/cache/slugMap.json");
+  let cacheMeta = getCacheData("/public/cache/metaData.json");
+  let cacheSlugMap = getCacheData("/public/cache/slugMap.json");
 
   const notionData = await getUploadDatabaseQuery(databaseId);
   const notionList = notionData?.results ?? [];
@@ -43,8 +42,6 @@ async function main() {
     }
   }
 
-  let newCacheMeta;
-  let newCacheSlugMap;
   for (const item of notionList as NotionType[]) {
     const id = item.id;
     const cacheFile = cacheMeta[id];
@@ -55,14 +52,14 @@ async function main() {
     if (!compiled) continue;
 
     const CACHE_TTL_SECONDS = 24 * 60 * 60; // 24시간
-    const name = item.properties["이름"]?.title[0]?.plain_text ?? "제목없음";
-    cacheMeta[id] = getNotionMetaData(item, CACHE_TTL_SECONDS);
-    cacheSlugMap[toSlug(name)] = id;
+
+    cacheMeta = getNotionMetaData(item, CACHE_TTL_SECONDS);
+    cacheSlugMap = getNotionSlugMapData(item);
 
     saveMDXComponent("public/cache/mdx", id + ".js", compiled);
+    saveFile("public/cache", "metaData.json", cacheMeta);
+    saveFile("public/cache", "slugMap.json", cacheSlugMap);
   }
-  saveFile("public/cache", "metaData.json", cacheMeta);
-  saveFile("public/cache", "slugMap.json", cacheSlugMap);
 }
 
 main();
