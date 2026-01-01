@@ -1,6 +1,6 @@
 import { getNotionPage } from "../../features/blog/api/notion";
 import { NotionPage } from "../../features/blog/api/notion/type";
-import { findKeyByValue, removeHyphens } from "../../utils/webhooks";
+import { removeHyphens } from "../../utils/webhooks";
 import {
   GITHUB_OWNER,
   GITHUB_REPO,
@@ -16,7 +16,11 @@ import {
   saveFile,
   updateJSONFile,
 } from "../cache/json";
-import { safeClone, successFailureLogRecorder } from "../../utils/common";
+import {
+  findKeyByValue,
+  safeClone,
+  successFailureLogRecorder,
+} from "../../utils/common";
 import { CacheSlugMap, CacheMeta } from "../../types/cache";
 import { toSlug } from "../../utils/slugify";
 import { updateNotionMetaFormat } from "../../features/blog/services/notion";
@@ -120,7 +124,7 @@ export const deletedNotionPage = (entity: IdAndType, timestamp: string) => {
   try {
     updateJSONFile<CacheSlugMap>("/public/cache/slugMap.json", (data) => {
       const newSlugMap = { ...data };
-      const key = findKeyByValue(data, id);
+      const key = findKeyByValue(id, data);
       if (!key || (key && !newSlugMap[key])) return newSlugMap;
       delete newSlugMap[key];
       return newSlugMap;
@@ -184,7 +188,7 @@ export const propertiesUpdatedNotionPage = async (
   }
 
   const slugMap = getCacheData("/public/cache/slugMap.json");
-  const key = findKeyByValue(slugMap, id);
+  const key = findKeyByValue(id, slugMap);
   if (key) {
     const newSlugMap = { ...slugMap };
     delete newSlugMap[key];
