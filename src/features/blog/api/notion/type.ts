@@ -1,5 +1,26 @@
 import { PropertyItemObjectResponse } from "@notionhq/client/build/src/api-endpoints";
 
+export interface NotionQueries {
+  results: NotionQuery[];
+}
+export interface NotionQuery {
+  object: string;
+  id: string;
+  created_time: string;
+  last_edited_time: string;
+  created_by: [Object];
+  last_edited_by: [Object];
+  cover: null;
+  icon: [Object];
+  parent: [Object];
+  archived: false;
+  in_trash: false;
+  is_locked: false;
+  properties: [Object];
+  url: string;
+  public_url: string;
+}
+
 export interface NotionType {
   object: string;
   id: string;
@@ -14,6 +35,11 @@ export interface NotionType {
   icon: { type: string; emoji: string };
   properties: { [index: string]: any };
   in_trash: boolean;
+  views?: {
+    id: string;
+    type: string;
+    number: number;
+  };
 }
 
 type titleType = {
@@ -46,6 +72,11 @@ export interface NotionPage {
   in_trash: true;
   properties: {
     [index: string]: any;
+    views: {
+      id: string;
+      type: string;
+      number: number;
+    };
     "Due date": {
       id: string;
       type: string;

@@ -5,7 +5,7 @@ export interface CacheMeta {
 }
 export interface Meta {
   id: string;
-  icon: string;
+  icon: Record<string, string>;
   title: string;
   properties: NotionType["properties"];
   created_time: string;

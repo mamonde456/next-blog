@@ -84,3 +84,10 @@ export const successFailureLogRecorder = (
     throw new Error("데이터를 찾지 못했습니다.");
   }
 };
+
+export const findKeyByValue = (id: string, data: Record<string, any>) => {
+  for (const [key, value] of Object.entries(data)) {
+    if (value === id) return key;
+  }
+  return null;
+};
