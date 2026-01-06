@@ -1,8 +1,4 @@
-import {
-  NotionQueries,
-  NotionQuery,
-  NotionType,
-} from "../src/features/blog/api/notion/type";
+import { NotionType } from "../src/features/blog/api/notion/type";
 import { getUploadDatabaseQuery } from "../src/features/blog/api/notion";
 import {
   deletedCacheData,
@@ -11,54 +7,60 @@ import {
 } from "../src/shared/cache/json";
 import { compileMdx } from "../src/shared/notion/mdx";
 import {
-  getNotionMetaData,
-  getNotionSlugMapData,
+  buildMetaPatch,
+  buildSlugPatch,
   saveMDXComponent,
 } from "../src/features/blog/services/notion";
-import { successFailureLogRecorder } from "../src/utils/common";
 
-import fs from "fs";
 import { findKeyByValue } from "../src/utils/common";
+import { Meta } from "../src/types/cache";
+import { shouldRebuild } from "../src/shared/cache/ttl";
 
 const databaseId = process.env.NOTION_DATABASE_ID;
+const CACHE_TTL_SECONDS = 86400;
 
 async function main() {
-  let cacheMeta = getCacheData("/public/cache/metaData.json");
-  let cacheSlugMap = getCacheData("/public/cache/slugMap.json");
+  let cacheMeta = getCacheData("/public/cache/metaData.json") ?? {};
+  let cacheSlugMap = getCacheData("/public/cache/slugMap.json") ?? {};
 
   const notionData = await getUploadDatabaseQuery(databaseId);
-  const notionList = notionData?.results ?? [];
-
+  const notionList = (notionData?.results as NotionType[]) ?? [];
   const notionIdSet = new Set(notionList.map((n) => n.id));
 
-  // 노션에 없는 캐시 데이터 삭제
-  for (const id of Object.keys(cacheMeta)) {
-    if (!notionIdSet.has(id)) {
-      const slug = findKeyByValue(id, cacheSlugMap) || "";
-
-      delete cacheMeta[id];
-      delete cacheSlugMap[slug];
-      deletedCacheData(`/public/cache/mdx/${id}.js`);
-    }
+  // 노션 X -> 캐시 삭제
+  for (const cacheId of Object.keys(cacheMeta)) {
+    if (notionIdSet.has(cacheId)) continue;
+    const slug = findKeyByValue(cacheId, cacheSlugMap);
+    delete cacheMeta[cacheId];
+    if (slug) delete cacheSlugMap[slug];
+    deletedCacheData(`/public/cache/mdx/${cacheId}.js`);
   }
 
-  for (const item of notionList as NotionType[]) {
+  const rebuildTargets = new Set<string>();
+  // 최초 생성
+  for (const item of notionList) {
     const id = item.id;
-    const cacheFile = cacheMeta[id];
-    if (cacheFile && cacheFile.last_edited_time === item.last_edited_time) {
+    const cache = cacheMeta[id] as Meta | undefined;
+    if (!cache) {
+      cacheMeta = { ...cacheMeta, ...buildMetaPatch(item, CACHE_TTL_SECONDS) };
+      cacheSlugMap = { ...cacheSlugMap, ...buildSlugPatch(item) };
+      rebuildTargets.add(id);
       continue;
     }
+    if (shouldRebuild(item, cache)) {
+      cacheMeta = { ...cacheMeta, ...buildMetaPatch(item, CACHE_TTL_SECONDS) };
+      cacheSlugMap = { ...cacheSlugMap, ...buildSlugPatch(item) };
+      rebuildTargets.add(id);
+    }
+  }
+  // 저장
+  saveFile("public/cache", "metaData.json", cacheMeta);
+  saveFile("public/cache", "slugMap.json", cacheSlugMap);
+
+  for (const id of rebuildTargets) {
     const { compiled } = await compileMdx(id);
     if (!compiled) continue;
-
-    const CACHE_TTL_SECONDS = 24 * 60 * 60; // 24시간
-
-    cacheMeta = getNotionMetaData(item, CACHE_TTL_SECONDS);
-    cacheSlugMap = getNotionSlugMapData(item);
-
-    saveMDXComponent("public/cache/mdx", id + ".js", compiled);
-    saveFile("public/cache", "metaData.json", cacheMeta);
-    saveFile("public/cache", "slugMap.json", cacheSlugMap);
+    saveMDXComponent("public/cache", `${id}.js`, compiled);
   }
 }
 
