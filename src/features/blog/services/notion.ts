@@ -5,6 +5,7 @@ import { NotionType } from "../api/notion/type.ts";
 import { toSlug } from "../../../utils/slugify.ts";
 import { n2m } from "../../../lib/notion/client.ts";
 import { getCacheData, saveFile } from "../../../shared/cache/json.ts";
+import { Meta } from "@/types/cache.ts";
 
 export const getSlugMap = async (
   id?: string | undefined
@@ -79,15 +80,17 @@ export const saveMDXComponent = (
 };
 
 export const updateNotionMetaFormat = (notion: NotionType, ttl: number) => {
-  if (!notion)
-    return new Error("saveFormatMDX: notion 데이터를 찾을 수 없습니다.");
+  if (!notion) {
+    console.error("saveFormatMDX: notion 데이터를 찾을 수 없습니다.");
+    return null;
+  }
   let title = notion.properties.이름.title[0].plain_text;
   const properties = { ...notion.properties };
   delete properties["업로드한 날짜"];
   delete properties["upload"];
   delete properties["날짜"];
   if (!notion.properties.이름.title[0].plain_text) title = "제목없음";
-  const metaData = {
+  const metaData: Meta = {
     id: notion.id,
     icon: notion.icon,
     title,
@@ -97,10 +100,15 @@ export const updateNotionMetaFormat = (notion: NotionType, ttl: number) => {
     cache_generated_at: new Date().toISOString(),
     ttl,
     in_trash: notion.in_trash,
+    reading_time: 0,
   };
 
   return metaData;
 };
+
+export const buildMetaPatch = (item: NotionType, ttl: number) => ({
+  [item.id]: updateNotionMetaFormat(item, ttl),
+});
 
 export const getNotionMetaData = (notion: NotionType, ttl: number) => {
   const meta = updateNotionMetaFormat(notion, ttl);
@@ -112,7 +120,7 @@ export const getNotionMetaData = (notion: NotionType, ttl: number) => {
   return newCacheMeta;
 };
 
-export const getNotionSlugMapData = (notion: NotionType) => {
+export const buildSlugPatch = (notion: NotionType) => {
   const cacheSlugMap = getCacheData("/public/cache/slugMap.json");
   let title = toSlug(notion.properties.이름.title[0].plain_text);
   if (!cacheSlugMap) return null;
