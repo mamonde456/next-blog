@@ -35,6 +35,11 @@ export interface NotionType {
   icon: { type: string; emoji: string };
   properties: { [index: string]: any };
   in_trash: boolean;
+  views: {
+    id: string;
+    type: string;
+    number: number;
+  };
 }
 
 type titleType = {
