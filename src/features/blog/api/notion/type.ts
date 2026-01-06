@@ -35,7 +35,7 @@ export interface NotionType {
   icon: { type: string; emoji: string };
   properties: { [index: string]: any };
   in_trash: boolean;
-  views: {
+  views?: {
     id: string;
     type: string;
     number: number;
@@ -72,6 +72,11 @@ export interface NotionPage {
   in_trash: true;
   properties: {
     [index: string]: any;
+    views: {
+      id: string;
+      type: string;
+      number: number;
+    };
     "Due date": {
       id: string;
       type: string;
