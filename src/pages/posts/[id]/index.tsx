@@ -2,7 +2,7 @@ import styled from "styled-components";
 import MainMenu from "../../../shared/components/MainMenu";
 import {
   getSlugMap,
-  getNotionSlugMapData,
+  buildSlugPatch,
   getNotionMetaData,
   saveMDXComponent,
   getMarkdownFromNotionPage,
@@ -170,7 +170,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   const { views } = await upsertDataFromFirestore(id, "properties");
   const newMeta = getNotionMetaData(notion, CACHE_TTL_SECONDS);
   newMeta[id].properties.views = views;
-  const newslug = getNotionSlugMapData(notion);
+  const newslug = buildSlugPatch(notion);
 
   const saveMeta = saveFile("public/cache", "metaData.json", newMeta);
   const saveSlug = saveFile("public/cache", "slugMap.json", newslug);
