@@ -19,16 +19,22 @@ export const saveFile = (src: string, slug: string, json: any) => {
   }
 };
 
-export const getCacheData = (src: string) => {
-  const filePath = path.join(process.cwd(), src);
-  if (fs.existsSync(filePath)) {
-    const fileContent = fs.readFileSync(filePath, "utf-8");
-    if (src.endsWith(".js")) {
+export const getCacheData = (relativePath: string) => {
+  try {
+    const absolutePath = relativePath.startsWith("/")
+      ? path.join(process.cwd(), relativePath)
+      : path.join(process.cwd(), relativePath);
+    if (!fs.existsSync(absolutePath)) return console.warn("파일 없음.");
+
+    const fileContent = fs.readFileSync(absolutePath, "utf-8");
+    if (relativePath.endsWith(".js")) {
       return fileContent;
     }
     return JSON.parse(fileContent);
+  } catch (error) {
+    console.error(`파일 읽기 실패: ${relativePath}`, error);
+    throw new Error(`getCacheData 실패: ${relativePath} - ${error}`);
   }
-  return null;
 };
 
 export const deletedCacheData = (src: string) => {
@@ -61,15 +67,25 @@ export const updateJSONFile = <T>(
   updater: (data: T) => T
 ) => {
   try {
-    const data = getCacheData(fullPath);
-    const updated = updater(safeClone(data));
+    let existingData;
+    try {
+      existingData = getCacheData(fullPath);
+    } catch (error) {
+      console.warn("기존 파일 없음, 새로 생성함.");
+      existingData = {};
+    }
+
+    const updated = updater(safeClone(existingData));
     const slug = fullPath.split("/").at(-1);
     const path = fullPath.substring(0, fullPath.lastIndexOf("/") + 1);
     if (!slug)
       throw new Error("slug 추출 실패: path 경로가 완전하지 않습니다.");
+
     const result = saveFile(path, slug, updated);
     if (result.message !== "success")
       throw new Error(`[updateJSONFile] 실패: ${fullPath} `);
+
+    console.log("JSON 업데이트 완료");
   } catch (error) {
     console.error(`[updateJSONFile] 실패: ${fullPath} `, error);
     throw error;
