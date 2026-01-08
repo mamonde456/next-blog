@@ -66,11 +66,11 @@ export const createdNotionPage = async (
       throw new Error(`createdNotionPage: [${id}]: 노션 페이지 읽어오기 실패`);
     const titles = notionPage.properties.이름.title;
     const title = titles[0] ? titles[0].plain_text : "제목없음";
-    updateJSONFile<CacheSlugMap>("/public/cache/slugMap.json", (data) => {
+    updateJSONFile<CacheSlugMap>("public/cache/slugMap.json", (data) => {
       const newSlugMap = { ...data, [toSlug(title)]: id };
       return newSlugMap;
     });
-    updateJSONFile<CacheMeta>("/public/cache/metaData.json", (data) => {
+    updateJSONFile<CacheMeta>("public/cache/metaData.json", (data) => {
       const meta = updateNotionMetaFormat(notionPage, 84000);
 
       const newMetaData = safeClone(data);
@@ -86,21 +86,21 @@ export const createdNotionPage = async (
 export const deletedNotionPage = (entity: IdAndType, timestamp: string) => {
   const { id } = entity;
   try {
-    updateJSONFile<CacheSlugMap>("/public/cache/slugMap.json", (data) => {
+    updateJSONFile<CacheSlugMap>("public/cache/slugMap.json", (data) => {
       const newSlugMap = { ...data };
       const key = findKeyByValue(id, data);
       if (!key || (key && !newSlugMap[key])) return newSlugMap;
       delete newSlugMap[key];
       return newSlugMap;
     });
-    updateJSONFile<CacheSlugMap>("/public/cache/metaData.json", (data) => {
+    updateJSONFile<CacheSlugMap>("public/cache/metaData.json", (data) => {
       const newMetaData = { ...data };
       if (!newMetaData[id]) return newMetaData;
       delete newMetaData[id];
       return newMetaData;
     });
 
-    const deleteMDX = deletedCacheData(`/public/cache/mdx/${id}.js`);
+    const deleteMDX = deletedCacheData(`public/cache/mdx/${id}.js`);
     successFailureLogRecorder([deleteMDX]);
   } catch (error) {
     console.error(error);
@@ -121,16 +121,22 @@ export const updatedNotionPage = async (
       throw new Error(`updatedNotionPage: [${id}]: 노션 페이지 읽어오기 실패`);
     const titles = notionPage.properties.이름.title;
     const title = titles[0] ? titles[0].plain_text : "제목없음";
-    updateJSONFile<CacheSlugMap>("/public/cache/slugMap.json", (data) => {
-      const newSlugMap = { ...data, [toSlug(title)]: id };
-      return newSlugMap;
-    });
-    updateJSONFile<CacheMeta>("/public/cache/metaData.json", (data) => {
-      const meta = updateNotionMetaFormat(notionPage, 84000);
+    const slug = toSlug(title);
 
-      const newMetaData = safeClone(data);
-      newMetaData[id] = meta;
-      return newMetaData;
+    console.log(`제목: ${title}`);
+    console.log(` 슬러그: ${slug}`);
+
+    updateJSONFile<CacheSlugMap>("public/cache/slugMap.json", (data) => {
+      console.log(`   기존 항목: ${Object.keys(data).length}개`);
+      const updated = { ...data, [slug]: id };
+      console.log(`   업데이트 후: ${Object.keys(updated).length}개`);
+      return updated;
+    });
+    updateJSONFile<CacheMeta>("public/cache/metaData.json", (data) => {
+      const meta = updateNotionMetaFormat(notionPage, 84000);
+      const updated = safeClone(data);
+      updated[id] = meta;
+      return updated;
     });
     const saveMdx = saveFile("public/cache/mdx", id + ".js", compiled);
     successFailureLogRecorder([saveMdx]);
