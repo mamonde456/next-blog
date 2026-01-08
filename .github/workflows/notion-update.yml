@@ -51,13 +51,24 @@ jobs:
       - name: Check for changes
         id: changes
         run: |
-          if [ -n "$(git status --porcelain)" ]; then
+          git add -A public/cache/
+
+          # 변경사항 확인
+          CHANGED_FILES=$(git diff --cached --name-only | wc -l)
+
+          if [ "$CHANGED_FILES" -gt 0 ]; then
             echo "has_changes=true" >> $GITHUB_OUTPUT
-            echo "Changes detected"
-            git status --short
+            echo "${CHANGED_FILES}개 파일 변경됨:"
+            git diff --cached --name-status
           else
             echo "has_changes=false" >> $GITHUB_OUTPUT
-            echo "No changes detected"
+            echo "⚠️ 변경사항 없음"
+            
+            # 실패 시 디버깅 정보
+            echo "::warning::캐시 생성되었지만 Git 변경사항 없음"
+            echo "현재 디렉토리: $(pwd)"
+            echo "캐시 파일들:"
+            ls -lh public/cache/*.js public/cache/*.json 2>/dev/null || echo "파일 없음"
           fi
 
       - name: Commit and push changes
