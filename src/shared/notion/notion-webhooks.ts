@@ -152,29 +152,46 @@ export const propertiesUpdatedNotionPage = async (
   data?: Data
 ) => {
   const { id } = entity;
-
-  if (data && data.updated_properties) {
-    if (data.updated_properties[0] !== "title") return;
-  }
-
-  const slugMap = getCacheData("/public/cache/slugMap.json");
-  const key = findKeyByValue(id, slugMap);
-  if (key) {
-    const newSlugMap = { ...slugMap };
-    delete newSlugMap[key];
-    // 웹훅에서 변경된 타이틀 이름 혹은 노션 페이지 검색을 통해 새로운 타이틀을 가져와서
-    // newSlugMap에 추가하여 saveFile 함수로 저장
-
-    // mdx 캐시 파일도 덮어씌워 변경함.
+  try {
     const notionPage = (await getNotionPage(id)) as NotionPage;
-    if (notionPage) {
-      const title =
-        notionPage.properties.이름.title[0].plain_text || "제목없음";
-      newSlugMap[title] = id;
-      saveFile("/public/cache", "slugMap.json", newSlugMap);
+    if (!notionPage) return console.error("노션 페이지를 찾을 수 없습니다.");
 
-      updatedNotionPage(entity, timestamp);
+    const title = notionPage.properties.이름.title[0].plain_text || "제목없음";
+    const slug = toSlug(title);
+
+    const cacheSlugMap = getCacheData("/public/cache/slugMap.json");
+    const key = findKeyByValue(id, cacheSlugMap);
+
+    if (data && data.updated_properties) {
+      if (data.updated_properties.includes("title")) {
+        // title 변경함.
+        updateJSONFile<CacheSlugMap>("public/cache/slugMap.json", (data) => {
+          console.log(`   기존 항목: ${Object.keys(data).length}개`);
+          const exists = Object.keys(data).includes(slug);
+          if (!exists || !key) {
+            const updated = { ...data, [slug]: id };
+            console.log(`   업데이트 후: ${Object.keys(updated).length}개`);
+            return updated;
+          }
+          const updated = safeClone(data);
+
+          delete updated[key];
+          updated.slug = id;
+
+          return updated;
+        });
+      }
+
+      updateJSONFile<CacheMeta>("public/cache/metaData.json", (data) => {
+        const meta = updateNotionMetaFormat(notionPage, 84000);
+        const updated = safeClone(data);
+        updated[id] = meta;
+        return updated;
+      });
     }
+  } catch (error) {
+    console.error(error);
+    throw new Error(`✅ propertiesUpdatedNotionPage: [${id}]: 업데이트 실패`);
   }
 };
 
@@ -218,7 +235,7 @@ export const isRelevantPropertyChanged = (webhook: NotionWebhooksPayload) => {
   const properties = webhook.data.updated_properties;
   if (properties) {
     const isUpdate = properties.includes(UPLOAD);
-    if (isUpdate) return true;
+    if (isUpdate) return "true";
     return false;
   }
   return false;
