@@ -166,7 +166,7 @@ export const propertiesUpdatedNotionPage = async (
           console.log(`   기존 항목: ${Object.keys(cache).length}개`);
           const key = findKeyByValue(id, cache);
           if (!key) {
-            const updated = { ...data, [slug]: id };
+            const updated = { ...cache, [slug]: id };
             console.log(`   업데이트 후: ${Object.keys(updated).length}개`);
             return updated;
           }
