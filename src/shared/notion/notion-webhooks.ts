@@ -159,27 +159,29 @@ export const propertiesUpdatedNotionPage = async (
     const title = notionPage.properties.이름.title[0].plain_text || "제목없음";
     const slug = toSlug(title);
 
-    const cacheSlugMap = getCacheData("/public/cache/slugMap.json");
-    const key = findKeyByValue(id, cacheSlugMap);
-
     if (data && data.updated_properties) {
       if (data.updated_properties.includes("title")) {
         // title 변경함.
-        updateJSONFile<CacheSlugMap>("public/cache/slugMap.json", (data) => {
-          console.log(`   기존 항목: ${Object.keys(data).length}개`);
-          const exists = Object.keys(data).includes(slug);
-          if (!exists || !key) {
+        updateJSONFile<CacheSlugMap>("public/cache/slugMap.json", (cache) => {
+          console.log(`   기존 항목: ${Object.keys(cache).length}개`);
+          const key = findKeyByValue(id, cache);
+          if (!key) {
             const updated = { ...data, [slug]: id };
             console.log(`   업데이트 후: ${Object.keys(updated).length}개`);
             return updated;
           }
+
           const updated = safeClone(data);
 
           delete updated[key];
-          updated.slug = id;
+          updated[slug] = id;
 
           return updated;
         });
+        console.log(`[${slug}]:id   제목 업데이트 완료.`);
+        if (data.updated_properties.length <= 1) {
+          return console.log(`업데이트 종료`);
+        }
       }
 
       updateJSONFile<CacheMeta>("public/cache/metaData.json", (data) => {
@@ -188,6 +190,8 @@ export const propertiesUpdatedNotionPage = async (
         updated[id] = meta;
         return updated;
       });
+      console.log(`[${id}]   메타 데이터 업데이트 완료.`);
+      console.log(`업데이트 종료`);
     }
   } catch (error) {
     console.error(error);
