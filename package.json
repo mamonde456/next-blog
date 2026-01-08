@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev -p 8080",
     "refresh-cache": "node --loader ts-node/esm --experimental-specifier-resolution=node -r ./tsconfig-paths-bootstrap.cjs scripts/refresh-cache.ts",
+    "generate-cache": "node --loader ts-node/esm --experimental-specifier-resolution=node -r ./tsconfig-paths-bootstrap.cjs scripts/generate-cache.ts",
     "auto-notion-update": "node --loader ts-node/esm --experimental-specifier-resolution=node -r ./tsconfig-paths-bootstrap.cjs scripts/check-and-create-cache-files.ts",
     "build": "next build",
     "analyze": "ANALYZE=true npm run build",
