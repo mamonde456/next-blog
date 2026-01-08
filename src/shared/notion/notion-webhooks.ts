@@ -180,6 +180,10 @@ export const propertiesUpdatedNotionPage = async (
 
           return updated;
         });
+        console.log(`[${slug}]:id   제목 업데이트 완료.`);
+        if (data.updated_properties.length <= 1) {
+          return console.log(`업데이트 종료`);
+        }
       }
 
       updateJSONFile<CacheMeta>("public/cache/metaData.json", (data) => {
@@ -188,6 +192,8 @@ export const propertiesUpdatedNotionPage = async (
         updated[id] = meta;
         return updated;
       });
+      console.log(`[${id}]   메타 데이터 업데이트 완료.`);
+      console.log(`업데이트 종료`);
     }
   } catch (error) {
     console.error(error);
