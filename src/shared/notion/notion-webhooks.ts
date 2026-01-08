@@ -252,28 +252,54 @@ export const isRelevantPropertyChanged = (webhook: NotionWebhooksPayload) => {
 };
 
 export const triggerGitHubAction = async (webhook: NotionWebhooksPayload) => {
-  const githubActionPayload = {
-    event_type: "notion-update",
-    client_payload: {
-      webhook,
+  if (!GITHUB_TOKEN) {
+    console.error("GITHUB_TOKEN이 설정되지 않았습니다.");
+    return;
+  }
+
+  if (!GITHUB_OWNER || !GITHUB_REPO) {
+    console.error("GITHUB_OWNER 또는 GITHUB_REPO가 설정되지 않았습니다.");
+    return;
+  }
+  const octokit = new Octokit({
+    auth: GITHUB_TOKEN,
+    log: {
+      debug: console.debug,
+      info: console.info,
+      warn: console.warn,
+      error: console.error,
     },
-  };
-  const octokit = new Octokit({ auth: GITHUB_TOKEN });
-  if (GITHUB_OWNER && GITHUB_REPO) {
-    try {
-      await octokit.repos.createDispatchEvent({
-        owner: GITHUB_OWNER ?? GITHUB_OWNER,
-        repo: GITHUB_REPO ?? GITHUB_REPO,
-        ...githubActionPayload,
-      });
-      return { status: true };
-    } catch (error) {
-      console.error("GitHub Actions 트리거 실패: ", error);
-      return {
-        status: false,
-        error: error instanceof Error ? error.message : String(error),
-      };
-    }
+  });
+
+  console.log("GitHub 설정:", {
+    token: GITHUB_TOKEN ? `${GITHUB_TOKEN.slice(0, 7)}...` : "MISSING",
+    owner: GITHUB_OWNER,
+    repo: GITHUB_REPO,
+  });
+
+  try {
+    console.log("GitHub Actions 트리거 시도:", {
+      owner: GITHUB_OWNER,
+      repo: GITHUB_REPO,
+      event_type: "notion-update",
+    });
+
+    const response = await octokit.repos.createDispatchEvent({
+      owner: GITHUB_OWNER ?? GITHUB_OWNER,
+      repo: GITHUB_REPO ?? GITHUB_REPO,
+      event_type: "notion-update",
+      client_payload: {
+        webhook,
+      },
+    });
+    console.log("트리거 성공", webhook);
+    return { status: true };
+  } catch (error) {
+    console.error("GitHub Actions 트리거 실패: ", error);
+    return {
+      status: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
   }
 };
 
