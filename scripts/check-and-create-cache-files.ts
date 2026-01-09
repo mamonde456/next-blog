@@ -33,7 +33,7 @@ async function main() {
     const slug = findKeyByValue(cacheId, cacheSlugMap);
     delete cacheMeta[cacheId];
     if (slug) delete cacheSlugMap[slug];
-    deletedCacheData(`/public/cache/mdx/${cacheId}.js`);
+    deletedCacheData(`public/cache/mdx/${cacheId}.js`);
   }
 
   const rebuildTargets = new Set<string>();
@@ -60,7 +60,7 @@ async function main() {
   for (const id of rebuildTargets) {
     const { compiled } = await compileMdx(id);
     if (!compiled) continue;
-    saveMDXComponent("public/cache", `${id}.js`, compiled);
+    saveMDXComponent("public/cache/mdx", `${id}.js`, compiled);
   }
 }
 
