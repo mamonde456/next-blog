@@ -32,6 +32,7 @@ jobs:
       - name: Refresh cache
         env:
           NOTION_TOKEN: ${{secrets.NOTION_TOKEN}}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
         run: npm run auto-notion-update
 
       - name: Get current timestamp
