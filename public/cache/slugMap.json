@@ -1,10 +1,2 @@
-{
-  "parent": {
-    "data_source_id": "1c7fc814-09e7-80c7-a574-000bb7267826",
-    "id": "1c7fc814-09e7-8008-9294-e21660202e96",
-    "type": "database"
-  },
-  "updated_properties": [
-    "title"
-  ]
-}
+{}
+

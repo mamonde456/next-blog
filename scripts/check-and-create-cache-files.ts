@@ -23,17 +23,30 @@ async function main() {
   let cacheMeta = getCacheData("/public/cache/metaData.json") ?? {};
   let cacheSlugMap = getCacheData("/public/cache/slugMap.json") ?? {};
 
-  const notionData = await getUploadDatabaseQuery(databaseId);
-  const notionList = (notionData?.results as NotionType[]) ?? [];
-  const notionIdSet = new Set(notionList.map((n) => n.id));
+  if (!databaseId) {
+    throw new Error("NOTION_DATABASE_ID is undefined");
+  }
 
-  // 노션 X -> 캐시 삭제
-  for (const cacheId of Object.keys(cacheMeta)) {
-    if (notionIdSet.has(cacheId)) continue;
-    const slug = findKeyByValue(cacheId, cacheSlugMap);
-    delete cacheMeta[cacheId];
-    if (slug) delete cacheSlugMap[slug];
-    deletedCacheData(`/public/cache/mdx/${cacheId}.js`);
+  const notionData = await getUploadDatabaseQuery(databaseId);
+
+  if (!notionData || !Array.isArray(notionData.results)) {
+    throw new Error("Failed to fetch Notion database");
+  }
+  const notionList = notionData.results as NotionType[];
+  if (notionList.length === 0) {
+    console.warn("노션 데이터베이스가 비어있습니다. 삭제 로직을 건너뜁니다.");
+  }
+  if (notionList.length > 0) {
+    const notionIdSet = new Set(notionList.map((n) => n.id));
+
+    // 노션 X -> 캐시 삭제
+    for (const cacheId of Object.keys(cacheMeta)) {
+      if (notionIdSet.has(cacheId)) continue;
+      const slug = findKeyByValue(cacheId, cacheSlugMap);
+      delete cacheMeta[cacheId];
+      if (slug) delete cacheSlugMap[slug];
+      deletedCacheData(`public/cache/mdx/${cacheId}.js`);
+    }
   }
 
   const rebuildTargets = new Set<string>();
@@ -60,7 +73,7 @@ async function main() {
   for (const id of rebuildTargets) {
     const { compiled } = await compileMdx(id);
     if (!compiled) continue;
-    saveMDXComponent("public/cache", `${id}.js`, compiled);
+    saveMDXComponent("public/cache/mdx", `${id}.js`, compiled);
   }
 }
 
