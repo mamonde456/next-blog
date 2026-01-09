@@ -53,6 +53,9 @@ async function main() {
   // 최초 생성
   for (const item of notionList) {
     const id = item.id;
+    const cacheIds = Object.values(cacheSlugMap);
+    const exists = cacheIds.some((id) => id === id);
+    if (exists) continue;
     const cache = cacheMeta[id] as Meta | undefined;
     if (!cache) {
       cacheMeta = { ...cacheMeta, ...buildMetaPatch(item, CACHE_TTL_SECONDS) };
