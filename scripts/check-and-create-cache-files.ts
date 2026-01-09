@@ -36,6 +36,9 @@ async function main() {
   if (notionList.length === 0) {
     console.warn("노션 데이터베이스가 비어있습니다. 삭제 로직을 건너뜁니다.");
   }
+
+  let metaDirty = false;
+
   if (notionList.length > 0) {
     const notionIdSet = new Set(notionList.map((n) => n.id));
 
@@ -46,32 +49,40 @@ async function main() {
       delete cacheMeta[cacheId];
       if (slug) delete cacheSlugMap[slug];
       deletedCacheData(`public/cache/mdx/${cacheId}.js`);
+      metaDirty = true;
     }
   }
 
   const rebuildTargets = new Set<string>();
+
   // 최초 생성
   for (const item of notionList) {
     const id = item.id;
-    const cacheIds = Object.values(cacheSlugMap);
-    const exists = cacheIds.some((id) => id === id);
-    if (exists) continue;
     const cache = cacheMeta[id] as Meta | undefined;
+
     if (!cache) {
       cacheMeta = { ...cacheMeta, ...buildMetaPatch(item, CACHE_TTL_SECONDS) };
       cacheSlugMap = { ...cacheSlugMap, ...buildSlugPatch(item) };
       rebuildTargets.add(id);
+      metaDirty = true;
       continue;
     }
     if (shouldRebuild(item, cache)) {
       cacheMeta = { ...cacheMeta, ...buildMetaPatch(item, CACHE_TTL_SECONDS) };
       cacheSlugMap = { ...cacheSlugMap, ...buildSlugPatch(item) };
       rebuildTargets.add(id);
+      metaDirty = true;
     }
   }
-  // 저장
-  saveFile("public/cache", "metaData.json", cacheMeta);
-  saveFile("public/cache", "slugMap.json", cacheSlugMap);
+  if (metaDirty) {
+    saveFile("public/cache", "metaData.json", cacheMeta);
+    saveFile("public/cache", "slugMap.json", cacheSlugMap);
+  }
+
+  if (rebuildTargets.size === 0) {
+    console.log("MDX 변경 없음");
+    return;
+  }
 
   for (const id of rebuildTargets) {
     const { compiled } = await compileMdx(id);
