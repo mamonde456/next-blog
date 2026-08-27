@@ -1,5 +1,6 @@
 import { createPage } from "@/features/builder/api/notion/cratePage";
 import { chunkText } from "./utils";
+import { VELOG_DATABASE_ID } from "const";
 
 type CreateVelogPostParams = {
   title: string;
@@ -7,7 +8,6 @@ type CreateVelogPostParams = {
   sourcePageId: string;
 };
 
-const VELOG_DATABASE_ID = process.env.NOTION_VELOG_DATABASE_ID;
 export const createVelogPost = async ({
   title,
   markdown,
