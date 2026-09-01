@@ -1,8 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import {
-  NotionWebhooksPayload,
-  triggerGitHubAction,
-} from "@/shared/notion/notion-webhooks.ts";
+import { NotionWebhooksPayload } from "@/shared/notion/notion-webhooks.ts";
+import { handleNotionPageUpdate } from "./notion/webhook/util";
+import { NOTION_DATABASE_ID } from "const";
 
 export default async function handler(
   req: NextApiRequest,
@@ -26,14 +25,22 @@ export default async function handler(
 
     // Normal webhook event
     const webhook: NotionWebhooksPayload = body;
-    const notionSignature = req.headers["x-notion-signature"];
-    console.log("[NOTION SIGNATURE]", notionSignature);
+    // const notionSignature = req.headers["x-notion-signature"];
+    // console.log("[NOTION SIGNATURE]", notionSignature);
+    const start = Date.now();
 
-    await triggerGitHubAction(webhook);
+    await handleNotionPageUpdate(webhook);
+
+    console.log("[WEBHOOK PROCESS TIME]", Date.now() - start, "ms");
+    // await triggerGitHubAction(webhook);
+    if (webhook.data?.parent?.id !== NOTION_DATABASE_ID) {
+      return;
+    }
+    await handleNotionPageUpdate(webhook);
 
     return res.status(200).json({ success: "Webhook processed successfully" });
   } catch (error) {
-    console.log("[NOTION WEBHOOK ERROR]", error);
+    // console.log("[NOTION WEBHOOK ERROR]", error);
     return res.status(500).json({ error: "Failed to process webhook" });
   }
 }
