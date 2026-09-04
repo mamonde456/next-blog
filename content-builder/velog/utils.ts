@@ -24,7 +24,6 @@ export const findVelogPost = async (sourcePageId: string) => {
       },
     },
   });
-  console.log("response ", response);
 
   return response.results[0];
 };
