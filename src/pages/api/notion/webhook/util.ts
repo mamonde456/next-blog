@@ -1,8 +1,7 @@
-import { getNotionPage } from "@/features/blog/api/notion";
 import { notion } from "@/lib/notion/client";
 import { NotionWebhooksPayload } from "@/shared/notion/notion-webhooks";
+import { isFullPage } from "@notionhq/client";
 import { buildVelogMarkdown } from "content-builder/velog/buildVelogMarkdown";
-import { createVelogPost } from "content-builder/velog/createVelogPost";
 import { syncVelogPost } from "content-builder/velog/syncVelogPost";
 import { findVelogPost } from "content-builder/velog/utils";
 
@@ -34,11 +33,19 @@ export async function handleNotionPageUpdate(webhook: NotionWebhooksPayload) {
     pageId,
     existingPageId: existingPage?.id,
   });
+
+  if (!isFullPage(page)) {
+    throw new Error("페이지의 전체 정보를 가져오지 못했습니다.");
+  }
+
   // 데이터베이스의 제목 속성 이름
   const titlePropertyName = "이름";
 
   const titleProperty = page.properties[titlePropertyName];
-  const title = titleProperty?.title?.[0]?.plain_text;
+  const title =
+    titleProperty?.type === "title"
+      ? titleProperty.title[0]?.plain_text
+      : undefined;
 
   if (!title) {
     console.error("제목을 찾을 수 없습니다.");
