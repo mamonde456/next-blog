@@ -25,16 +25,11 @@ export default async function handler(
 
     // Normal webhook event
     const webhook: NotionWebhooksPayload = body;
-    // const notionSignature = req.headers["x-notion-signature"];
-    // console.log("[NOTION SIGNATURE]", notionSignature);
-    const start = Date.now();
 
-    await handleNotionPageUpdate(webhook);
-
-    console.log("[WEBHOOK PROCESS TIME]", Date.now() - start, "ms");
-    // await triggerGitHubAction(webhook);
     if (webhook.data?.parent?.id !== NOTION_DATABASE_ID) {
-      return;
+      return res
+        .status(200)
+        .json({ success: "Webhook processed successfully" });
     }
     await handleNotionPageUpdate(webhook);
 
